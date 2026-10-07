@@ -1,0 +1,1045 @@
+/* Contacto radial: visual authority loaded after the shared legacy theme. */
+:root {
+    --contact-ink: #3e2332;
+    --contact-muted: #6e5261;
+    --contact-line: rgba(218,183,202,0.12);
+    --contact-line-strong: rgba(218,183,202,0.22);
+    --contact-yellow: #792452;
+    --contact-coral: #953368;
+    --contact-green: #691d46;
+    --contact-surface: #ffffff;
+}
+
+html,
+body.contact-v2[data-page="contact"] {
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+    background: #ffffff !important;
+}
+
+body.contact-v2[data-page="contact"] {
+    color: var(--contact-ink) !important;
+}
+
+body.contact-v2[data-page="contact"] .floating-whatsapp,
+body.contact-v2[data-page="contact"] .bg-animation,
+body.contact-v2[data-page="contact"] #particles-canvas {
+    display: none !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-page {
+    position: relative !important;
+    width: min(1280px, calc(100% - 64px)) !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 auto !important;
+    padding: 118px 0 84px !important;
+    display: block !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-page::before {
+    content: "" !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: -1 !important;
+    pointer-events: none !important;
+    background-color: #ffffff !important;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px) !important;
+    background-size: 58px 58px !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-page::after {
+    display: none !important;
+    content: none !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-stage {
+    position: relative !important;
+    min-height: 630px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, .88fr) minmax(520px, 1.12fr) !important;
+    align-items: center !important;
+    gap: clamp(44px, 7vw, 100px) !important;
+    padding: 32px 0 76px !important;
+    border-bottom: 1px solid var(--contact-line) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-stage::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 3% !important;
+    bottom: 12% !important;
+    left: 48.5% !important;
+    width: 1px !important;
+    background: var(--contact-line) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-stage-copy,
+body.contact-v2[data-page="contact"] .contact-clock-zone,
+body.contact-v2[data-page="contact"] .contact-connect,
+body.contact-v2[data-page="contact"] .contact-social-band {
+    min-width: 0 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-kicker {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    color: var(--contact-yellow) !important;
+    font-size: 11px !important;
+    font-weight: 850 !important;
+    line-height: 1.2 !important;
+    letter-spacing: .12em !important;
+    text-transform: uppercase !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-kicker i {
+    width: 28px !important;
+    height: 2px !important;
+    display: block !important;
+    background: var(--contact-coral) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-stage-copy h1 {
+    max-width: 100% !important;
+    margin: 18px 0 22px !important;
+    color: var(--contact-ink) !important;
+    font-size: clamp(60px, 7.2vw, 104px) !important;
+    font-weight: 900 !important;
+    line-height: .86 !important;
+    letter-spacing: 0 !important;
+    text-transform: uppercase !important;
+    overflow: visible !important;
+    -webkit-text-fill-color: currentColor !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-stage-copy h1 span {
+    color: var(--contact-coral) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-stage-copy > p {
+    max-width: 530px !important;
+    margin: 0 !important;
+    color: var(--contact-muted) !important;
+    font-size: clamp(16px, 1.4vw, 19px) !important;
+    line-height: 1.65 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-hero-actions {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 34px 0 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 20px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-hero-actions::before,
+body.contact-v2[data-page="contact"] .contact-hero-actions::after {
+    display: none !important;
+    content: none !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-hero-btn,
+body.contact-v2[data-page="contact"] .contact-secondary-btn {
+    min-height: 54px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 11px !important;
+    color: inherit !important;
+    font-size: 13px !important;
+    font-weight: 850 !important;
+    letter-spacing: 0 !important;
+    text-decoration: none !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-hero-btn {
+    padding: 0 24px !important;
+    border: 1px solid var(--contact-yellow) !important;
+    border-radius: 4px !important;
+    background: var(--contact-yellow) !important;
+    color: #792452 !important;
+    box-shadow: 8px 8px 0 rgba(90,36,65,0.15) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-hero-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-secondary-btn {
+    min-width: 0 !important;
+    padding: 0 2px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--contact-line-strong) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--contact-ink) !important;
+    box-shadow: none !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-hero-btn:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 10px 10px 0 rgba(90,36,65,0.15) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-secondary-btn:hover {
+    color: var(--contact-yellow) !important;
+    border-color: var(--contact-yellow) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-service-note {
+    margin-top: 42px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12px 22px !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-service-note span {
+    position: relative !important;
+    padding-left: 14px !important;
+    color: #6e5261 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: .03em !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-service-note span::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 0 !important;
+    width: 5px !important;
+    height: 5px !important;
+    border-radius: 50% !important;
+    background: var(--contact-green) !important;
+    transform: translateY(-50%) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-clock-zone {
+    display: grid !important;
+    grid-template-columns: minmax(320px, 1fr) 180px !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 14px 28px !important;
+    align-items: center !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-clock-heading {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 18px !important;
+    margin-bottom: -4px !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-section-index {
+    color: var(--contact-coral) !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-clock-heading h2,
+body.contact-v2[data-page="contact"] .contact-social-heading h2 {
+    margin: 6px 0 0 !important;
+    color: var(--contact-ink) !important;
+    font-size: clamp(28px, 3vw, 42px) !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-hours-timeline {
+    --clock-size: clamp(300px, 30vw, 390px);
+    --clock-radius: calc(var(--clock-size) * .43);
+    position: relative !important;
+    grid-column: 1 !important;
+    grid-row: 2 / span 2 !important;
+    width: var(--clock-size) !important;
+    height: var(--clock-size) !important;
+    min-height: 0 !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-hours-timeline::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 16% !important;
+    border: 1px solid var(--contact-line) !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    box-shadow: inset 0 0 60px rgba(90,36,65,0.15), 0 0 0 12px rgba(90,36,65,0.012) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-hours-timeline::after {
+    content: "" !important;
+    position: absolute !important;
+    inset: 7% !important;
+    border: 1px dashed rgba(218,183,202,0.08) !important;
+    border-radius: 50% !important;
+    animation: contact-ring-rotate 28s linear infinite !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-clock-ticks {
+    position: absolute !important;
+    inset: 0 !important;
+    border-radius: 50% !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-clock-tick {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 4px !important;
+    height: clamp(15px, 1.7vw, 22px) !important;
+    border-radius: 2px !important;
+    background: #f9eff4 !important;
+    opacity: .72 !important;
+    transform: translate(-50%, -50%) rotate(calc(var(--tick) * 6deg)) translateY(calc(var(--clock-radius) * -1)) !important;
+    transition: background-color .35s ease, opacity .35s ease, box-shadow .35s ease !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-clock-tick.is-active {
+    background: var(--contact-coral) !important;
+    opacity: 1 !important;
+    box-shadow: 0 0 10px rgba(90,36,65,0.15) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-clock-tick.is-sweep {
+    background: var(--contact-yellow) !important;
+    opacity: 1 !important;
+    box-shadow: 0 0 14px rgba(90,36,65,0.15) !important;
+    animation: contact-tick-pulse 1s ease-in-out infinite !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-clock-core {
+    position: relative !important;
+    z-index: 2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-status-pill {
+    width: auto !important;
+    min-width: 0 !important;
+    margin: 0 0 10px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--contact-coral) !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    line-height: 1.2 !important;
+    letter-spacing: .14em !important;
+    text-transform: uppercase !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-status-pill.is-open {
+    color: var(--contact-green) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-digital-clock,
+#contact-page #contact-live-clock {
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    color: var(--contact-ink) !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+    font-size: clamp(48px, 5vw, 70px) !important;
+    font-weight: 500 !important;
+    line-height: .95 !important;
+    letter-spacing: 0 !important;
+    font-variant-numeric: tabular-nums !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-clock-char,
+body.contact-v2[data-page="contact"] .contact-clock-separator {
+    display: inline-block !important;
+    min-width: .62em !important;
+    text-align: center !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-clock-separator {
+    min-width: .3em !important;
+    color: var(--contact-yellow) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-clock-char.is-changing {
+    animation: contact-digit-in .45s cubic-bezier(.2, .8, .2, 1) !important;
+}
+
+body.contact-v2[data-page="contact"] #contact-clock-city {
+    margin-top: 10px !important;
+    color: #6e5261 !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: .11em !important;
+    text-transform: uppercase !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-schedule-summary {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    padding: 6px 0 24px !important;
+    border-bottom: 1px solid var(--contact-line) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-schedule-summary > div {
+    display: grid !important;
+    gap: 4px !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-schedule-summary span,
+body.contact-v2[data-page="contact"] .contact-week-copy span {
+    color: #6e5261 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: .1em !important;
+    text-transform: uppercase !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-schedule-summary strong,
+body.contact-v2[data-page="contact"] .contact-week-copy strong {
+    color: var(--contact-ink) !important;
+    font-size: 14px !important;
+    line-height: 1.3 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-schedule-summary i {
+    width: 32px !important;
+    height: 1px !important;
+    background: var(--contact-coral) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-week-copy {
+    grid-column: 2 !important;
+    grid-row: 3 !important;
+    display: grid !important;
+    gap: 6px !important;
+    align-self: end !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-week {
+    grid-column: 1 / -1 !important;
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    margin-top: 4px !important;
+    border-top: 1px solid var(--contact-line) !important;
+    border-bottom: 1px solid var(--contact-line) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-day {
+    position: relative !important;
+    min-width: 0 !important;
+    min-height: 58px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-right: 1px solid var(--contact-line) !important;
+    color: #6e5261 !important;
+    font-size: 10px !important;
+    font-weight: 850 !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-day:last-child {
+    border-right: 0 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-day.is-service-day {
+    color: #3e2332 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-day.is-service-day::after {
+    content: "" !important;
+    position: absolute !important;
+    bottom: 9px !important;
+    width: 4px !important;
+    height: 4px !important;
+    border-radius: 50% !important;
+    background: var(--contact-yellow) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-day.is-today {
+    background: var(--contact-ink) !important;
+    color: #3e2332 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-day.is-today::before {
+    content: "HOY" !important;
+    position: absolute !important;
+    top: 7px !important;
+    color: var(--contact-coral) !important;
+    font-size: 7px !important;
+    font-weight: 950 !important;
+    letter-spacing: .08em !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-connect {
+    padding: 74px 0 !important;
+    display: grid !important;
+    grid-template-columns: 180px minmax(0, 1fr) !important;
+    gap: 48px !important;
+    border-bottom: 1px solid var(--contact-line) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-connect-heading,
+body.contact-v2[data-page="contact"] .contact-social-heading {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 18px !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-connect-main {
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr) !important;
+    gap: clamp(34px, 6vw, 80px) !important;
+    align-items: end !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-connect-main h2 {
+    margin: 0 0 10px !important;
+    color: var(--contact-ink) !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+    font-size: clamp(32px, 4.2vw, 58px) !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    white-space: nowrap !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-connect-main p {
+    max-width: 540px !important;
+    margin: 0 !important;
+    color: var(--contact-muted) !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-action-row {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-action {
+    min-height: 52px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--contact-line) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--contact-ink) !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-action:first-child {
+    border-top: 1px solid var(--contact-line) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-action:hover {
+    padding-left: 12px !important;
+    color: var(--contact-yellow) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-social-band {
+    padding: 72px 0 18px !important;
+    display: grid !important;
+    grid-template-columns: minmax(260px, .8fr) minmax(0, 1.2fr) !important;
+    gap: clamp(48px, 8vw, 112px) !important;
+    align-items: end !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-social-links {
+    width: 100% !important;
+    margin: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    border-top: 1px solid var(--contact-line) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-social-link {
+    width: auto !important;
+    min-height: 92px !important;
+    padding: 16px 18px !important;
+    display: grid !important;
+    grid-template-columns: 34px 1fr auto !important;
+    align-items: center !important;
+    gap: 12px !important;
+    border: 0 !important;
+    border-right: 1px solid var(--contact-line) !important;
+    border-bottom: 1px solid var(--contact-line) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--contact-ink) !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+    transition: color .25s ease, background-color .25s ease !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-social-link:last-child {
+    border-right: 0 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-social-link:hover {
+    background: var(--contact-ink) !important;
+    color: #3e2332 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-social-icon {
+    width: 34px !important;
+    height: 34px !important;
+    display: grid !important;
+    place-items: center !important;
+    border: 1px solid var(--contact-line-strong) !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    color: var(--contact-yellow) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-social-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+    fill: currentColor !important;
+    stroke: currentColor !important;
+    stroke-width: 1.5 !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-social-link:hover .contact-social-icon {
+    border-color: #dab7ca !important;
+    color: var(--contact-coral) !important;
+}
+
+@keyframes contact-ring-rotate {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes contact-tick-pulse {
+    50% { opacity: .45; }
+}
+
+@keyframes contact-digit-in {
+    from { opacity: .25; transform: translateY(-7px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1100px) {
+    body.contact-v2[data-page="contact"] .contact-page {
+        width: min(900px, calc(100% - 42px)) !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-stage {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 62px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-stage::before {
+        display: none !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-stage-copy {
+        max-width: 700px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-clock-zone {
+        grid-template-columns: minmax(340px, 1fr) 220px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-connect {
+        grid-template-columns: 140px minmax(0, 1fr) !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-connect-main {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}
+
+@media (max-width: 700px) {
+    body.contact-v2[data-page="contact"] .contact-page {
+        width: min(100% - 28px, 520px) !important;
+        padding: 92px 0 54px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-stage {
+        min-height: 0 !important;
+        gap: 54px !important;
+        padding: 30px 0 54px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-stage-copy h1 {
+        margin: 15px 0 18px !important;
+        font-size: clamp(44px, 14vw, 56px) !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-stage-copy > p {
+        font-size: 15px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-hero-actions {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-hero-btn,
+    body.contact-v2[data-page="contact"] .contact-secondary-btn {
+        width: 100% !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-secondary-btn {
+        border: 1px solid var(--contact-line) !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-service-note {
+        margin-top: 28px !important;
+        display: grid !important;
+        gap: 9px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-clock-zone {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: auto auto auto auto auto !important;
+        gap: 18px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-clock-heading {
+        grid-column: 1 !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-clock-heading h2,
+    body.contact-v2[data-page="contact"] .contact-social-heading h2 {
+        font-size: 28px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-hours-timeline {
+        --clock-size: min(86vw, 350px);
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-schedule-summary {
+        grid-column: 1 !important;
+        grid-row: 3 !important;
+        grid-template-columns: 1fr auto 1fr !important;
+        align-items: center !important;
+        padding: 0 0 18px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-schedule-summary > div:last-child {
+        text-align: right !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-week-copy {
+        grid-column: 1 !important;
+        grid-row: 4 !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-week {
+        grid-column: 1 !important;
+        grid-row: 5 !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-day {
+        min-height: 54px !important;
+        font-size: 9px !important;
+        letter-spacing: 0 !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-connect {
+        padding: 52px 0 !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 28px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-connect-main h2 {
+        font-size: clamp(28px, 8.5vw, 38px) !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-social-band {
+        padding: 52px 0 0 !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 30px !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-social-links {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    body.contact-v2[data-page="contact"] .contact-social-link,
+    body.contact-v2[data-page="contact"] .contact-social-link:last-child {
+        min-height: 68px !important;
+        border-right: 0 !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.contact-v2[data-page="contact"] .contact-hours-timeline::after,
+    body.contact-v2[data-page="contact"] .contact-clock-tick.is-sweep,
+    body.contact-v2[data-page="contact"] .contact-clock-char.is-changing {
+        animation: none !important;
+    }
+}
+
+/* -----------------------------------------------------------
+   Original Store CONTACT — PURPLE VISUAL UPGRADE
+   Overrides applied after base styles for a richer look.
+----------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* -- Custom purple tokens ----------------------------------- */
+body.contact-v2[data-page="contact"] {
+    --cp: #953368;
+    --cp-soft: rgba(149,51,104,0.18);
+    --cp-glow: rgba(149,51,104,0.35);
+    --cm: #953368;
+    --cg: #691d46;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
+}
+
+/* -- Animated background orb -------------------------------- */
+body.contact-v2[data-page="contact"] .contact-page::before {
+    background-color: #ffffff !important;
+    background-image:
+        radial-gradient(ellipse 60% 50% at 72% 18%, rgba(251,230,242,0.09) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 35% at 20% 80%, rgba(251,230,242,0.07) 0%, transparent 60%),
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px) !important;
+    background-size: auto, auto, 58px 58px, 58px 58px !important;
+}
+
+/* -- Purple accents ----------------------------------------- */
+body.contact-v2[data-page="contact"] .contact-kicker { color: var(--cp) !important; }
+body.contact-v2[data-page="contact"] .contact-kicker i { background: var(--cp) !important; }
+body.contact-v2[data-page="contact"] .contact-stage-copy h1 span { color: var(--cp) !important; }
+body.contact-v2[data-page="contact"] .contact-section-index { color: var(--cp) !important; }
+
+/* -- Hero buttons ------------------------------------------- */
+body.contact-v2[data-page="contact"] .contact-hero-btn {
+    padding: 0 28px !important;
+    border: 1.5px solid var(--cp) !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #fbe6f2, #fbe6f2) !important;
+    color: #3e2332 !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    letter-spacing: .04em !important;
+    box-shadow: 0 8px 32px rgba(90,36,65,0.15) !important;
+    transition: transform .2s ease, box-shadow .2s ease !important;
+}
+body.contact-v2[data-page="contact"] .contact-hero-btn:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 0 0 6px rgba(90,36,65,0.15), 0 16px 48px rgba(90,36,65,0.15) !important;
+}
+
+body.contact-v2[data-page="contact"] .contact-secondary-btn {
+    padding: 0 6px !important;
+    border: 0 !important;
+    border-bottom: 1.5px solid rgba(230,185,211,0.4) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: rgba(62,35,50,0.75) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    transition: color .2s, border-color .2s !important;
+}
+body.contact-v2[data-page="contact"] .contact-secondary-btn:hover {
+    color: #953368 !important;
+    border-color: #e6b9d3 !important;
+}
+
+/* -- Service note dots -------------------------------------- */
+body.contact-v2[data-page="contact"] .contact-service-note span::before {
+    background: var(--cp) !important;
+    box-shadow: 0 0 6px rgba(90,36,65,0.15) !important;
+}
+
+/* -- CLOCK PURPLE REDESIGN -------------------------------- */
+body.contact-v2[data-page="contact"] .contact-hours-timeline::before {
+    inset: 14% !important;
+    border: 1.5px solid rgba(230,185,211,0.25) !important;
+    background: #ffffff !important;
+    box-shadow: inset 0 0 60px rgba(90,36,65,0.15), 0 0 40px rgba(90,36,65,0.08) !important;
+}
+
+/* Spinning arc */
+body.contact-v2[data-page="contact"] .contact-hours-timeline::after {
+    inset: 3% !important;
+    border: none !important;
+    border-radius: 50% !important;
+    background: conic-gradient(
+        from var(--cr,0deg),
+        transparent 0deg,
+        rgba(251,230,242,0) 50deg,
+        rgba(251,230,242,0.85) 80deg,
+        rgba(251,230,242,0.95) 95deg,
+        rgba(251,230,242,0) 130deg,
+        transparent 360deg
+    ) !important;
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #fff calc(100% - 2px)) !important;
+    mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #fff calc(100% - 2px)) !important;
+    animation: cpArcSpin 4s linear infinite !important;
+}
+
+@property --cr { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@keyframes cpArcSpin { from { --cr: 0deg; } to { --cr: 360deg; } }
+
+/* Ticks */
+body.contact-v2[data-page="contact"] .contact-clock-tick { background: rgba(255,255,255,0.12) !important; opacity: 1 !important; }
+body.contact-v2[data-page="contact"] .contact-clock-tick.is-active { background: #fbe6f2 !important; box-shadow: 0 0 10px rgba(90,36,65,0.15) !important; }
+body.contact-v2[data-page="contact"] .contact-clock-tick.is-sweep {
+    background: #fbe6f2 !important;
+    box-shadow: 0 0 18px rgba(90,36,65,0.15) !important;
+    animation: cpTickPulse .9s ease-in-out infinite !important;
+}
+@keyframes cpTickPulse {
+    0%,100% { opacity: 1; box-shadow: 0 0 14px rgba(90,36,65,0.15); }
+    50%      { opacity: .5; box-shadow: 0 0 5px rgba(90,36,65,0.15); }
+}
+
+/* Clock digits */
+body.contact-v2[data-page="contact"] .contact-digital-clock,
+#contact-page #contact-live-clock {
+    font-size: clamp(52px, 5.5vw, 76px) !important;
+    font-weight: 600 !important;
+    color: #3e2332 !important;
+    text-shadow: 0 0 40px rgba(90,36,65,0.15) !important;
+    letter-spacing: -.02em !important;
+}
+body.contact-v2[data-page="contact"] .contact-clock-separator {
+    color: #953368 !important;
+    text-shadow: 0 0 20px rgba(90,36,65,0.15) !important;
+    animation: cpColonBlink 1s step-end infinite !important;
+}
+@keyframes cpColonBlink { 0%,100% { opacity: 1; } 50% { opacity: .2; } }
+
+/* Status pill */
+body.contact-v2[data-page="contact"] .contact-status-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 4px 12px !important;
+    border-radius: 99px !important;
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(218,183,202,0.1) !important;
+    color: rgba(62,35,50,0.5) !important;
+    font-size: 9.5px !important;
+    margin-bottom: 12px !important;
+}
+body.contact-v2[data-page="contact"] .contact-status-pill::before {
+    content: '' !important;
+    display: block !important; width: 6px !important; height: 6px !important;
+    border-radius: 50% !important; background: rgba(255,255,255,0.3) !important; flex-shrink: 0 !important;
+}
+body.contact-v2[data-page="contact"] .contact-status-pill.is-open {
+    background: rgba(243,223,234,0.1) !important;
+    border-color: rgba(218,183,202,0.3) !important;
+    color: #691d46 !important;
+}
+body.contact-v2[data-page="contact"] .contact-status-pill.is-open::before {
+    background: #f3dfea !important;
+    box-shadow: 0 0 8px rgba(90,36,65,0.15) !important;
+    animation: cpDotPulse 1.6s ease-in-out infinite !important;
+}
+@keyframes cpDotPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.7); opacity: .4; } }
+
+body.contact-v2[data-page="contact"] #contact-clock-city {
+    color: rgba(149,51,104,0.55) !important;
+    font-size: 9px !important; font-weight: 600 !important; margin-top: 12px !important;
+}
+
+/* -- Phone number gradient ---------------------------------- */
+body.contact-v2[data-page="contact"] .contact-connect-main h2 {
+    background: linear-gradient(135deg, #ffffff 0%, rgba(251,230,242,0.85) 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+/* -- Action links ------------------------------------------- */
+body.contact-v2[data-page="contact"] .contact-action {
+    padding: 18px 4px !important;
+    border-color: rgba(230,185,211,0.14) !important;
+    color: rgba(62,35,50,0.8) !important;
+    font-size: 13px !important; font-weight: 600 !important;
+    transition: color .2s, padding-left .2s, border-color .2s !important;
+}
+body.contact-v2[data-page="contact"] .contact-action:hover {
+    padding-left: 14px !important; color: #953368 !important; border-color: rgba(230,185,211,0.35) !important;
+}
+
+/* -- Social links ------------------------------------------- */
+body.contact-v2[data-page="contact"] .contact-social-links { border-top-color: rgba(230,185,211,0.15) !important; }
+body.contact-v2[data-page="contact"] .contact-social-link {
+    border-right-color: rgba(230,185,211,0.12) !important;
+    border-bottom-color: rgba(230,185,211,0.12) !important;
+    transition: background .25s, color .25s !important;
+}
+body.contact-v2[data-page="contact"] .contact-social-link:hover {
+    background: rgba(251,230,242,0.08) !important;
+    color: #953368 !important;
+}
+body.contact-v2[data-page="contact"] .contact-social-icon { border-color: rgba(230,185,211,0.3) !important; color: #953368 !important; }
+body.contact-v2[data-page="contact"] .contact-social-link:hover .contact-social-icon {
+    background: rgba(251,230,242,0.18) !important; border-color: #e6b9d3 !important; color: #3e2332 !important;
+}
+
+/* -- Scroll reveal ------------------------------------------ */
+body.contact-v2[data-page="contact"] .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity .7s cubic-bezier(.4,0,.2,1), transform .7s cubic-bezier(.4,0,.2,1) !important;
+}
+body.contact-v2[data-page="contact"] .reveal.is-visible {
+    opacity: 1 !important; transform: translateY(0) !important;
+}

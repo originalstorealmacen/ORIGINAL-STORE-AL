@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Cat&aacute;logo Mayorista - Original Store</title>
+    <meta name="description" content="Cat&aacute;logo mayorista Original Store. Acceso exclusivo para clientes mayoristas.">
+    <link rel="icon" type="image/png" href="/original-store-logo-color.png">
+    <link rel="apple-touch-icon" href="/original-store-logo-color.png">
+    <meta property="og:title" content="Cat&aacute;logo Mayorista - Original Store">
+    <meta property="og:description" content="Cat&aacute;logo mayorista Original Store. Acceso exclusivo para clientes mayoristas.">
+    <meta property="og:image" content="https://blyxu.online/original-store-logo-color.png">
+    <meta property="og:url" content="https://blyxu.online/mayorista.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://drive.google.com">
+    <link rel="preconnect" href="https://lh3.googleusercontent.com">
+    <link rel="preload" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006" as="style">
+    <link rel="preload" href="blyxu-app.js?v=original-store-inventory-sync-20261007" as="script">
+    <link rel="stylesheet" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006" data-blyxu-main-style="1">
+    <script src="wholesale-session.js?v=wholesale-renewal-ampm-20261007"></script>
+    <style>
+        .wholesale-session-clock {display:block;width:fit-content;max-width:100%;box-sizing:border-box;margin:0 0 16px;padding:9px 12px;border:1px solid #dab7ca;border-radius:6px;color:#3e2332;background:#ffffff;font-size:11px;line-height:1.6;white-space:pre-line;}
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        /* ── GATE ─────────────────────────────────────────── */
+        body.wholesale-gated:not(.wholesale-unlocked) {
+            min-height: 100vh;
+            overflow: hidden;
+            background: #ffffff !important;
+        }
+
+        body.wholesale-gated:not(.wholesale-unlocked) .navbar,
+        body.wholesale-gated:not(.wholesale-unlocked) .collection-section,
+        body.wholesale-gated:not(.wholesale-unlocked) .footer,
+        body.wholesale-gated:not(.wholesale-unlocked) .cart-overlay,
+        body.wholesale-gated:not(.wholesale-unlocked) .cart-sidebar,
+        body.wholesale-gated:not(.wholesale-unlocked) .brand-loader {
+            display: none !important;
+        }
+
+        /* ── SCREEN ───────────────────────────────────────── */
+        #mayorista-login-screen {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 99999 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 20px !important;
+            background: #ffffff !important;
+            font-family: 'Outfit', 'Avenir Next', 'Century Gothic', sans-serif !important;
+        }
+
+        body.wholesale-unlocked #mayorista-login-screen {
+            display: none !important;
+        }
+
+        /* ── CARD ─────────────────────────────────────────── */
+        .mayorista-login-card {
+            width: min(360px, 100%) !important;
+            padding: 0 !important;
+            border: 1px solid rgba(218,183,202,0.07) !important;
+            border-radius: 24px !important;
+            background: #ffffff !important;
+            box-shadow:
+                0 0 0 1px rgba(90,36,65,0.04),
+                0 40px 100px rgba(90,36,65,0.15),
+                0 8px 32px rgba(90,36,65,0.15) !important;
+            text-align: center !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        /* Top pill / drag handle */
+        .ml-pill {
+            display: block;
+            width: 36px;
+            height: 4px;
+            border-radius: 99px;
+            background: rgba(255,255,255,0.12);
+            margin: 14px auto 0;
+        }
+
+        /* ── CARD INNER PADDING ───────────────────────────── */
+        .ml-inner {
+            padding: 24px 28px 30px;
+        }
+
+        /* ── LOGO ─────────────────────────────────────────── */
+        .mayorista-login-logo {
+            display: block !important;
+            width: 52px !important;
+            height: auto !important;
+            object-fit: contain !important;
+            margin: 0 auto 18px !important;
+            opacity: .72 !important;
+        }
+
+        /* ── TEXT ─────────────────────────────────────────── */
+        .mayorista-login-kicker {
+            display: block;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: rgba(62,35,50,0.38);
+            margin: 0 0 10px;
+        }
+
+        #mayorista-login-title {
+            margin: 0 0 6px !important;
+            font-size: 22px !important;
+            font-weight: 700 !important;
+            color: #3e2332 !important;
+            letter-spacing: -.01em !important;
+            line-height: 1.15 !important;
+        }
+
+        .ml-subtitle {
+            font-size: 13px;
+            color: rgba(62,35,50,0.38);
+            font-weight: 400;
+            margin: 0 0 32px;
+            line-height: 1.5;
+        }
+
+        /* ── VAULT (hidden, kept for JS compat) ───────────── */
+        .blyxu-vault { display: none !important; }
+
+        /* ── PIN ROW ──────────────────────────────────────── */
+        .pin-entry-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 0 0 28px;
+        }
+
+        /* Wrapper enables the border-glow pseudo-element */
+        .pin-wrap {
+            position: relative;
+            border-radius: 18px;
+            padding: 2px;                   /* space for the glow border */
+            background: rgba(255,255,255,.05);
+            transition: background .2s;
+        }
+
+        /* The spinning conic-gradient light that traces the border */
+        .pin-wrap::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 20px;
+            background: conic-gradient(
+                from var(--a, 0deg),
+                transparent 0deg,
+                rgba(255,255,255,0) 60deg,
+                rgba(255,255,255,0.9) 90deg,
+                rgba(251,230,242,0.7) 110deg,
+                rgba(255,255,255,0) 140deg,
+                transparent 360deg
+            );
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            padding: 2px;
+            opacity: 0;
+            transition: opacity .25s ease;
+        }
+
+        /* Spin only when the box inside is focused */
+        .pin-wrap:has(.pin-digit:focus)::before {
+            opacity: 1;
+            animation: borderSpin 1.6s linear infinite;
+        }
+
+        /* Also show glow when filled (static, no spin) */
+        .pin-wrap:has(.pin-digit.filled)::before {
+            opacity: .35;
+            background: conic-gradient(
+                from 45deg,
+                rgba(255,255,255,0.6) 0deg,
+                rgba(251,230,242,0.4) 90deg,
+                rgba(255,255,255,0.6) 180deg,
+                rgba(251,230,242,0.4) 270deg,
+                rgba(255,255,255,0.6) 360deg
+            );
+            animation: none;
+        }
+
+        .pin-digit {
+            position: relative;
+            width: 70px;
+            height: 78px;
+            border-radius: 16px;
+            border: none;
+            /* Inset 3-D dark surface */
+            background: #1e1e24;
+            box-shadow:
+                inset 0 2px 4px rgba(90,36,65,0.15),
+                inset 0 -1px 0 rgba(90,36,65,0.04);
+            color: #3e2332;
+            font-size: 30px;
+            font-weight: 700;
+            font-family: 'Outfit', 'Avenir Next', 'Century Gothic', sans-serif;
+            text-align: center;
+            outline: none;
+            caret-color: transparent;
+            -webkit-appearance: none;
+            display: block;
+            transition: background .2s, color .2s, transform .18s cubic-bezier(.4,0,.2,1);
+        }
+
+        /* Focused box lifts slightly */
+        .pin-digit:focus {
+            background: #f9eff4;
+            transform: translateY(-2px);
+        }
+
+        /* Filled box */
+        .pin-digit.filled {
+            background: #f9eff4;
+            color: #3e2332;
+        }
+
+        /* Fan animation when typing */
+        .pin-digit.fan-in {
+            animation: pinFanIn .22s cubic-bezier(.34,1.4,.64,1) both;
+        }
+
+        /* Error shake */
+        .pin-digit.denied {
+            background: rgba(251,230,242,0.12) !important;
+            animation: pinShake .38s cubic-bezier(.4,0,.2,1) !important;
+        }
+        .pin-wrap:has(.pin-digit.denied)::before {
+            opacity: 1 !important;
+            animation: none !important;
+            background: conic-gradient(
+                from 0deg,
+                rgba(251,230,242,0.9) 0deg,
+                rgba(251,230,242,0.4) 90deg,
+                rgba(251,230,242,0.9) 180deg,
+                rgba(251,230,242,0.4) 270deg,
+                rgba(251,230,242,0.9) 360deg
+            ) !important;
+        }
+
+        /* Success state */
+        .pin-digit.success-digit {
+            background: rgba(243,223,234,0.1) !important;
+            color: #691d46 !important;
+            transform: scale(.94) !important;
+            transition: all .3s ease !important;
+        }
+        .pin-wrap:has(.pin-digit.success-digit)::before {
+            opacity: 1 !important;
+            animation: none !important;
+            background: conic-gradient(
+                from 0deg,
+                rgba(243,223,234,0.9) 0deg,
+                rgba(243,223,234,0.4) 90deg,
+                rgba(243,223,234,0.9) 180deg,
+                rgba(243,223,234,0.4) 270deg,
+                rgba(243,223,234,0.9) 360deg
+            ) !important;
+        }
+
+        /* ── FORM / BUTTON ────────────────────────────────── */
+        .mayorista-login-form {
+            display: grid !important;
+            gap: 0 !important;
+        }
+
+        #mayorista-access-key {
+            position: absolute !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            width: 1px !important;
+            height: 1px !important;
+        }
+
+        .mayorista-login-button {
+            width: 100% !important;
+            height: 50px !important;
+            border: 1.5px solid rgba(218,183,202,0.1) !important;
+            border-radius: 14px !important;
+            background: rgba(255,255,255,0.06) !important;
+            color: rgba(62,35,50,0.8) !important;
+            font-family: 'Outfit', 'Avenir Next', 'Century Gothic', sans-serif !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            letter-spacing: .04em !important;
+            cursor: pointer !important;
+            transition: background .2s, border-color .2s, color .2s !important;
+        }
+
+        .mayorista-login-button:hover {
+            background: rgba(255,255,255,0.1) !important;
+            border-color: rgba(218,183,202,0.18) !important;
+            color: #3e2332 !important;
+        }
+
+        .mayorista-login-button:disabled {
+            opacity: 0.4 !important;
+            cursor: wait !important;
+        }
+
+        /* ── ERROR ────────────────────────────────────────── */
+        .mayorista-login-error {
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            color: rgba(62,35,50,0.85) !important;
+            min-height: 16px !important;
+            margin: 0 0 16px !important;
+            visibility: hidden !important;
+            letter-spacing: .01em !important;
+        }
+
+        .mayorista-login-error.show {
+            visibility: visible !important;
+        }
+
+        /* ── BACK LINK ────────────────────────────────────── */
+        .mayorista-login-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 20px;
+            color: rgba(62,35,50,0.28);
+            font-size: 11.5px;
+            font-weight: 400;
+            text-decoration: none;
+            letter-spacing: .01em;
+            transition: color .18s;
+        }
+
+        .mayorista-login-back:hover { color: rgba(62,35,50,0.6); }
+
+        /* ── SUCCESS SCREEN (replaces card) ───────────────── */
+        #mayorista-success-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+        }
+
+        #mayorista-success-overlay.active {
+            display: flex;
+            animation: scrnFadeIn .35s ease both;
+        }
+
+        /* Success card — same style as login card */
+        .ml-success-card {
+            width: min(360px, calc(100% - 40px));
+            border: 1px solid rgba(218,183,202,0.07);
+            border-radius: 24px;
+            background: #ffffff;
+            box-shadow:
+                0 0 0 1px rgba(90,36,65,0.04),
+                0 40px 100px rgba(90,36,65,0.15);
+            overflow: hidden;
+            animation: cardPopIn .45s cubic-bezier(.34,1.3,.64,1) .05s both;
+        }
+
+        .ml-success-inner {
+            padding: 20px 28px 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+
+        /* Glowing rounded-square checkmark (exact reference style) */
+        .ml-check-box {
+            width: 72px;
+            height: 72px;
+            border-radius: 20px;
+            border: 1.5px solid rgba(218,183,202,0.45);
+            background:
+                linear-gradient(160deg, rgba(243,223,234,0.16), rgba(243,223,234,0.06));
+            box-shadow:
+                0 0 0 8px rgba(90,36,65,0.06),
+                0 0 40px rgba(90,36,65,0.15),
+                inset 0 1px 0 rgba(90,36,65,0.15);
+            display: grid;
+            place-items: center;
+            margin: 28px 0 24px;
+            animation: checkBoxPop .5s cubic-bezier(.34,1.4,.64,1) .15s both;
+        }
+
+        .ml-check-box svg {
+            width: 32px;
+            height: 32px;
+            stroke: #691d46;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .ml-check-box svg path {
+            stroke-dasharray: 40;
+            stroke-dashoffset: 40;
+            animation: drawCheck .4s ease .45s forwards;
+        }
+
+        .ml-success-title {
+            font-family: 'Outfit', 'Avenir Next', 'Century Gothic', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #691d46;
+            letter-spacing: -.01em;
+            margin: 0 0 8px;
+            animation: fadeSlideUp .4s ease .3s both;
+        }
+
+        .ml-success-sub {
+            font-size: 13px;
+            color: rgba(62,35,50,0.36);
+            font-weight: 400;
+            animation: fadeSlideUp .4s ease .4s both;
+        }
+
+        /* ── KEYFRAMES ────────────────────────────────────── */
+        @keyframes pinFanIn {
+            from { opacity: 0; transform: translateY(8px) scale(.92); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes pinShake {
+            0%,100% { transform: translateX(0); }
+            20%  { transform: translateX(-6px); }
+            40%  { transform: translateX(5px); }
+            60%  { transform: translateX(-4px); }
+            80%  { transform: translateX(3px); }
+        }
+        @keyframes borderSpin {
+            from { --a: 0deg; }
+            to   { --a: 360deg; }
+        }
+        @property --a {
+            syntax: '<angle>';
+            inherits: false;
+            initial-value: 0deg;
+        }
+        @keyframes scrnFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes cardPopIn {
+            from { opacity: 0; transform: scale(.92) translateY(16px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes checkBoxPop {
+            from { opacity: 0; transform: scale(.6); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes drawCheck {
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <link rel="stylesheet" href="catalog-minimal-dark.css?v=blyxu-gray-aligned-20261006">
+    <link rel="stylesheet" href="storefront-refinement.css?v=nav-spacing-20261006-2">
+    <link rel="stylesheet" href="original-store-theme.css?v=20261007-22">
+    <script src="original-store-navigation.js?v=20261007-1" defer></script>
+</head>
+
+<body data-catalog-mode="wholesale" class="wholesale-gated">
+
+    <nav class="navbar scrolled" id="navbar">
+        <a href="index.html" class="nav-logo">
+            <img src="original-store-logo-color.png" alt="Original Store" onerror="this.style.display='none'">
+        </a>
+
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="index.html#coleccion">Cat&aacute;logo</a></li>
+            <li><a href="mayorista.html" class="active">Mayorista</a></li>
+            <li><a href="contacto.html">Contacto</a></li>
+            <li><a href="pagos.html">Pagos</a></li>
+            <li><a href="facturas-pedidos.html">Facturas y Pedidos</a></li>
+        </ul>
+
+        <div class="nav-actions">
+            
+            <a class="nav-ally-btn" href="https://www.blyxu.online/" target="_blank" rel="noopener noreferrer" aria-label="Aliados: visitar BLYXU (abre en una nueva pestaña)" title="Visitar BLYXU"><span class="nav-ally-mark"><img src="blyxu-ally-logo-white.png" alt="BLYXU" width="100" height="100"></span><span>Aliados</span></a>
+            <button class="nav-icon-btn nav-search-btn" type="button" onclick="openCatalogSearch()" aria-label="Buscar productos" title="Buscar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="M16.5 16.5 21 21"></path>
+                </svg>
+                <span>Buscar</span>
+            </button>
+            
+            <div class="nav-icon" id="cart-btn" onclick="openCart()" role="button" tabindex="0" aria-label="Ver Carrito de Compras" style="position:relative">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />
+                </svg>
+                <span class="cart-badge" id="cart-count" style="display:none">0</span>
+            </div>
+            <div class="nav-toggle" id="nav-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </nav>
+
+    <section class="collection-section wholesale-page-section" id="coleccion">
+        <div class="hero-promo-inject wholesale-promo-slot" aria-live="polite" style="margin-bottom:24px;"></div>
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">CAT&Aacute;LOGO MAYORISTA</h2>
+                <div class="smart-search">
+                    <input type="search" id="catalog-search" placeholder="Buscar producto mayorista, categor&iacute;a, color o SKU"
+                        autocomplete="off">
+                </div>
+            </div>
+            <div class="catalog-filter-bar" style="justify-content: flex-end;">
+                <label class="category-select-wrap" for="catalog-category-select">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        aria-hidden="true">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                    </svg>
+                    <select id="catalog-category-select" aria-label="Filtrar por categor&iacute;a">
+                        <option value="todos">Todas las categor&iacute;as</option>
+                    </select>
+                </label>
+                <label class="price-slider-wrap" for="catalog-price-slider">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        aria-hidden="true">
+                        <line x1="12" y1="1" x2="12" y2="23" />
+                        <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                    </svg>
+                    <span id="catalog-price-label">Todos los precios</span>
+                    <input id="catalog-price-slider" type="range" min="0" max="0" step="1000" value="0"
+                        aria-label="Filtrar cat&aacute;logo mayorista por precio">
+                </label>
+            </div>
+        </div>
+
+        <div class="loading-container" id="loading-products">
+            <div class="spinner"></div>
+            <span class="loading-text">Preparando cat&aacute;logo mayorista...</span>
+        </div>
+
+        <div class="products-grid" id="products-grid"></div>
+    </section>
+
+    <footer class="footer" id="contacto">
+        <div class="footer-brand">
+            <a href="index.html" class="nav-logo">
+                <img src="original-store-logo-color.png" alt="Original Store" style="height:32px" onerror="this.style.display='none'">
+            </a>
+            <p>Cat&aacute;logo exclusivo para compras mayoristas Original Store.</p>
+            <a class="footer-admin-link" href="administrativo.html" aria-label="Acceso administrativo">
+                <span class="footer-admin-crown" aria-hidden="true">&#9819;</span>
+            </a>
+        </div>
+        <div>
+            <h4>Navegaci&oacute;n</h4>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="index.html#coleccion">Cat&aacute;logo</a></li>
+                <li><a href="mayorista.html">Mayorista</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+                <li><a href="pagos.html">Pagos</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Categor&iacute;as</h4>
+            <ul>
+                <li><a href="#coleccion" onclick="setFilter('collares'); document.getElementById('coleccion')?.scrollIntoView({behavior:'smooth'}); return false;">Collares</a></li>
+                <li><a href="#coleccion" onclick="setFilter('pulseras'); document.getElementById('coleccion')?.scrollIntoView({behavior:'smooth'}); return false;">Pulseras</a></li>
+                <li><a href="#coleccion" onclick="setFilter('aretes'); document.getElementById('coleccion')?.scrollIntoView({behavior:'smooth'}); return false;">Aretes</a></li>
+                <li><a href="#coleccion" onclick="setFilter('anillos'); document.getElementById('coleccion')?.scrollIntoView({behavior:'smooth'}); return false;">Anillos</a></li>
+            </ul>
+        </div>
+        <div class="footer-search-panel">
+            <h4>Buscar</h4>
+            <label class="footer-search" for="footer-page-search">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="M16.5 16.5 21 21"></path>
+                </svg>
+                <input type="search" id="footer-page-search" placeholder="Buscar en Original Store" autocomplete="off">
+            </label>
+            <div class="footer-search-results" id="footer-page-search-results" aria-live="polite">
+                <a href="index.html" data-footer-search-item data-keywords="inicio home principal banner">Inicio</a>
+                <a href="index.html#coleccion" data-footer-search-item data-keywords="catalogo publico productos joyeria accesorios">Cat&aacute;logo p&uacute;blico</a>
+                <a href="#coleccion" data-footer-search-item data-keywords="mayorista catalogo por mayor precios wholesale">Cat&aacute;logo mayorista</a>
+                <a href="contacto.html" data-footer-search-item data-keywords="contacto horario telefono redes whatsapp">Contacto</a>
+                <a href="pagos.html" data-footer-search-item data-keywords="pagos qr transferencia pagar">Pagos</a>
+                <a href="facturas-pedidos.html" data-footer-search-item data-keywords="facturas pedidos ordenes comprobantes">Facturas y pedidos</a>
+                <a href="#coleccion" onclick="setFilter('collares'); document.getElementById('coleccion')?.scrollIntoView({behavior:'smooth'}); return false;" data-footer-search-item data-keywords="collares cadenas dijes">Collares</a>
+                <a href="#coleccion" onclick="setFilter('pulseras'); document.getElementById('coleccion')?.scrollIntoView({behavior:'smooth'}); return false;" data-footer-search-item data-keywords="pulseras brazaletes">Pulseras</a>
+                <a href="#coleccion" onclick="setFilter('aretes'); document.getElementById('coleccion')?.scrollIntoView({behavior:'smooth'}); return false;" data-footer-search-item data-keywords="aretes pendientes">Aretes</a>
+                <a href="#coleccion" onclick="setFilter('anillos'); document.getElementById('coleccion')?.scrollIntoView({behavior:'smooth'}); return false;" data-footer-search-item data-keywords="anillos sortijas">Anillos</a>
+                <a id="footer-whatsapp" href="#" target="_blank" rel="noopener" data-footer-search-item data-keywords="whatsapp chat numero telefono escribir">WhatsApp</a>
+                <span class="footer-search-empty">Sin resultados</span>
+            </div>
+        </div>
+        <div class="footer-social-panel">
+            <h4>Redes</h4>
+            <div class="footer-social-icons" aria-label="Redes sociales">
+                <a id="footer-facebook" class="footer-social-icon-link" href="#" target="_blank" rel="noopener" aria-label="Facebook" data-preserve-content>
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 8.5V6.7c0-.8.5-1 1-1h1.9V2.2C16.6 2.1 15.5 2 14.2 2c-2.8 0-4.7 1.7-4.7 4.8v1.7H6.4V12h3.1v10h3.8V12h3.1l.5-3.5H14z"/></svg>
+                </a>
+                <a id="footer-instagram" class="footer-social-icon-link" href="#" target="_blank" rel="noopener" aria-label="Instagram" data-preserve-content>
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1.2"></circle></svg>
+                </a>
+                <a id="footer-tiktok" class="footer-social-icon-link" href="#" target="_blank" rel="noopener" aria-label="TikTok" data-preserve-content>
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M16.7 2c.3 2.4 1.7 3.9 4.1 4.1v3.4c-1.4.1-2.7-.3-4-1.1v6.4c0 8.1-8.8 10.6-12.4 4.8-2.3-3.7-.9-10.1 6.5-10.4v3.6c-.5.1-1 .2-1.5.4-1.4.5-2.2 1.5-2 3 .3 2.8 5.5 3.6 5.1-1.8V2h4.2z"/></svg>
+                </a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 Original Store&trade; - Todos los derechos reservados</span>
+            <span>Hecho en Colombia</span>
+        </div>
+    </footer>
+
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h3>Tu Carrito</h3>
+            <button class="cart-close" id="cart-close">Cerrar</button>
+        </div>
+        <div class="cart-items" id="cart-items">
+            <div class="cart-empty">Tu carrito est&aacute; vac&iacute;o</div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total</span>
+                <span id="cart-total">$0</span>
+            </div>
+            <textarea id="cart-note" class="cart-note-input" placeholder="Pregunta o nota para enviar por WhatsApp (opcional)"></textarea>
+            <button class="btn-checkout" id="btn-checkout">Finalizar Pedido por WhatsApp</button>
+        </div>
+    </div>
+
+    <!-- ===== SUCCESS SCREEN ===== -->
+    <div id="mayorista-success-overlay">
+        <div class="ml-success-card">
+            <span class="ml-pill"></span>
+            <div class="ml-success-inner">
+                <div class="ml-check-box">
+                    <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div class="ml-success-title">Verificado</div>
+                <div class="ml-success-sub">Configurando tu acceso&hellip;</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== LOGIN SCREEN ===== -->
+    <div id="mayorista-login-screen" aria-hidden="false">
+        <div class="mayorista-login-card" role="dialog" aria-modal="true" aria-labelledby="mayorista-login-title">
+            <span class="ml-pill"></span>
+            <div class="ml-inner">
+                <!-- Logo -->
+                <img src="original-store-logo-color.png" alt="Original Store" class="mayorista-login-logo" onerror="this.style.display='none'">
+
+                <!-- Texts -->
+                <span class="mayorista-login-kicker">Original Store &middot; Acceso Exclusivo</span>
+                <h2 id="mayorista-login-title">Ingresa tu clave</h2>
+                <p class="ml-subtitle">Portal mayorista &mdash; solo para clientes autorizados.</p>
+
+                <!-- Vault stub (hidden, kept for JS) -->
+                <div class="blyxu-vault" data-vault aria-hidden="true" style="display:none">
+                    <div data-vault-dots></div>
+                    <span data-vault-status></span>
+                </div>
+
+                <!-- PIN boxes -->
+                <div class="pin-entry-row" id="pin-entry-row" role="group" aria-label="Clave de acceso"></div>
+
+                <form class="mayorista-login-form" id="mayorista-login-form">
+                    <input type="password" inputmode="numeric" id="mayorista-access-key"
+                           autocomplete="off" tabindex="-1" aria-hidden="true">
+                    <div class="mayorista-login-error" id="mayorista-login-error">Clave incorrecta &mdash; int&eacute;ntalo de nuevo</div>
+                    <button class="mayorista-login-button" type="submit" id="mayorista-login-submit">
+                        Ingresar al cat&aacute;logo
+                    </button>
+                </form>
+
+                <a href="index.html" class="mayorista-login-back">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Volver a la tienda p&uacute;blica
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="brand-loader" id="brand-loader" aria-hidden="true">
+        <div class="brand-loader-card">
+            <img src="original-store-logo-color.png" alt="Original Store" onerror="this.style.display='none'">
+            <span>Original Store</span>
+            <div class="brand-loader-bar">
+                <div class="brand-loader-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carga diferida optimizada de la aplicacion -->
+    <script src="blyxu-app.js?v=original-store-inventory-sync-20261007" defer></script>
+    <script>
+        (function() {
+            const body = document.body;
+            const overlay = document.getElementById('mayorista-login-screen');
+            const form = document.getElementById('mayorista-login-form');
+            const hiddenInput = document.getElementById('mayorista-access-key');
+            const error = document.getElementById('mayorista-login-error');
+            const submitBtn = document.getElementById('mayorista-login-submit');
+            const successOverlay = document.getElementById('mayorista-success-overlay');
+            const pinRow = document.getElementById('pin-entry-row');
+
+            const ACCESS_CODE = '531';
+            const PIN_LENGTH = ACCESS_CODE.length;
+
+            // ===== BUILD PIN BOXES =====
+            const pinDigits = [];
+            for (let i = 0; i < PIN_LENGTH; i++) {
+                const wrap = document.createElement('div');
+                wrap.className = 'pin-wrap';
+
+                const box = document.createElement('input');
+                box.type = 'text';           /* visible numbers */
+                box.inputMode = 'numeric';
+                box.maxLength = 1;
+                box.pattern = '[0-9]*';
+                box.className = 'pin-digit';
+                box.setAttribute('aria-label', 'Dígito ' + (i + 1));
+                box.autocomplete = 'off';
+                box.id = 'pin-d' + i;
+                wrap.appendChild(box);
+                pinRow.appendChild(wrap);
+                pinDigits.push(box);
+            }
+
+            function getPinValue() {
+                return pinDigits.map(function(d) { return d.value; }).join('');
+            }
+
+            function syncHidden() {
+                hiddenInput.value = getPinValue();
+                syncVaultState();
+                error.classList.remove('show');
+            }
+
+            // Navigate between boxes
+            pinDigits.forEach(function(box, idx) {
+                box.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace') {
+                        if (box.value === '' && idx > 0) {
+                            pinDigits[idx - 1].value = '';
+                            pinDigits[idx - 1].focus();
+                            pinDigits[idx - 1].classList.remove('filled');
+                        } else {
+                            box.value = '';
+                            box.classList.remove('filled');
+                        }
+                        syncHidden();
+                        e.preventDefault();
+                    } else if (e.key === 'ArrowLeft' && idx > 0) {
+                        pinDigits[idx - 1].focus();
+                    } else if (e.key === 'ArrowRight' && idx < PIN_LENGTH - 1) {
+                        pinDigits[idx + 1].focus();
+                    } else if (e.key === 'Enter') {
+                        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                    }
+                });
+
+                box.addEventListener('input', function() {
+                    const val = box.value.replace(/[^0-9]/g, '');
+                    box.value = val.slice(-1);
+                    if (box.value) {
+                        box.classList.add('filled');
+                        if (idx < PIN_LENGTH - 1) pinDigits[idx + 1].focus();
+                    } else {
+                        box.classList.remove('filled');
+                    }
+                    syncHidden();
+                    // Auto-submit when all filled
+                    if (getPinValue().length === PIN_LENGTH) {
+                        setTimeout(function() {
+                            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                        }, 120);
+                    }
+                });
+
+                box.addEventListener('focus', function() {
+                    box.select();
+                });
+
+                box.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+                    pasted.split('').forEach(function(ch, ci) {
+                        if (idx + ci < PIN_LENGTH) {
+                            pinDigits[idx + ci].value = ch;
+                            pinDigits[idx + ci].classList.add('filled');
+                        }
+                    });
+                    const next = Math.min(idx + pasted.length, PIN_LENGTH - 1);
+                    pinDigits[next].focus();
+                    syncHidden();
+                });
+            });
+
+            // ===== VAULT SYNC =====
+            function ensureVaultDots(total) {
+                const vault = overlay?.querySelector('[data-vault]');
+                const dots = vault?.querySelector('[data-vault-dots]');
+                if (!vault || !dots) return;
+                const dotCount = Math.max(1, Number(total) || 1);
+                if (dots.children.length !== dotCount) {
+                    dots.innerHTML = Array.from({ length: dotCount }, function() { return '<span></span>'; }).join('');
+                }
+                vault.style.setProperty('--vault-dot-count', dotCount);
+            }
+
+            function syncVaultState() {
+                const vault = overlay?.querySelector('[data-vault]');
+                if (!vault) return;
+                const len = Math.min(getPinValue().length, PIN_LENGTH);
+                const progress = Math.min(100, Math.round((len / PIN_LENGTH) * 100));
+                ensureVaultDots(PIN_LENGTH);
+                vault.style.setProperty('--vault-progress', progress + '%');
+                const status = vault.querySelector('[data-vault-status]');
+                if (status) status.textContent = len ? 'Leyendo firma de acceso...' : 'Esperando clave segura';
+            }
+
+            function markVaultDenied() {
+                // Shake & clear PIN boxes
+                pinDigits.forEach(function(d) {
+                    d.classList.add('denied');
+                    setTimeout(function() {
+                        d.classList.remove('denied', 'filled');
+                        d.value = '';
+                    }, 420);
+                });
+                setTimeout(function() { pinDigits[0].focus(); }, 440);
+            }
+
+            // ===== SUCCESS ANIMATION (minimal: boxes collapse → verified card) =====
+            function playSuccessAnimation(done) {
+                // Step 1 – mark boxes green sequentially
+                pinDigits.forEach(function(d, i) {
+                    setTimeout(function() { d.classList.add('success-digit'); }, i * 90);
+                });
+
+                // Step 2 – fade out login card, show verified card
+                setTimeout(function() {
+                    overlay.style.transition = 'opacity .3s ease';
+                    overlay.style.opacity = '0';
+                }, 380);
+
+                setTimeout(function() {
+                    successOverlay.classList.add('active');
+                    setTimeout(function() { done(); }, 1400);
+                }, 680);
+            }
+
+            function unlockWholesaleInterface() {
+                body.classList.remove('wholesale-gated');
+                body.classList.add('wholesale-unlocked');
+                if (overlay) {
+                    overlay.setAttribute('aria-hidden', 'true');
+                    overlay.remove();
+                }
+                if (successOverlay) successOverlay.remove();
+            }
+
+            function loadWholesaleCatalogWhenReady(attempts) {
+                if (typeof loadProducts === 'function') {
+                    loadProducts({ renderCatalog: true }).catch(function() {});
+                    return;
+                }
+                if (typeof renderCatalogProducts === 'function') {
+                    renderCatalogProducts();
+                    return;
+                }
+                if (attempts > 0) {
+                    setTimeout(function() { loadWholesaleCatalogWhenReady(attempts - 1); }, 120);
+                }
+            }
+
+            // Restore a valid catalog session without restarting its four-hour deadline.
+            if (window.BlyxuWholesaleSession.read()) {
+                unlockWholesaleInterface();
+                const navbar=document.getElementById('navbar');if(navbar)navbar.style.display='';
+                window.BlyxuWholesaleSession.watch();
+                return;
+            }
+            // ===== INIT =====
+            body.classList.add('wholesale-gated');
+            overlay?.setAttribute('aria-hidden', 'false');
+            syncVaultState();
+            setTimeout(function() { pinDigits[0] && pinDigits[0].focus({ preventScroll: true }); }, 80);
+
+            form?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const entered = getPinValue();
+                if (entered !== ACCESS_CODE) {
+                    error?.classList.add('show');
+                    markVaultDenied();
+                    return;
+                }
+
+                if (submitBtn) {
+                    submitBtn.textContent = 'Verificando...';
+                    submitBtn.disabled = true;
+                }
+
+                window.BlyxuWholesaleSession.start();
+                playSuccessAnimation(function() {
+                    unlockWholesaleInterface();
+                    if(window.BlyxuWholesaleSession.read())window.BlyxuWholesaleSession.watch();
+                    var navbar = document.getElementById('navbar');
+                    if (navbar) navbar.style.display = '';
+                    loadWholesaleCatalogWhenReady(40);
+                });
+            });
+        })();
+    </script>
+<script src="order-summary.js?v=pdf-fast-20261007" defer></script>
+<script src="order-receipt-access.js?v=browser-qr-20261006" defer></script>
+<script src="original-store-catalog-sync.js?v=20261007-1" defer></script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+

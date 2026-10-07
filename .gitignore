@@ -1,0 +1,12 @@
+*private*
+*.bak
+chrome-temp*/
+edge-temp*/
+.security-publish/
+google-*.png
+publicacion-preparada.png
+security-*.png
+
+google-apps-script.gs
+
+.auth-build-private/
