@@ -2,7 +2,7 @@ function securityAdminIdentity_(body) {
   const credential = String(body.adminCredential || '').trim();
   if (!credential) return null;
   const identity = verifyGoogleIdToken_(credential);
-  const allowed = String(PropertiesService.getScriptProperties().getProperty('BLYXU_ADMIN_EMAILS') || 'blyxu.ventas@gmail.com').toLowerCase().split(',').map(function(email) { return email.trim(); }).filter(Boolean);
+  const allowed = String(PropertiesService.getScriptProperties().getProperty('BLYXU_ADMIN_EMAILS') || 'originalstorealmacen@gmail.com').toLowerCase().split(',').map(function(email) { return email.trim(); }).filter(Boolean);
   if (allowed.indexOf(String(identity.email || '').toLowerCase()) < 0) throw new Error('Cuenta sin permiso de administrador.');
   return identity;
 }
