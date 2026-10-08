@@ -27,10 +27,10 @@ let productsLoadError = '';
 const RETAIL_PRICE_VISIBILITY_KEY = 'blyxu_show_retail_prices';
 const RETAIL_PRICE_CONFIG_KEY = 'Mostrar_Precios_Minorista';
 const MERCADO_PAGO_ENABLED_CONFIG_KEY = 'Mercado_Pago_Publico_Activo';
-const PRODUCTS_CACHE_KEY = `blyxu_products_cache_v3:${GOOGLE_SHEET_API}`;
+const PRODUCTS_CACHE_KEY = `original_store_products_drive_v4:${GOOGLE_SHEET_API}`;
 const SITE_CONFIG_CACHE_KEY = `blyxu_site_config_cache_v1:${GOOGLE_SHEET_API}`;
 const CUSTOMER_SESSION_KEY = 'blyxu_customer_session_v1';
-const PRODUCT_DETAIL_PREVIEW_KEY = `blyxu_product_detail_preview_v1:${GOOGLE_SHEET_API}`;
+const PRODUCT_DETAIL_PREVIEW_KEY = `original_store_product_detail_drive_v2:${GOOGLE_SHEET_API}`;
 const PRODUCTS_CACHE_TTL = 5 * 60 * 1000;
 const SITE_CONFIG_CACHE_TTL = 5 * 60 * 1000;
 const CUSTOMER_SESSION_REFRESH_TTL = 10 * 60 * 1000;
@@ -754,15 +754,13 @@ function normalizeImageUrl(value, imageSize = 'default') {
     const firstUrl = raw.includes(',http') ? raw.split(',http')[0].trim() : raw;
     const driveMatch = firstUrl.match(/drive\.google\.com\/file\/d\/([^/]+)/) || firstUrl.match(/[?&]id=([^&]+)/);
     const targetWidth = getImageTargetWidth(imageSize);
-    const imageId = driveMatch?.[1] || firstUrl.match(/lh3\.googleusercontent\.com\/d\/([^/?=&#]+)/)?.[1];
-    const localPhoto = window.ORIGINAL_STORE_IMAGE_CACHE?.[imageId];
-    if (localPhoto && ['card','catalogPreview','thumb','cart','search','detail'].includes(imageSize)) return localPhoto;
 
     if (firstUrl.includes('drive.google.com') && driveMatch && driveMatch[1]) {
         return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveMatch[1])}=w${targetWidth}`;
     }
 
     if (firstUrl.startsWith('//')) return `https:${firstUrl}`;
+    if (!/^(https?:|data:|blob:)/i.test(firstUrl)) return 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w320';
 
     return resizeGoogleImageUrl(firstUrl, imageSize);
 }
@@ -813,11 +811,6 @@ function openProductDetail(productIndex, mode = 'retail') {
 
 function getImageFallbackUrl(source, imageSize = 'default') {
     const src = String(source || '');
-    if (src.includes('catalog-photo-')) {
-        const fileName = src.split('/').pop().split('?')[0];
-        const id = Object.keys(window.ORIGINAL_STORE_IMAGE_CACHE || {}).find(key => window.ORIGINAL_STORE_IMAGE_CACHE[key] === fileName);
-        if (id) return `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w${getImageTargetWidth(imageSize)}`;
-    }
     const driveMatch =
         src.match(/[?&]id=([^&#]+)/) ||
         src.match(/drive\.google\.com\/file\/d\/([^/]+)/) ||
@@ -832,7 +825,7 @@ function getImageFallbackUrl(source, imageSize = 'default') {
         return `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}=w${getImageTargetWidth(imageSize)}`;
     }
 
-    return 'hero_necklace.png';
+    return 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
 }
 
 function handleCatalogImageError(img) {
@@ -840,7 +833,7 @@ function handleCatalogImageError(img) {
     const fallback = getImageFallbackUrl(img.currentSrc || img.src);
     if (img.src === fallback || img.dataset.fallbackTried === 'true') {
         img.onerror = null;
-        img.src = 'hero_necklace.png';
+        img.src = 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
         return;
     }
     img.dataset.fallbackTried = 'true';
@@ -850,7 +843,7 @@ function handleCatalogImageError(img) {
 function handleBannerImageError(img) {
     if (!img) return;
     const fallback = getImageFallbackUrl(img.currentSrc || img.src, 'banner');
-    if (fallback && fallback !== 'hero_necklace.png' && img.dataset.fallbackTried !== 'true') {
+    if (fallback && fallback !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900' && img.dataset.fallbackTried !== 'true') {
         img.dataset.fallbackTried = 'true';
         img.src = fallback;
         return;
@@ -1418,7 +1411,7 @@ function getSpotlightProductDetails(product, index = 0) {
     const showPrice = shouldShowProductPrices('retail');
     const detailUrl = productIndex >= 0 ? `producto.html?id=${productIndex}` : '#coleccion';
     const images = getProductImageSet(product, 'spotlight');
-    const image = images[0] || 'hero_necklace.png';
+    const image = images[0] || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
 
     return { productIndex, name, category, description, tags, price, showPrice, detailUrl, image, number: index + 1 };
 }
@@ -1481,7 +1474,7 @@ function renderInventorySpotlightProducts(products) {
         return `
             <article class="hero-carousel-slide product-glass-card ${index === 0 ? 'active' : ''}" data-detail-url="${escapeHtml(details.detailUrl)}">
                 <div class="product-glass-media ${toneClass}">
-                    <img src="${escapeHtml(details.image || 'hero_necklace.png')}" alt="${escapeHtml(details.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="handleCatalogImageError(this)">
+                    <img src="${escapeHtml(details.image || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900')}" alt="${escapeHtml(details.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="handleCatalogImageError(this)">
                     <span class="product-glass-badge">${escapeHtml(details.category)}</span>
                     ${stockBadge}
                 </div>
@@ -1553,7 +1546,7 @@ function getNewestProductsForMarquee(products, limit = 15) {
         .map((product, index) => ({ product, index, createdTime: getProductCreatedTime(product) }))
         .filter(item => {
             const img = getProductImageSet(item.product)[0];
-            return img && img !== 'hero_necklace.png';
+            return img && img !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
         })
         .sort((a, b) => {
             if (b.createdTime !== a.createdTime) return b.createdTime - a.createdTime;
@@ -1800,7 +1793,7 @@ function renderHomeAdBanner() {
         normalizeImageUrl(rawImage, 'banner'),
         String(rawImage || '').trim(),
         carouselImage,
-        'hero_necklace.png'
+        'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900'
     ].filter(Boolean)));
     const kicker = getSiteConfigValue('Home_Ad_Kicker', 'Edicion limitada');
     const title = getSiteConfigValue('Home_Ad_Title', 'Brilla con tus favoritos');
@@ -1829,7 +1822,7 @@ function renderHomeAdBanner() {
             banner.classList.remove('is-empty');
             img.onerror = () => {
                 const currentFallback = getImageFallbackUrl(img.currentSrc || img.src, 'banner');
-                if (currentFallback && currentFallback !== 'hero_necklace.png' && !imageCandidates.includes(currentFallback)) {
+                if (currentFallback && currentFallback !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900' && !imageCandidates.includes(currentFallback)) {
                     imageCandidates.splice(candidateIndex + 1, 0, currentFallback);
                 }
                 candidateIndex += 1;
@@ -1878,7 +1871,7 @@ function renderInventorySpotlight() {
         const loading = shouldLoadEarly ? 'eager' : 'lazy';
         const priority = shouldLoadEarly ? 'high' : 'low';
         return `<div class="marquee-item" onclick="window.location.href='${escapeHtml(detailUrl)}'" title="${escapeHtml(p.Nombre || '')}">
-                    <img ${shouldLoadEarly ? `src="${escapeHtml(img || 'hero_necklace.png')}"` : `data-src="${escapeHtml(img || 'hero_necklace.png')}" data-catalog-lazy="true"`} alt="${escapeHtml(name)}" loading="${loading}" decoding="async" fetchpriority="${priority}" referrerpolicy="no-referrer" onerror="handleCatalogImageError(this)">
+                    <img ${shouldLoadEarly ? `src="${escapeHtml(img || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900')}"` : `data-src="${escapeHtml(img || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900')}" data-catalog-lazy="true"`} alt="${escapeHtml(name)}" loading="${loading}" decoding="async" fetchpriority="${priority}" referrerpolicy="no-referrer" onerror="handleCatalogImageError(this)">
                     ${stockBadge}
                     <div class="marquee-item-info">
                         <strong>${escapeHtml(name)}</strong>
@@ -2304,7 +2297,7 @@ function renderBanners(banners) {
         const imageUrl = getPublicProductImage(b, 'banner');
         const imageHtml = imageUrl
             ? `<img src="${escapeHtml(imageUrl)}" alt="Banner Original Store" style="filter: brightness(0.55);" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async" ${i === 0 ? 'fetchpriority="high"' : 'fetchpriority="low"'} referrerpolicy="no-referrer" onerror="handleBannerImageError(this)">`
-            : `<img class="main-banner-fallback-media" src="original-store-logo-color.png" alt="Original Store" loading="eager" decoding="sync">`;
+            : `<img class="main-banner-fallback-media" src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" loading="eager" decoding="sync">`;
 
         return `
         <div class="main-banner-slide ${i===0?'active':''} ${imageUrl ? '' : 'is-placeholder'}">
@@ -4653,7 +4646,7 @@ function renderFloatingWhatsApp() {
         button.setAttribute('aria-label', 'Abrir WhatsApp de Original Store');
         button.innerHTML = `
             <span class="floating-whatsapp-logo">
-                <img src="original-store-logo-color.png" alt="" loading="lazy">
+                <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="" loading="lazy">
             </span>
             <span>WhatsApp</span>
         `;
@@ -5077,7 +5070,7 @@ function ensureCustomerAuthModal() {
         <div class="customer-auth-dialog" role="dialog" aria-modal="true" aria-labelledby="customer-auth-title">
             <button class="customer-auth-close" type="button" aria-label="Cerrar">&times;</button>
             <div class="customer-auth-brand">
-                <img src="original-store-logo-color.png" alt="Original Store" onerror="this.style.display='none'">
+                <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" onerror="this.style.display='none'">
                 <span>Cuenta Original Store</span>
             </div>
             <div class="customer-auth-tabs" role="tablist" aria-label="Cuenta de cliente">

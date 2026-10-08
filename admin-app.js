@@ -90,12 +90,12 @@ const INVOICE_CONFIG_FIELDS = [
     ['Factura_Email', 'inv-config-email']
 ];
 const INVENTORY_CACHE_KEY = `blyxu_admin_inventory_cache_v3:${GOOGLE_SHEET_API}`;
-const PUBLIC_PRODUCTS_CACHE_KEY = `blyxu_products_cache_v3:${GOOGLE_SHEET_API}`;
+const PUBLIC_PRODUCTS_CACHE_KEY = `original_store_products_drive_v4:${GOOGLE_SHEET_API}`;
 const SITE_CONFIG_CACHE_KEY = `blyxu_site_config_cache_v1:${GOOGLE_SHEET_API}`;
 const INVENTORY_BATCH_SIZE = 25;
 const MAX_CAROUSEL_IMAGE_SIZE = 5 * 1024 * 1024;
-const IMAGE_UPLOAD_MAX_EDGE = 1800;
-const IMAGE_UPLOAD_QUALITY = 0.82;
+const IMAGE_UPLOAD_MAX_EDGE = 1200;
+const IMAGE_UPLOAD_QUALITY = 0.76;
 const IMAGE_UPLOAD_FORMAT = 'image/webp';
 const IMAGE_UPLOAD_EXTENSION = 'webp';
 const JSPDF_CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
@@ -205,7 +205,7 @@ function updateLivePreview() {
     const precio = document.getElementById('prod-precio')?.value || '0';
     const precioMayorista = document.getElementById('prod-precio-mayorista')?.value || '';
     const galleryUrls = getAdminGalleryUrls();
-    const imagenUrl = document.getElementById('prod-imagen')?.value || galleryUrls[0] || 'original-store-logo-color.png';
+    const imagenUrl = document.getElementById('prod-imagen')?.value || galleryUrls[0] || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
     const estado = document.getElementById('prod-estado')?.value || 'Activo';
     const catalogo = document.getElementById('prod-catalogo')?.value || 'Ambos';
     const stock = Number(document.getElementById('prod-stock-inicial')?.value || 0);
@@ -362,7 +362,7 @@ function updateLivePreview() {
                     imgEl.style.opacity = '0.85';
                     return;
                 }
-                imgEl.src = 'hero_necklace.png';
+                imgEl.src = 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
                 imgEl.style.opacity = '0.3';
             });
         }
@@ -585,7 +585,7 @@ function getInventoryProductImage(product, imageSize = 'inventory') {
         'Galer\u00eda'
     ], product?.Galeria || '');
     const galleryImage = parseAdminGalleryValue(galleryValue)[0] || '';
-    return normalizeImageUrl(directImage || galleryImage, imageSize) || 'original-store-logo-color.png';
+    return normalizeImageUrl(directImage || galleryImage, imageSize) || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
 }
 
 function getInventoryImageFallbackUrl(source, imageSize = 'inventory') {
@@ -599,19 +599,19 @@ function getInventoryImageFallbackUrl(source, imageSize = 'inventory') {
         return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveMatch[1])}=w${getAdminImageTargetWidth(imageSize)}`;
     }
 
-    return 'original-store-logo-color.png';
+    return 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
 }
 
 function handleInventoryImageError(img) {
     if (!img) return;
     const fallback = getInventoryImageFallbackUrl(img.currentSrc || img.src || img.dataset.src);
-    if (fallback && fallback !== 'original-store-logo-color.png' && img.dataset.fallbackTried !== 'true') {
+    if (fallback && fallback !== 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180' && img.dataset.fallbackTried !== 'true') {
         img.dataset.fallbackTried = 'true';
         img.src = fallback;
         return;
     }
     img.onerror = null;
-    img.src = 'original-store-logo-color.png';
+    img.src = 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
 }
 
 function getAdminGalleryUrls() {
@@ -2695,7 +2695,7 @@ function getActiveVariantPreviewCard() {
 
 function getVariantEditorCardPreviewRow(card, index = 0, activeImage = '') {
     if (!card) return null;
-    const baseImage = normalizeImageUrl(document.getElementById('prod-imagen')?.value || getAdminGalleryUrls()[0] || 'original-store-logo-color.png');
+    const baseImage = normalizeImageUrl(document.getElementById('prod-imagen')?.value || getAdminGalleryUrls()[0] || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180');
     const isSavedVariantCard = card.classList.contains('variant-edit-card');
     const key = getVariantPreviewCardKey(card);
     const activeKey = getActiveVariantPreviewKey();
@@ -2871,7 +2871,7 @@ function syncActivePreviewOptionCard(row) {
     if (row.key) card.dataset.previewKey = row.key;
 
     const img = card.querySelector('img');
-    if (img) img.src = row.image || 'original-store-logo-color.png';
+    if (img) img.src = row.image || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
 
     const strong = card.querySelector('.preview-variant-copy strong');
     if (strong) strong.textContent = row.label || row.title || 'Variante';
@@ -2895,7 +2895,7 @@ function getPreviewColorDotsHtml(value) {
 }
 
 function getPreviewVariantRows(activeImage = '') {
-    const baseImage = normalizeImageUrl(document.getElementById('prod-imagen')?.value || getAdminGalleryUrls()[0] || 'original-store-logo-color.png');
+    const baseImage = normalizeImageUrl(document.getElementById('prod-imagen')?.value || getAdminGalleryUrls()[0] || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180');
     const baseColor = getInputValue('prod-color');
     const baseMeasure = typeof getProductSizeValue === 'function' ? getProductSizeValue() : getInputValue('prod-tamano');
     const baseStyle = getProductStyleValue();
@@ -2957,7 +2957,7 @@ function renderProductPreviewOptions(activeImage = '') {
         <div class="preview-variant-list">
             ${rows.map((row, index) => `
                 <button type="button" class="preview-variant-card ${(activeIndex === -1 ? index === 0 : row.active) ? 'active' : ''}" data-preview-index="${index}" data-preview-key="${escapeHtml(row.key || '')}" data-preview-url="${escapeHtml(row.image || '')}">
-                    <img src="${escapeHtml(row.image || 'original-store-logo-color.png')}" alt="" onerror="handleInventoryImageError(this)">
+                    <img src="${escapeHtml(row.image || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180')}" alt="" onerror="handleInventoryImageError(this)">
                     <span class="preview-variant-copy">
                         <strong>${escapeHtml(row.label || `Variante ${index + 1}`)}</strong>
                         <span>${escapeHtml(row.detail || 'Sin atributos')}</span>
@@ -4798,7 +4798,7 @@ function initHomeAdConfigAdmin() {
             localPreviewUrl = URL.createObjectURL(file);
             updateHomeAdImagePreview(localPreviewUrl);
             if (imageInput) imageInput.placeholder = 'Optimizando imagen...';
-            const uploadedUrl = await uploadCarouselImage(file);
+            const uploadedUrl = await uploadCarouselImage(file, 'banners');
             if (imageInput) imageInput.value = uploadedUrl;
             updateHomeAdImagePreview(uploadedUrl);
             if (localPreviewUrl) {
@@ -5026,7 +5026,7 @@ function createPaymentMethodCard(data = { name: '', type: 'key', value: '', imag
             setQrUploadState(true);
             localUrl = URL.createObjectURL(file);
             renderQrPreview(localUrl, true);
-            const uploadedUrl = await uploadCarouselImage(file);
+            const uploadedUrl = await uploadCarouselImage(file, 'logos');
             urlInput.value = uploadedUrl;
             renderQrPreview(uploadedUrl);
             showToast('QR subido correctamente');
@@ -5235,13 +5235,13 @@ function canvasToBlob(canvas, type, quality) {
     });
 }
 
-async function prepareImageForUpload(file) {
+async function prepareImageForUpload(file, assetType = 'imagenes') {
     if (file.type === 'image/gif') {
         return file;
     }
 
     const img = await loadImageFile(file);
-    const scale = Math.min(1, IMAGE_UPLOAD_MAX_EDGE / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+    const scale = Math.min(1, (assetType === 'banners' ? 1600 : assetType === 'logos' ? 800 : IMAGE_UPLOAD_MAX_EDGE) / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
     const canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
     canvas.height = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
@@ -5267,13 +5267,13 @@ async function prepareImageForUpload(file) {
     return new File([blob], `${cleanName}.${IMAGE_UPLOAD_EXTENSION}`, { type: IMAGE_UPLOAD_FORMAT });
 }
 
-async function uploadCarouselImage(file) {
+async function uploadCarouselImage(file, assetType = 'imagenes') {
     if (!file) return '';
     if (!file.type.startsWith('image/')) {
         throw new Error('Selecciona un archivo de imagen valido');
     }
 
-    const uploadFile = await prepareImageForUpload(file);
+    const uploadFile = await prepareImageForUpload(file, assetType);
     if (uploadFile.size > MAX_CAROUSEL_IMAGE_SIZE) {
         throw new Error('La imagen pesa mas de 5 MB');
     }
@@ -5285,6 +5285,7 @@ async function uploadCarouselImage(file) {
             action: 'upload_image',
             fileName: uploadFile.name,
             mimeType: uploadFile.type,
+            assetType,
             base64Data
         })
     });
@@ -6041,7 +6042,7 @@ function initCarouselImageAdmin() {
             if (files.length) {
                 for (let index = 0; index < files.length; index += 1) {
                     btn.textContent = `Optimizando imagen ${index + 1} de ${files.length}...`;
-                    const uploadedUrl = await uploadCarouselImage(files[index]);
+                    const uploadedUrl = await uploadCarouselImage(files[index], 'banners');
                     imageUrls.push(uploadedUrl);
                 }
                 imageUrlInput.value = imageUrls[0] || '';
@@ -6113,7 +6114,7 @@ function initCarouselImageAdmin() {
             let imageUrl = imageUrlInput.value.trim();
             if (file) {
                 btn.textContent = 'Optimizando imagen...';
-                imageUrl = await uploadCarouselImage(file);
+                imageUrl = await uploadCarouselImage(file, 'banners');
                 imageUrlInput.value = imageUrl;
             }
 
@@ -6942,7 +6943,7 @@ function inventoryRowTemplate(p, index, itemMeta) {
         }
 
         return '<tr class="' + rowClass + '">'
-            + '<td><img src="' + (p.Imagen || 'original-store-logo-color.png') + '" width="46" height="46" loading="lazy" referrerpolicy="no-referrer" style="border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);vertical-align:middle;" onerror="handleInventoryImageError(this)"></td>'
+            + '<td><img src="' + (p.Imagen || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180') + '" width="46" height="46" loading="lazy" referrerpolicy="no-referrer" style="border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);vertical-align:middle;" onerror="handleInventoryImageError(this)"></td>'
             + '<td><div style="font-weight:800;font-size:14px;color:#fff;">' + (p.Nombre || p.Producto || 'Producto General') + '</div>'
             + '<div style="font-size:10px;margin-top:5px;">' + badgeHtml
             + (groupSize > 1 ? ' <span class="variant-count-badge" style="margin-left:4px;">' + groupSize + ' variantes</span>' : '')
@@ -6962,7 +6963,7 @@ function inventoryRowTemplate(p, index, itemMeta) {
         var stockColor = stockVal > 0 ? '#10B981' : '#EF4444';
 
         return '<tr class="' + rowClass + '" style="display:' + displayStyle + ';">'
-            + '<td><span class="tree-connector"></span><img src="' + (p.Imagen || 'original-store-logo-color.png') + '" width="30" height="30" loading="lazy" referrerpolicy="no-referrer" style="border-radius:4px;object-fit:cover;vertical-align:middle;" onerror="handleInventoryImageError(this)"></td>'
+            + '<td><span class="tree-connector"></span><img src="' + (p.Imagen || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180') + '" width="30" height="30" loading="lazy" referrerpolicy="no-referrer" style="border-radius:4px;object-fit:cover;vertical-align:middle;" onerror="handleInventoryImageError(this)"></td>'
             + '<td><div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);">' + (p.Nombre || p.Producto || '') + '</div>'
             + '<div style="font-size:10px;margin-top:3px;"><span class="mother-badge-id" style="font-size:9px;">' + motherId + '</span>'
             + ' <span class="variant-badge-id">' + (p.idVariacion || p.ID || '-') + '</span>'
@@ -7149,7 +7150,7 @@ function getInventoryProductsForCatalogPdf(selectedCategory) {
         // Si encontramos una variante con mejor imagen o datos más completos, actualizar el producto base
         const currentImg = normalizeImageUrl(group.product?.Imagen || group.product?.['Imagen Principal'] || '');
         const candidateImg = normalizeImageUrl(p?.Imagen || p?.['Imagen Principal'] || '');
-        if ((!currentImg || currentImg === 'original-store-logo-color.png') && candidateImg && candidateImg !== 'original-store-logo-color.png') {
+        if ((!currentImg || currentImg === 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180') && candidateImg && candidateImg !== 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180') {
             group.product = p;
         }
 
@@ -7233,7 +7234,7 @@ function buildInventoryCatalogPrintHtml(products, options = {}) {
         const cardsHtml = pageItems.map(p => {
             const name = p.Nombre || p.Producto || 'Producto Original Store';
             const rawImg = normalizeImageUrl(p.Imagen || p['Imagen Principal'] || '');
-            const imgSrc = rawImg || 'original-store-logo-color.png';
+            const imgSrc = rawImg || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
             const ref = p._displayRef || p.idVariacion || p.ID || p.idProducto || p['ID Producto'] || p['ID Variacion'] || p.SKU || '';
             const price = Number(p.Precio || 0) || 0;
             const wholesalePrice = Number(p.Precio_Mayorista || p['Precio Mayor'] || p['Precio_Mayor'] || 0) || 0;
@@ -7266,7 +7267,7 @@ function buildInventoryCatalogPrintHtml(products, options = {}) {
             return `
                 <div class="catalog-card">
                     <div class="catalog-card-img-wrap">
-                        <img src="${escapeHtml(imgSrc)}" alt="" class="catalog-card-img" loading="eager" crossorigin="anonymous" onerror="this.onerror=null;this.src='original-store-logo-color.png'">
+                        <img src="${escapeHtml(imgSrc)}" alt="" class="catalog-card-img" loading="eager" crossorigin="anonymous" onerror="this.onerror=null;this.src='https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'">
                     </div>
                     <div class="catalog-card-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
                     ${metaLineHtml}
@@ -7280,7 +7281,7 @@ function buildInventoryCatalogPrintHtml(products, options = {}) {
                 <div class="catalog-print-page-content">
                     <div class="catalog-print-header">
                         <div class="catalog-print-brand">
-                            <img src="original-store-logo-color.png" alt="Original Store" class="catalog-print-logo-img" onerror="this.style.display='none'">
+                            <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" class="catalog-print-logo-img" onerror="this.style.display='none'">
                             <div>
                                 <h1>Catálogo de Productos</h1>
                                 <p>Categoría: <strong>${escapeHtml(categoryTitle)}</strong></p>
@@ -7337,7 +7338,7 @@ function getPdfFriendlyImageUrl(url) {
     if (driveId) {
         return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveId)}=w420`;
     }
-    return normalized || 'original-store-logo-color.png';
+    return normalized || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
 }
 
 function getInventoryPdfProductImage(product) {
@@ -7404,7 +7405,7 @@ function resizeImageForPdf(src, maxEdge = 96) {
 }
 
 async function imageUrlToPdfDataUrl(url, maxEdge = 96) {
-    const cleanUrl = normalizeImageUrl(url || '', 'thumb') || 'original-store-logo-color.png';
+    const cleanUrl = normalizeImageUrl(url || '', 'thumb') || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
     try {
         const response = await fetch(cleanUrl, { mode: 'cors', cache: 'force-cache' });
         if (!response.ok) throw new Error('Imagen no disponible');
@@ -7420,7 +7421,7 @@ async function imageUrlToPdfDataUrl(url, maxEdge = 96) {
             return await resizeImageForPdf(cleanUrl, maxEdge);
         } catch (directError) {
             try {
-                return await resizeImageForPdf('original-store-logo-color.png', maxEdge);
+                return await resizeImageForPdf('https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180', maxEdge);
             } catch (fallbackError) {
                 return '';
             }
@@ -7702,7 +7703,7 @@ function buildVariantEditorCardHtml(v, idProducto) {
     var vPrecio = Number(v.Precio || 0).toLocaleString('es-CO');
     var vSku = v.SKU || '-';
     var vBarcode = getProductBarcode(v);
-    var vImage = normalizeImageUrl(v.Imagen || v['Imagen Principal'] || '') || 'original-store-logo-color.png';
+    var vImage = normalizeImageUrl(v.Imagen || v['Imagen Principal'] || '') || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
     var barcodeInputId = 've-barcode-' + cleanInventoryId(vid);
     var html = '';
 
@@ -10551,7 +10552,7 @@ function buildChinaOrderPrintHtml(order) {
             <div class="china-print-header">
                 <div class="china-print-brand">
                     <div class="china-print-logo-box">
-                        <img src="original-store-logo-color.png" alt="Original Store" class="china-print-logo-img" onerror="this.style.display='none';">
+                        <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" class="china-print-logo-img" onerror="this.style.display='none';">
                         <h1 class="china-print-logo-title">Original Store</h1>
                     </div>
                     <div class="china-print-title-group">
@@ -11843,7 +11844,7 @@ function getQuickSaleProductMeta(product) {
     const key = getInventoryProductKey(product);
     const name = getInvoiceProductName(product);
     const sku = getInvoiceProductSku(product) || getInvoiceProductId(product);
-    const image = getInventoryProductImage(product, 'inventory') || normalizeImageUrl(product?.Imagen || product?.['Imagen Principal'] || '', 'inventory') || 'original-store-logo-color.png';
+    const image = getInventoryProductImage(product, 'inventory') || normalizeImageUrl(product?.Imagen || product?.['Imagen Principal'] || '', 'inventory') || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
     const category = getProductField(product, PRODUCT_CATEGORY_FIELD_KEYS, '');
     const color = getProductField(product, ['Color', 'color'], '');
     const size = getProductField(product, ['Tamano', 'Tamaño', 'Talla', 'Talla Textil'], '');
@@ -12085,7 +12086,7 @@ function renderQuickSaleResults() {
         return `
             <article class="quick-sale-product-tile${hasVariants ? ' has-variants' : ''}${active}" data-quick-sale-group="${escapeHtml(group.key)}" data-quick-sale-key="${escapeHtml(meta.key)}" tabindex="0">
                 <div class="quick-sale-tile-image">
-                    <img src="${escapeHtml(meta.image)}" alt="${escapeHtml(meta.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.src='original-store-logo-color.png'">
+                    <img src="${escapeHtml(meta.image)}" alt="${escapeHtml(meta.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.src='https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'">
                     <span class="quick-sale-stock-pill ${stockClass}">${meta.stock > 0 ? meta.stock + ' und.' : 'Agotado'}</span>
                 </div>
                 <div class="quick-sale-tile-copy">
@@ -12178,7 +12179,7 @@ function renderQuickSaleDetail(product) {
     detail.innerHTML = `
         <div class="quick-sale-product-card">
             <div class="quick-sale-detail-top">
-                <div class="quick-sale-detail-image"><img src="${escapeHtml(meta.image)}" alt="${escapeHtml(meta.name)}" decoding="async" referrerpolicy="no-referrer" onerror="this.src='original-store-logo-color.png'"></div>
+                <div class="quick-sale-detail-image"><img src="${escapeHtml(meta.image)}" alt="${escapeHtml(meta.name)}" decoding="async" referrerpolicy="no-referrer" onerror="this.src='https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'"></div>
                 <div>
                 <span class="quick-sale-stock-pill ${stockClass}">${meta.stock > 0 ? meta.stock + ' unidades disponibles' : 'Agotado'}</span>
                 <h3 class="quick-sale-detail-title">${escapeHtml(meta.name)}</h3>
@@ -12420,7 +12421,7 @@ function renderQuickSaleCart() {
         const subtotal = (Number(item.precio) || 0) * (Number(item.cantidad) || 1);
         return `
             <div class="quick-sale-cart-item">
-                <button type="button" class="quick-sale-cart-thumb" onclick="openQuickSaleImage(this)" aria-label="Ampliar imagen de ${escapeHtml(item.nombre)}"><img src="${escapeHtml(item.image || 'original-store-logo-color.png')}" alt="${escapeHtml(item.nombre)}" onerror="this.src='original-store-logo-color.png'"></button>
+                <button type="button" class="quick-sale-cart-thumb" onclick="openQuickSaleImage(this)" aria-label="Ampliar imagen de ${escapeHtml(item.nombre)}"><img src="${escapeHtml(item.image || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180')}" alt="${escapeHtml(item.nombre)}" onerror="this.src='https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'"></button>
                 <div class="quick-sale-cart-copy">
                     <strong>${escapeHtml(item.nombre)}</strong>
                     <span>${escapeHtml(item.sku || item.idVariacion || 'S/N')} · ${formatAdminInvoiceMoney(item.precio)} · Subtotal ${formatAdminInvoiceMoney(subtotal)}</span>
@@ -12869,7 +12870,7 @@ function renderInvoiceProductSearch(query) {
             const stock = readInvoiceField(p, ['Cantidad', 'Stock', 'Stock Inicial'], '');
             return `
                 <button type="button" class="inv-search-item" data-invoice-product-result="${index}" style="width:100%; border:0; text-align:left; background:transparent;">
-                    <img src="${escapeHtml(img || 'original-store-logo-color.png')}" alt="">
+                    <img src="${escapeHtml(img || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180')}" alt="">
                     <div class="inv-search-item-info">
                         <div class="inv-search-item-title">${escapeHtml(getInvoiceProductName(p))}</div>
                         <div class="inv-search-item-sub">
@@ -12944,7 +12945,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const safeName = (p.Nombre || '').replace(/'/g, "\\'");
                 return `
                     <div class="inv-search-item" onclick="agregarItemBusqueda('${idVar}', '${safeName}', '${p.SKU || ''}', ${price})">
-                        <img src="${img || 'original-store-logo-color.png'}" alt="">
+                        <img src="${img || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'}" alt="">
                         <div class="inv-search-item-info">
                             <div class="inv-search-item-title">${p.Nombre}</div>
                             <div class="inv-search-item-sub">
@@ -13585,7 +13586,7 @@ window.imprimirFacturaEditor = function() {
     // Configuración dinámicas de empresa Original Store
     const cfg = window.storeConfig || {};
     const logoImg = document.getElementById('inv-company-logo');
-    if (logoImg) logoImg.src = 'original-store-logo-color.png';
+    if (logoImg) logoImg.src = 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
 
     if (document.getElementById('inv-company-name')) {
         document.getElementById('inv-company-name').textContent = cfg['Factura_Empresa'] || 'Original Store Joyería & Accesorios';

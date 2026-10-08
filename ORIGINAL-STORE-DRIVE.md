@@ -27,7 +27,7 @@ Las subidas actuales `uploadimage` van a Imagenes de productos. Opcionalmente pu
 
 Facturas, Comprobantes y Respaldos quedan preparados para almacenamiento privado en el servidor mediante `originalStoreSavePrivateFile_`. Los PDF que la página descarga en el navegador no se archivan automáticamente en Drive con este cambio.
 
-Las imágenes antiguas no se copian ni se mueven: sus enlaces siguen funcionando. Las hojas de cálculo y las credenciales de acceso tampoco se cambian.
+El 8 de octubre se migraron 1.152 fotos optimizadas al Drive propio. Se actualizaron únicamente las columnas de imagen y galería del inventario, conservando precios, cantidades y credenciales. El logo, Aliados y los banners también se sirven desde Drive. Las copias y el registro de enlaces anteriores permanecen en Respaldos.
 
 ## Instalación realizada
 
@@ -38,3 +38,10 @@ Enlace utilizado por Original Store: https://script.google.com/macros/s/AKfycbyJ
 Carpeta creada y verificada como privada: https://drive.google.com/drive/u/1/folders/16v-etcCrKbUSVD0ZNaTUzfDFjjrNFSv6
 
 Editor del proyecto: https://script.google.com/u/1/home/projects/1LihBsn2bVYgPi51nd4BJU3432HVsisaxATFbSn6-vjSk814iq2pqhfv-/edit
+
+## Carga y almacenamiento desde el 8 de octubre
+
+Las nuevas fotos de productos se comprimen en WebP, hasta 1200 px, antes de subir a Imagenes de productos. Los banners usan hasta 1600 px y van a Banners y anuncios; otros recursos van a Logos y recursos. El catálogo solicita versiones pequeñas y carga las fotos restantes al acercarse a ellas. El archivo de arranque contiene datos y enlaces, sin fotografías. La publicación del sitio excluye las imágenes y el paquete anterior de fotos.
+
+Backend verificado y publicado: versión 5, con la cuenta originalstorealmacen@gmail.com. La migración registró completa=true y el inventario público no conserva enlaces a las fotos anteriores incluidas en la migración.
+

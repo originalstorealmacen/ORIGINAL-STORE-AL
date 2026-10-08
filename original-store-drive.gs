@@ -30,7 +30,7 @@ function originalStoreUploadImage_(body){
  const type=String(body.assetType||'imagenes').toLowerCase();if(['imagenes','banners','logos'].indexOf(type)<0)throw new Error('Destino de imagen no permitido.');
  const file=originalStoreDriveFolder_(type).createFile(Utilities.newBlob(bytes,mimeType,originalStoreFileName_(body.fileName)));
  try{file.setSharing(DriveApp.Access.ANYONE_WITH_LINK,DriveApp.Permission.VIEW);}catch(error){file.setTrashed(true);throw new Error('La cuenta no permite compartir imagenes mediante enlace. Revisa Drive.');}
- const id=file.getId();return {ok:true,status:'success',url:'https://drive.google.com/thumbnail?id='+id+'&sz=w1000',directUrl:'https://lh3.googleusercontent.com/d/'+id,id:id};
+ const id=file.getId();return {ok:true,status:'success',url:'https://lh3.googleusercontent.com/d/'+id+'=w1200',directUrl:'https://lh3.googleusercontent.com/d/'+id,id:id};
 }
 // Solo para documentos generados por el servidor; no publicar como accion publica.
 function originalStoreSavePrivateFile_(type,blob,fileName){
@@ -38,3 +38,19 @@ function originalStoreSavePrivateFile_(type,blob,fileName){
  const file=originalStoreDriveFolder_(type).createFile(blob.copyBlob().setName(originalStoreFileName_(fileName)));return {id:file.getId(),url:file.getUrl()};
 }
 function originalStoreFileName_(value){const name=String(value||'archivo').replace(/[\\/\x00-\x1f]/g,'-').slice(0,140);return Date.now()+'-'+Utilities.getUuid().slice(0,8)+'-'+name;}
+
+// Ejecutar solo desde el editor de la cuenta propietaria de Original Store.
+function conectarAccesoOriginalStore() {
+ const expectedEmail='originalstorealmacen@gmail.com';
+ const ss=getSpreadsheet_();
+ if(String(DriveApp.getFileById(ss.getId()).getOwner().getEmail()).toLowerCase()!==expectedEmail)throw new Error('El inventario no pertenece a Original Store.');
+ if(ss.getId()!=='16o9R0delJsi9smXekxk4KJ9ev7nDJ6_2XQPYG1yc6s0')throw new Error('El inventario no es el de Original Store.');
+ const clientId='843506922292-95hnsm3vsj4ookvjhoopaj07tk8s2usr.apps.googleusercontent.com';
+ upsertConfig_('Google_Client_ID',clientId);
+ upsertConfig_('Factura_Empresa','Original Store');
+ upsertConfig_('Factura_Email',expectedEmail);
+ PropertiesService.getScriptProperties().setProperty('BLYXU_ADMIN_EMAILS',expectedEmail);
+ SpreadsheetApp.flush();
+ if(getConfigValue_('Google_Client_ID')!==clientId)throw new Error('No se guardo el cliente propio.');
+ console.log('Original Store: cliente propio conectado; inventario verificado; cuenta administradora '+expectedEmail);
+}

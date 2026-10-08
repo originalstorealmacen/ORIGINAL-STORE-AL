@@ -651,7 +651,7 @@ function renderFloatingWhatsApp() {
     button.target = '_blank';
     button.rel = 'noopener';
     button.href = `https://wa.me/${phone}?text=${encodeURIComponent('Hola Original Store, quiero hacer una consulta sobre sus productos.')}`;
-    button.innerHTML = '<span class="floating-whatsapp-logo"><img src="original-store-logo-color.png" alt="" loading="lazy"></span><span>WhatsApp</span>';
+    button.innerHTML = '<span class="floating-whatsapp-logo"><img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="" loading="lazy"></span><span>WhatsApp</span>';
     document.body.appendChild(button);
 }
 

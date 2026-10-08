@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Producto - Original Store</title>
     <meta name="description" content="Consulta joyas y accesorios Original Store: piezas, colores, medidas, disponibilidad y opciones para hacer tu pedido.">
-    <link rel="icon" type="image/png" href="/original-store-logo-color.png">
-    <link rel="apple-touch-icon" href="/original-store-logo-color.png">
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
     <meta property="og:title" content="Producto Original Store">
     <meta property="og:description" content="Consulta joyas y accesorios Original Store: piezas, colores, medidas, disponibilidad y opciones para hacer tu pedido.">
-    <meta property="og:image" content="https://aloriginalstore.online/original-store-logo-color.png">
+    <meta property="og:image" content="https://aloriginalstore.onlinehttps://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
     <meta property="og:url" content="https://aloriginalstore.online/producto.html">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://script.google.com">
@@ -986,7 +986,7 @@
     <nav class="navbar scrolled" id="navbar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">
-                <img src="original-store-logo-color.png" alt="Original Store">
+                <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store">
             </a>
 
             <ul class="nav-links" id="nav-links">
@@ -999,7 +999,7 @@
 
             <div class="nav-actions">
                 
-            <a class="nav-ally-btn" href="https://www.blyxu.online/" target="_blank" rel="noopener noreferrer" aria-label="Aliados: visitar BLYXU (abre en una nueva pestaña)" title="Visitar BLYXU"><span class="nav-ally-mark"><img src="blyxu-ally-logo-white.png" alt="BLYXU" width="100" height="100"></span><span>Aliados</span></a>
+            <a class="nav-ally-btn" href="https://www.blyxu.online/" target="_blank" rel="noopener noreferrer" aria-label="Aliados: visitar BLYXU (abre en una nueva pestaña)" title="Visitar BLYXU"><span class="nav-ally-mark"><img src="https://lh3.googleusercontent.com/d/1jGZ2YaxoOGUVKVbqafa9S4eNJWmHi7xS=w180" alt="BLYXU" width="100" height="100"></span><span>Aliados</span></a>
             <button class="nav-icon-btn nav-search-btn" type="button" onclick="openCatalogSearch()" aria-label="Buscar productos" title="Buscar">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="7"></circle>
@@ -1057,7 +1057,7 @@
                         let initialName = '';
 
                         try {
-                            const preview = JSON.parse(sessionStorage.getItem('blyxu_product_detail_preview_v1') || 'null');
+                            const preview = JSON.parse(sessionStorage.getItem('original_store_product_detail_drive_v2') || 'null');
                             const fresh = preview && Date.now() - Number(preview.savedAt || 0) < 120000;
                             if (fresh && preview.id === productId && preview.mode === mode) {
                                 initialSrc = preview.imageCard || preview.image || preview.imageDetail || '';
@@ -1066,7 +1066,7 @@
                         } catch (_) {}
 
                         if (!initialSrc) try {
-                            const cache = JSON.parse(localStorage.getItem('blyxu_products_cache_v3') || 'null');
+                            const cache = JSON.parse(localStorage.getItem('original_store_products_drive_v4') || 'null');
                             const product = cache?.data?.products?.[productId];
                             if (product) {
                                 initialName = product.Nombre || product.nombre || product.Producto || '';
@@ -1222,10 +1222,8 @@
             <button class="btn-checkout" id="btn-checkout">Finalizar Compra vía WhatsApp</button>
         </div>
     </div>
-
-    <script src="original-store-image-cache.js?v=20261008-1" defer></script>
-    <script src="original-store-catalog-bootstrap.js?v=20261008-1" defer></script>
-    <script src="blyxu-app.js?v=original-store-fast-20261008-1" defer></script>
+    <script src="original-store-catalog-bootstrap.js?v=drive-20261008-1" defer></script>
+    <script src="blyxu-app.js?v=original-store-drive-20261008-1" defer></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1259,13 +1257,13 @@
                         const alternate = typeof getImageFallbackUrl === 'function'
                             ? getImageFallbackUrl(previewImage, 'detail')
                             : '';
-                        if (!previewFallbackTried && alternate && alternate !== previewImage && alternate !== 'hero_necklace.png') {
+                        if (!previewFallbackTried && alternate && alternate !== previewImage && alternate !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900') {
                             previewFallbackTried = true;
                             detailImg.src = alternate;
                             return;
                         }
                         detailImg.onerror = null;
-                        detailImg.src = 'hero_necklace.png';
+                        detailImg.src = 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
                         detailImgContainer.classList.add('is-fallback');
                         detailImgContainer.style.backgroundImage = '';
                     };
@@ -1437,7 +1435,7 @@
             }
 
             function switchMainImage(src, alt) {
-                const nextSrc = src || 'hero_necklace.png';
+                const nextSrc = src || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
                 const currentSrc = detailImg.getAttribute('src') || '';
                 const isSameImage = currentSrc === nextSrc;
                 if (isSameImage && detailImg.complete && detailImg.naturalWidth > 0) return;
@@ -1469,7 +1467,7 @@
                 const usePlaceholder = () => {
                     detailImg.onerror = null;
                     detailImg.onload = null;
-                    detailImg.src = 'hero_necklace.png';
+                    detailImg.src = 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
                     detailImgContainer.classList.add('is-fallback');
                     finishSwap();
                 };
@@ -1478,7 +1476,7 @@
                     const alternate = typeof getImageFallbackUrl === 'function'
                         ? getImageFallbackUrl(nextSrc, 'detail')
                         : '';
-                    if (!alternateTried && alternate && alternate !== nextSrc && alternate !== 'hero_necklace.png') {
+                    if (!alternateTried && alternate && alternate !== nextSrc && alternate !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900') {
                         alternateTried = true;
                         preloadDetailImage(alternate);
                         detailImg.referrerPolicy = 'no-referrer';
@@ -1600,7 +1598,7 @@
                     const labelParts = getVisibleVariantParts(sib);
                     const label = dimensionLabel || labelParts.join(' - ') || `Opción ${index + 1}`;
                     const groupPhoto = siblings.map(item => getProductImageSet(item, 'thumb')[0]).find(Boolean);
-                    const variantImg = getProductImageSet(sib, 'thumb')[0] || groupPhoto || 'original-store-logo-color.png';
+                    const variantImg = getProductImageSet(sib, 'thumb')[0] || groupPhoto || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
                     const colorValue = getVariantFieldValue(sib, 'color');
                     const showColorOnly = variantDimension === 'color' && colorValue;
                     if (showColorOnly) {
@@ -1614,7 +1612,7 @@
                     const img = document.createElement('img');
                     img.src = variantImg;
                     img.alt = label;
-                    img.onerror = () => { img.src = 'original-store-logo-color.png'; };
+                    img.onerror = () => { img.src = 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'; };
                     imgWrap.appendChild(img);
 
                     if (isActive) {

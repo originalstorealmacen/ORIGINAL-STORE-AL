@@ -562,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const items = parseItems(order);
                 const total = getOrderTotal(order, items);
                 const balanceInfo = getInvoiceBalanceInfo(order, total);
-                const companyLogo = 'original-store-logo-color.png';
+                const companyLogo = 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
                 const companyName = getConfigValue('Factura_Empresa', 'Original Store JoyerÃ­a & Accesorios');
                 const companyNit = getConfigValue('Factura_NIT', '000.000.000-0');
                 const companyPhone = getConfigValue('Factura_Telefono', '+57 311 2368622');
