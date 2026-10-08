@@ -3709,7 +3709,7 @@ function updateCartUI() {
                 <div class="cart-empty-state">
                     <div class="cart-empty-icon">Original Store</div>
                     <h3>Tu carrito ${getCartModeLabel()} está vacío ✦</h3>
-                    <p>Descubre nuestras joyas y accesorios exclusivos y añade tus piezas preferidas.</p>
+                    <p>Descubre nuestros peluches y accesorios y añade tus piezas preferidas.</p>
                     <a href="${browseCatalogUrl}" class="cart-btn-browse">Explorar Catálogo</a>
                 </div>
             `;

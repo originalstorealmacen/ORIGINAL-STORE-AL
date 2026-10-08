@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Producto - Original Store</title>
-    <meta name="description" content="Consulta joyas y accesorios Original Store: piezas, colores, medidas, disponibilidad y opciones para hacer tu pedido.">
+    <title>Peluches y accesorios | Original Store</title>
+    <meta name="description" content="Descubre peluches y accesorios en Original Store. Explora nuestro catálogo, consulta disponibilidad y elige detalles especiales para regalar.">
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
-    <meta property="og:title" content="Producto Original Store">
-    <meta property="og:description" content="Consulta joyas y accesorios Original Store: piezas, colores, medidas, disponibilidad y opciones para hacer tu pedido.">
+    <meta property="og:title" content="Peluches y accesorios | Original Store">
+    <meta property="og:description" content="Descubre peluches y accesorios en Original Store. Explora nuestro catálogo, consulta disponibilidad y elige detalles especiales para regalar.">
     <meta property="og:image" content="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
     <meta property="og:url" content="https://aloriginalstore.online/producto.html">
     <meta name="twitter:card" content="summary_large_image">
@@ -999,6 +999,7 @@
     <script src="original-store-navigation.js?v=20261007-1" defer></script>
     <link rel="stylesheet" href="original-store-boutique.css?v=20261008-1">
     <link rel="stylesheet" href="original-store-product-studio.css?v=20261008-4">
+<meta name="robots" content="index, follow, max-image-preview:large">
 </head>
 <body class="dark-mode product-detail-page">
 
@@ -1772,6 +1773,16 @@
                 if (cartNote) cartNote.style.display = !detailShowsPrices && stock > 0 ? 'block' : 'none';
 
                 document.title = `${name} - Original Store`;
+                const productDescription = `${name}. ${desc === 'Sin descripcion disponible.' ? 'Consulta disponibilidad y opciones en Original Store, tienda de peluches y accesorios.' : desc}`.slice(0, 170);
+                document.querySelector('meta[name="description"]')?.setAttribute('content', productDescription);
+                document.querySelector('meta[property="og:title"]')?.setAttribute('content', document.title);
+                document.querySelector('meta[property="og:description"]')?.setAttribute('content', productDescription);
+                document.querySelector('meta[property="og:image"]')?.setAttribute('content', img);
+                const productUrl = `https://aloriginalstore.online/producto.html?ref=${encodeURIComponent(currentDetailReference)}`;
+                document.querySelector('meta[property="og:url"]')?.setAttribute('content', productUrl);
+                let canonical = document.querySelector('link[rel="canonical"]');
+                if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+                canonical.href = productUrl;
 
                 if (updateUrl) {
                     const nextUrl = `producto.html?id=${productId}${detailCatalogMode === 'wholesale' ? '&catalogo=mayorista' : ''}&ref=${encodeURIComponent(currentDetailReference)}`;
