@@ -19,12 +19,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/configure-pages@v5
-      - name: Preparar tienda e imágenes optimizadas
+      - name: Preparar tienda conectada a Drive
         shell: bash
         run: |
           mkdir -p _site
-          find . -maxdepth 1 -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.png' -o -name '*.webp' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.svg' -o -name '*.ico' -o -name '*.woff*' -o -name CNAME \) ! -iname '*private*' -exec cp -t _site {} +
-          unzip -qo original-store-catalog-images.zip -d _site
+          find . -maxdepth 1 -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.svg' -o -name '*.ico' -o -name '*.woff*' -o -name CNAME \) ! -iname '*private*' ! -name 'catalog-photo-*' ! -name 'original-store-image-cache.js' -exec cp -t _site {} +
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         with:
