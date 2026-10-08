@@ -176,7 +176,7 @@
             text('Original Store te contactará para confirmar disponibilidad y envío.', 16, y += 6, 9);
             if (summary.registered && summary.id) {
                 await loadQr();
-                const url = new URL('https://blyxu.online/facturas-pedidos.html');
+                const url = new URL('https://aloriginalstore.online/facturas-pedidos.html');
                 url.searchParams.set('buscar', summary.id);
                 const qr = window.qrcode(0, 'M'); qr.addData(url.href); qr.make();
                 if (y + 48 > 270) { pdf.addPage(); y = 20; }

@@ -566,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const companyName = getConfigValue('Factura_Empresa', 'Original Store JoyerÃ­a & Accesorios');
                 const companyNit = getConfigValue('Factura_NIT', '000.000.000-0');
                 const companyPhone = getConfigValue('Factura_Telefono', '+57 311 2368622');
-                const companyEmail = getConfigValue('Factura_Email', 'contacto@blyxu.online');
+                const companyEmail = getConfigValue('Factura_Email', 'originalstorealmacen@gmail.com');
                 let totalQty = 0;
 
                 const rows = items.length ? items.map(item => {
@@ -604,7 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <p>
                                         <span>WhatsApp: ${escapeHtml(companyPhone)}</span> &bull;
                                         <span>${escapeHtml(companyEmail)}</span> &bull;
-                                        <span>www.blyxu.online</span>
+                                        <span>aloriginalstore.online</span>
                                     </p>
                                 </div>
                             </div>
@@ -694,7 +694,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="invoice-footer-line"></div>
                         <div class="invoice-footer">
                             <p class="thank-you">Gracias por elegir Original Store JoyerÃ­a & Accesorios</p>
-                            <p class="footer-subtext">Comprobante expedido digitalmente por Original Store &bull; Tienda Web: <a href="https://www.blyxu.online" target="_blank" style="color:#52525b; font-weight:700;">www.blyxu.online</a> &bull; WhatsApp Soporte: ${escapeHtml(companyPhone)}</p>
+                            <p class="footer-subtext">Comprobante expedido digitalmente por Original Store &bull; Tienda Web: <a href="https://aloriginalstore.online" target="_blank" style="color:#52525b; font-weight:700;">aloriginalstore.online</a> &bull; WhatsApp Soporte: ${escapeHtml(companyPhone)}</p>
                         </div>
                     </section>
                 `;

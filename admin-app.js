@@ -13600,7 +13600,7 @@ window.imprimirFacturaEditor = function() {
         document.getElementById('inv-company-contact').textContent = 'WhatsApp: ' + (cfg['Factura_Telefono'] || '+57 311 2368622');
     }
     if (document.getElementById('inv-company-email')) {
-        document.getElementById('inv-company-email').textContent = 'Email: ' + (cfg['Factura_Email'] || 'contacto@blyxu.online');
+        document.getElementById('inv-company-email').textContent = 'Email: ' + (cfg['Factura_Email'] || 'originalstorealmacen@gmail.com');
     }
 
     // Sección de observaciones y notas
@@ -13724,7 +13724,7 @@ ${itemsText}
 *Adjunto encontrarás el documento PDF de tu factura listo para ver y guardar.*
 
 ¡Esperamos que disfrutes muchísimo tus accesorios! Cualquier duda estamos para ayudarte.
-*Tienda web:* www.blyxu.online
+*Tienda web:* aloriginalstore.online
 *Soporte Original Store:* +57 311 2368622`;
 
     // 1. Disparar el generador / diálogo de impresión PDF para que el usuario guarde o imprima el archivo PDF
