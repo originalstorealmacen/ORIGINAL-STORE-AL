@@ -9,12 +9,35 @@
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
     <meta property="og:title" content="Producto Original Store">
     <meta property="og:description" content="Consulta joyas y accesorios Original Store: piezas, colores, medidas, disponibilidad y opciones para hacer tu pedido.">
-    <meta property="og:image" content="https://aloriginalstore.onlinehttps://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
+    <meta property="og:image" content="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
     <meta property="og:url" content="https://aloriginalstore.online/producto.html">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://script.google.com">
     <link rel="preconnect" href="https://drive.google.com">
     <link rel="preconnect" href="https://lh3.googleusercontent.com">
+
+    <script>
+        // Start the already viewed Drive image while the document is being parsed.
+        (() => {
+            try {
+                const params = new URLSearchParams(location.search);
+                const id = Number.parseInt(params.get('id'), 10);
+                const mode = params.get('catalogo') === 'mayorista' ? 'wholesale' : 'retail';
+                const ref = params.get('ref') || '';
+                const preview = JSON.parse(sessionStorage.getItem("original_store_product_detail_drive_v2:https://script.google.com/macros/s/AKfycbyJPGQXLqyFAlAtO7vEih7yZzRuevROj6dcb-AQF02PupM66BGeLbMULKV-bW5LrfoW/exec") || 'null');
+                if (!preview || Date.now() - Number(preview.savedAt || 0) > 120000 || preview.id !== id || preview.mode !== mode || (ref && preview.ref && preview.ref !== ref)) return;
+                const src = preview.imageCard || preview.image || preview.imageDetail;
+                if (!src || !/^https:\/\//.test(src)) return;
+                window.ORIGINAL_STORE_INITIAL_DETAIL = preview;
+                const link = document.createElement('link');
+                link.rel = 'preload'; link.as = 'image'; link.href = src;
+                link.fetchPriority = 'high'; link.referrerPolicy = 'no-referrer';
+                document.head.appendChild(link);
+            } catch (_) {}
+        })();
+    </script>
+    <script src="original-store-catalog-bootstrap.js?v=drive-20261008-1" defer></script>
+    <script src="blyxu-app.js?v=original-store-detail-fast-20261008-1" defer></script>
     <link rel="stylesheet" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006">
     <style>
         /* STUDIO NOIR PRODUCT DETAIL */
@@ -1057,7 +1080,7 @@
                         let initialName = '';
 
                         try {
-                            const preview = JSON.parse(sessionStorage.getItem('original_store_product_detail_drive_v2') || 'null');
+                            const preview = window.ORIGINAL_STORE_INITIAL_DETAIL || JSON.parse(sessionStorage.getItem("original_store_product_detail_drive_v2:https://script.google.com/macros/s/AKfycbyJPGQXLqyFAlAtO7vEih7yZzRuevROj6dcb-AQF02PupM66BGeLbMULKV-bW5LrfoW/exec") || 'null');
                             const fresh = preview && Date.now() - Number(preview.savedAt || 0) < 120000;
                             if (fresh && preview.id === productId && preview.mode === mode) {
                                 initialSrc = preview.imageCard || preview.image || preview.imageDetail || '';
@@ -1066,8 +1089,9 @@
                         } catch (_) {}
 
                         if (!initialSrc) try {
-                            const cache = JSON.parse(localStorage.getItem('original_store_products_drive_v4') || 'null');
-                            const product = cache?.data?.products?.[productId];
+                            const cache = JSON.parse(localStorage.getItem("original_store_products_drive_v4:https://script.google.com/macros/s/AKfycbyJPGQXLqyFAlAtO7vEih7yZzRuevROj6dcb-AQF02PupM66BGeLbMULKV-bW5LrfoW/exec") || 'null');
+                            const cachedProducts = cache?.data?.products || [];
+                            const product = params.get('ref') ? cachedProducts.find(p => String(p.idVariacion || p.SKU || '') === params.get('ref')) : cachedProducts[productId];
                             if (product) {
                                 initialName = product.Nombre || product.nombre || product.Producto || '';
                                 initialSrc = normalizeImage(product.Imagen || product.imagen || product.Foto || (product.Galeria && product.Galeria[0]), 420);
@@ -1083,7 +1107,7 @@
                             if (mobileName && initialName) mobileName.textContent = initialName;
                         }
 
-                        document.write(`<img src="${escapeAttr(initialSrc)}" alt="${escapeAttr(initialName)}" id="detail-img" class="is-ready" loading="eager" decoding="sync" fetchpriority="high" referrerpolicy="no-referrer">`);
+                        document.write(`<img ${initialSrc ? `src="${escapeAttr(initialSrc)}"` : ''} alt="${escapeAttr(initialName)}" id="detail-img" class="is-ready" loading="eager" decoding="sync" fetchpriority="high" referrerpolicy="no-referrer">`);
                     })();
                 </script>
                 <button class="btn-save-favorite-detail product-favorite-mobile" id="btn-save-favorite-detail-mobile" type="button" aria-label="Guardar favorito" title="Guardar favorito">
@@ -1222,8 +1246,7 @@
             <button class="btn-checkout" id="btn-checkout">Finalizar Compra vía WhatsApp</button>
         </div>
     </div>
-    <script src="original-store-catalog-bootstrap.js?v=drive-20261008-1" defer></script>
-    <script src="blyxu-app.js?v=original-store-drive-20261008-1" defer></script>
+
     
     <script>
         document.addEventListener('DOMContentLoaded', async () => {

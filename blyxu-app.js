@@ -784,6 +784,7 @@ function prepareProductDetailPreview(productIndex, mode = 'retail') {
     try {
         sessionStorage.setItem(PRODUCT_DETAIL_PREVIEW_KEY, JSON.stringify({
             id: index,
+            ref: String(product.idVariacion || product.SKU || ''),
             mode,
             name: getProductPreviewName(product),
             image,
