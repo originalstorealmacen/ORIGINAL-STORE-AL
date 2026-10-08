@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p _site
-          find . -maxdepth 1 -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.svg' -o -name '*.ico' -o -name '*.woff*' -o -name CNAME \) ! -iname '*private*' ! -name 'catalog-photo-*' ! -name 'original-store-image-cache.js' -exec cp -t _site {} +
+          find . -maxdepth 1 -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.svg' -o -name '*.ico' -o -name '*.woff*' -o -name CNAME -o -name robots.txt -o -name sitemap.xml \) ! -iname '*private*' ! -name 'catalog-photo-*' ! -name 'original-store-image-cache.js' -exec cp -t _site {} +
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         with:
