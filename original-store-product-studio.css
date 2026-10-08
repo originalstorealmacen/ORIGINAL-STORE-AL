@@ -95,3 +95,6 @@ html body.product-detail-page #product-detail .detail-variant-img-wrap {width:38
 html body.product-detail-page #product-detail .detail-variant-grid {display:flex!important;flex-wrap:wrap!important;gap:8px!important;}
 html body.product-detail-page #product-detail .detail-variant-chip {display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;width:auto!important;}
 html body.product-detail-page #product-detail .detail-variant-label {font-size:10px!important;margin:0!important;}
+html body.product-detail-page #product-detail .detail-variant-list {display:flex!important;flex-wrap:wrap!important;gap:8px!important;}
+html body.product-detail-page #product-detail .detail-variant-label {white-space:normal!important;overflow:visible!important;text-overflow:clip!important;letter-spacing:0!important;max-width:110px!important;}
+html body.product-detail-page #product-detail .detail-variant-img-wrap {flex:0 0 38px!important;}
