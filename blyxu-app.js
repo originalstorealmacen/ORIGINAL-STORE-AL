@@ -438,7 +438,8 @@ function getCatalogProductImageSource(product) {
 }
 
 function getCatalogPreviewImageUrl(source) {
-    return normalizeImageUrl(source, IS_MOBILE_VIEWPORT ? 'thumb' : 'catalogPreview');
+    // One appropriately sized photo per card, without a second quality download.
+    return normalizeImageUrl(source, 'card');
 }
 
 function preloadCatalogImageUrl(src, priority = 'auto') {
@@ -455,12 +456,12 @@ function preloadCatalogImageUrl(src, priority = 'auto') {
 
 function primeCatalogImages(products, grid) {
     if (!Array.isArray(products) || !products.length || typeof Image === 'undefined') return;
+    if (!grid || grid.getBoundingClientRect().top > window.innerHeight + 400) return;
     const columns = getCatalogGridColumnCount(grid);
-    const highPriorityCount = Math.max(CATALOG_BATCH_SIZE, columns * 2);
-    products.slice(0, CATALOG_IMAGE_PRELOAD_LIMIT).forEach((product, index) => {
+    products.slice(0, columns).forEach(product => {
         const source = getCatalogProductImageSource(product);
         const preview = getCatalogPreviewImageUrl(source);
-        if (preview) preloadCatalogImageUrl(preview, index < highPriorityCount ? 'high' : 'auto');
+        if (preview) preloadCatalogImageUrl(preview, 'high');
     });
 }
 
@@ -554,7 +555,7 @@ function initCatalogImageLoading(scope = document) {
                 if (entry.isIntersecting) loadDeferredCatalogImage(entry.target);
             });
         }, {
-            rootMargin: IS_MOBILE_VIEWPORT ? '700px 0px' : '950px 0px',
+            rootMargin: '400px',
             threshold: 0.01
         });
     }
@@ -752,7 +753,7 @@ function normalizeImageUrl(value, imageSize = 'default') {
     const targetWidth = getImageTargetWidth(imageSize);
 
     if (firstUrl.includes('drive.google.com') && driveMatch && driveMatch[1]) {
-        return `https://drive.google.com/thumbnail?id=${encodeURIComponent(driveMatch[1])}&sz=w${targetWidth}`;
+        return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveMatch[1])}=w${targetWidth}`;
     }
 
     if (firstUrl.startsWith('//')) return `https:${firstUrl}`;
@@ -808,10 +809,15 @@ function getImageFallbackUrl(source, imageSize = 'default') {
     const driveMatch =
         src.match(/[?&]id=([^&#]+)/) ||
         src.match(/drive\.google\.com\/file\/d\/([^/]+)/) ||
-        src.match(/lh3\.googleusercontent\.com\/d\/([^/?&#]+)/);
+        src.match(/lh3\.googleusercontent\.com\/d\/([^/?&#=]+)/);
 
-    if (driveMatch?.[1] && !src.includes('lh3.googleusercontent.com')) {
-        return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveMatch[1])}=w${getImageTargetWidth(imageSize)}`;
+    if (driveMatch?.[1]) {
+        const fileId = decodeURIComponent(driveMatch[1]);
+        if (src.includes('lh3.googleusercontent.com')) {
+            const sourceWidth = src.match(/=w(\d+)/)?.[1] || getImageTargetWidth(imageSize);
+            return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w${sourceWidth}`;
+        }
+        return `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}=w${getImageTargetWidth(imageSize)}`;
     }
 
     return 'hero_necklace.png';
@@ -1840,11 +1846,11 @@ function renderInventorySpotlight() {
         const name = p.Nombre || p.nombre || p.Producto || 'Producto Original Store';
         const price = getProductCardPriceInfo(p, 'retail').price;
         const priceText = shouldShowProductPrices('retail') ? formatMoney(price) : 'Precio por consultar';
-        const shouldLoadEarly = !isDuplicate && index < eagerCount;
+        const shouldLoadEarly = !isDuplicate && index < eagerCount && window.location.hash !== '#coleccion';
         const loading = shouldLoadEarly ? 'eager' : 'lazy';
         const priority = shouldLoadEarly ? 'high' : 'low';
         return `<div class="marquee-item" onclick="window.location.href='${escapeHtml(detailUrl)}'" title="${escapeHtml(p.Nombre || '')}">
-                    <img src="${escapeHtml(img || 'hero_necklace.png')}" alt="${escapeHtml(name)}" loading="${loading}" decoding="async" fetchpriority="${priority}" referrerpolicy="no-referrer" onerror="handleCatalogImageError(this)">
+                    <img ${shouldLoadEarly ? `src="${escapeHtml(img || 'hero_necklace.png')}"` : `data-src="${escapeHtml(img || 'hero_necklace.png')}" data-catalog-lazy="true"`} alt="${escapeHtml(name)}" loading="${loading}" decoding="async" fetchpriority="${priority}" referrerpolicy="no-referrer" onerror="handleCatalogImageError(this)">
                     ${stockBadge}
                     <div class="marquee-item-info">
                         <strong>${escapeHtml(name)}</strong>
@@ -1859,6 +1865,7 @@ function renderInventorySpotlight() {
         candidates.map((p, index) => getMarqueeItemHtml(p, index, true)).join('');
     marqueeContainer.classList.remove('is-loading');
     marqueeContainer.classList.add('is-ready');
+    initCatalogImageLoading(marqueeContainer);
     
     inventorySpotlightRendered = true;
 }
@@ -2975,11 +2982,12 @@ function renderProducts(products, options = {}) {
 
     grid.innerHTML = '';
     let rendered = 0;
-    const immediateImageCount = initialBatchSize;
-    const highPriorityImageCount = Math.min(initialBatchSize, Math.max(CATALOG_BATCH_SIZE, getCatalogGridColumnCount(grid) * 2));
     const shouldPrioritizeCatalogImages = mode === 'wholesale'
         || gridId === 'wholesale-products-grid'
-        || (typeof window !== 'undefined' && window.location.hash === '#coleccion');
+        || (typeof window !== 'undefined' && window.location.hash === '#coleccion')
+        || grid.getBoundingClientRect().top < window.innerHeight + 400;
+    const highPriorityImageCount = Math.min(initialBatchSize, getCatalogGridColumnCount(grid));
+    const immediateImageCount = shouldPrioritizeCatalogImages ? highPriorityImageCount : 0;
     primeCatalogImages(filtered, grid);
 
     function productCardTemplate(p, i) {
@@ -3005,7 +3013,7 @@ function renderProducts(products, options = {}) {
         const shouldLoadImageNow = i < immediateImageCount;
         const isHighPriorityImage = i < highPriorityImageCount && shouldPrioritizeCatalogImages;
         const imagePriority = isHighPriorityImage ? 'high' : shouldLoadImageNow ? 'auto' : 'low';
-        const imageLoading = i < highPriorityImageCount ? 'eager' : 'lazy';
+        const imageLoading = isHighPriorityImage ? 'eager' : 'lazy';
         const imageSourceAttrs = shouldLoadImageNow
             ? `src="${escapeHtml(previewImg)}"`
             : `data-src="${escapeHtml(previewImg)}" data-catalog-lazy="true"`;
