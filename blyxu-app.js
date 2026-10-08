@@ -54,6 +54,7 @@ const IMAGE_WIDTHS = {
     banner: 760,
     spotlight: 520,
     detail: 900,
+    zoom: 1400,
     thumb: 160,
     cart: 140,
     search: 96
@@ -566,6 +567,8 @@ function initCatalogImageLoading(scope = document) {
 async function renderHomeSectionsStaggered(options = {}) {
     const { renderCatalog = true } = options;
     const token = ++homeRenderToken;
+    const catalogFirst = renderCatalog && window.location.hash === '#coleccion';
+    if (catalogFirst) renderCatalogProducts();
     renderBanners(bannerProducts);
     await yieldToBrowser();
     if (token !== homeRenderToken) return;
@@ -578,7 +581,7 @@ async function renderHomeSectionsStaggered(options = {}) {
     renderInventorySpotlight();
     await yieldToBrowser();
     if (token !== homeRenderToken) return;
-    if (renderCatalog) renderCatalogProducts();
+    if (renderCatalog && !catalogFirst) renderCatalogProducts();
 }
 
 function isCacheFresh(key, ttlMs) {
@@ -751,6 +754,9 @@ function normalizeImageUrl(value, imageSize = 'default') {
     const firstUrl = raw.includes(',http') ? raw.split(',http')[0].trim() : raw;
     const driveMatch = firstUrl.match(/drive\.google\.com\/file\/d\/([^/]+)/) || firstUrl.match(/[?&]id=([^&]+)/);
     const targetWidth = getImageTargetWidth(imageSize);
+    const imageId = driveMatch?.[1] || firstUrl.match(/lh3\.googleusercontent\.com\/d\/([^/?=&#]+)/)?.[1];
+    const localPhoto = window.ORIGINAL_STORE_IMAGE_CACHE?.[imageId];
+    if (localPhoto && ['card','catalogPreview','thumb','cart','search','detail'].includes(imageSize)) return localPhoto;
 
     if (firstUrl.includes('drive.google.com') && driveMatch && driveMatch[1]) {
         return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveMatch[1])}=w${targetWidth}`;
@@ -801,11 +807,17 @@ function openProductDetail(productIndex, mode = 'retail') {
     const index = Number(productIndex);
     prepareProductDetailPreview(index, mode);
     const catalogParam = mode === 'wholesale' ? '&catalogo=mayorista' : '';
-    window.location.href = `producto.html?id=${index}${catalogParam}`;
+    const ref = allProducts[index]?.idVariacion || allProducts[index]?.SKU || '';
+    window.location.href = `producto.html?id=${index}${catalogParam}&ref=${encodeURIComponent(ref)}`;
 }
 
 function getImageFallbackUrl(source, imageSize = 'default') {
     const src = String(source || '');
+    if (src.includes('catalog-photo-')) {
+        const fileName = src.split('/').pop().split('?')[0];
+        const id = Object.keys(window.ORIGINAL_STORE_IMAGE_CACHE || {}).find(key => window.ORIGINAL_STORE_IMAGE_CACHE[key] === fileName);
+        if (id) return `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w${getImageTargetWidth(imageSize)}`;
+    }
     const driveMatch =
         src.match(/[?&]id=([^&#]+)/) ||
         src.match(/drive\.google\.com\/file\/d\/([^/]+)/) ||
@@ -849,7 +861,7 @@ function handleBannerImageError(img) {
 
 function normalizeGoogleProduct(product) {
     const galeria = parseGallery(getProductField(product, ['Galer\u00eda JSON', 'Galeria JSON', 'Galería JSON', 'galeria'], []))
-        .map(normalizeImageUrl)
+        .map(src => normalizeImageUrl(src))
         .filter(Boolean);
     const imageUrl = normalizeImageUrl(getProductFieldLoose(product, ['Imagen Principal', 'Imagen_Principal', 'imagenPrincipal', 'Imagen', 'imagen', 'Foto', 'foto', 'url', 'image', 'src', 'directUrl'], galeria[0] || ''));
 
@@ -1227,13 +1239,28 @@ function requestFreshProducts(options = {}) {
     }
     return productsLoadPromise;
 }
+function getCatalogDataSignature() {
+    const fields = ['idProducto','idVariacion','Nombre','Categoria','Catalogo','Precio','Precio_Mayorista','Stock','Imagen','Galeria','Descripcion','Color','Tamano','TipoMedida','UnidadMedida','Ancho','Largo','Fondo','Radio','TallaTextil','Estilo','Estado','Promocion'];
+    const config = Object.fromEntries(Object.entries(siteConfig).filter(([key])=>/^(Mostrar_Precios_Minorista|Mercado_Pago_Publico_Activo|Catalogo_Solo_WhatsApp|Banner_|Home_|Promo_|Wholesale_Promo_)/.test(key)).sort(([a],[b])=>a.localeCompare(b)));
+    return JSON.stringify({products:[...allProducts,...bannerProducts].map(p=>fields.map(key=>p[key]??'')),config});
+}
 async function loadProducts(options = {}) {
     const { renderCatalog = true, useCache = true, showLoading = true } = options;
     const productCache = readCache(PRODUCTS_CACHE_KEY);
-    const usedProductCache = useCache && allProducts.length === 0 && hydrateProductsFromCache(productCache);
+    let usedProductCache = useCache && allProducts.length === 0 && hydrateProductsFromCache(productCache);
+    const bootstrap = window.ORIGINAL_STORE_CATALOG_BOOTSTRAP;
+    if (useCache && !allProducts.length && Array.isArray(bootstrap?.rows)) {
+        const products = bootstrap.rows.map(normalizeGoogleProduct).filter(isActiveProduct);
+        usedProductCache = hydrateProductsFromCache({data:{products:products.filter(p=>!isPublicBannerProduct(p)),banners:products.filter(isPublicBannerProduct)}});
+    }
 
     const usedConfigCache = useCache && Object.keys(siteConfig).length === 0 && hydrateSiteConfigFromCache();
     const configCacheIsFresh = usedConfigCache && isCacheFresh(SITE_CONFIG_CACHE_KEY, SITE_CONFIG_CACHE_TTL);
+    if (!Object.keys(siteConfig).length && bootstrap?.config) {
+        siteConfig = {...bootstrap.config};
+        showRetailPrices = String(siteConfig[RETAIL_PRICE_CONFIG_KEY]) === '1';
+    }
+    const previewSignature = getCatalogDataSignature();
 
     if (usedProductCache) {
         applyPromotionsToProducts();
@@ -1257,7 +1284,8 @@ async function loadProducts(options = {}) {
         if (backgroundLoads.length) {
             Promise.all(backgroundLoads).then(() => {
                 applyPromotionsToProducts();
-                if (renderCatalog) {
+                const changed = previewSignature !== getCatalogDataSignature();
+                if (renderCatalog && changed) {
                     if (IS_WHOLESALE_PAGE) {
                         renderCatalogProducts();
                     } else {
@@ -1879,8 +1907,8 @@ async function fetchProducts(options = {}) {
     } else {
         try {
             setProductsLoading(showLoading);
-            const res = await fetch(GOOGLE_SHEET_PRODUCTS_URL + '&_=' + Date.now(), {
-                cache: 'no-store'
+            const res = await fetch(GOOGLE_SHEET_PRODUCTS_URL, {
+                cache: 'no-cache', signal:AbortSignal.timeout(12000)
             });
             const data = await res.json();
             if (data && (data.status === 'error' || data.ok === false)) {
@@ -1917,6 +1945,7 @@ async function fetchProducts(options = {}) {
     bannerProducts = dataProducts.filter(p => isPublicBannerProduct(p) && isActiveProduct(p) && getPublicProductImage(p));
     allProducts = dataProducts.filter(p => !isPublicBannerProduct(p));
     writeCache(PRODUCTS_CACHE_KEY, { products: allProducts, banners: bannerProducts });
+    window.dispatchEvent(new CustomEvent('original-store-products-updated'));
 
     return allProducts;
 }
@@ -1940,9 +1969,9 @@ async function fetchSiteConfig(options = {}) {
 
     configLoadPromise = (async () => {
         try {
-            const url = `${GOOGLE_SHEET_API}?action=get_config&_=${Date.now()}`;
+            const url = `${GOOGLE_SHEET_API}?action=get_config`;
             const res = await fetch(url, {
-                cache: 'no-store'
+                cache: 'no-cache', signal:AbortSignal.timeout(12000)
             });
             const data = await res.json();
             if (data && data.status === 'success' && data.config) {
@@ -1950,6 +1979,7 @@ async function fetchSiteConfig(options = {}) {
                 showRetailPrices = String(siteConfig[RETAIL_PRICE_CONFIG_KEY] || '0') === '1';
                 localStorage.setItem(RETAIL_PRICE_VISIBILITY_KEY, showRetailPrices ? '1' : '0');
                 writeCache(SITE_CONFIG_CACHE_KEY, siteConfig);
+                window.dispatchEvent(new CustomEvent('original-store-config-updated'));
                 if (typeof updateCartUI === 'function') updateCartUI();
             }
         } catch (err) {
@@ -3000,7 +3030,6 @@ function renderProducts(products, options = {}) {
         const previewImg = getCatalogPreviewImageUrl(rawImg) || img;
         const cat = p.Categoria || p.categoria || '';
         const stock = getProductStock(p);
-        const colors = (p.Color || p.color || '').split(',').map(c => c.trim()).filter(Boolean);
         const variantText = getVariantSummary(p);
         const originalIndex = allProducts.indexOf(p);
         const productIndex = originalIndex >= 0 ? originalIndex : i;
@@ -3032,7 +3061,6 @@ function renderProducts(products, options = {}) {
                 <div class="product-card-name">${name}</div>
                 <div class="product-card-desc">${cat}</div>
                 ${variantText ? `<div class="product-card-variant">${escapeHtml(variantText)}</div>` : ''}
-                ${colors.length ? `<div class="product-card-colors" aria-label="Colores disponibles">${colors.map(c => `<span class="color-dot" style="background:${getColorHex(c)}" aria-hidden="true"></span>`).join('')}</div>` : ''}
                 ${showPrices ? `<div class="product-card-price ${oldPrice > price ? 'discount-active' : ''}">
                     <span class="product-price-icon" aria-hidden="true">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 11h18"></path></svg>
@@ -6313,7 +6341,7 @@ function initBlyxuApp() {
     if (isHomePage) {
         hydrateSiteConfigFromCache();
         renderHomeAdBanner();
-        fetchSiteConfig({ force: true }).then(() => {
+        fetchSiteConfig().then(() => {
             renderHomeAdBanner();
             renderFooterSocialLinks();
             renderPromoWidget();

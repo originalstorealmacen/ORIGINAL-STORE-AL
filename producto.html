@@ -9,8 +9,8 @@
     <link rel="apple-touch-icon" href="/original-store-logo-color.png">
     <meta property="og:title" content="Producto Original Store">
     <meta property="og:description" content="Consulta joyas y accesorios Original Store: piezas, colores, medidas, disponibilidad y opciones para hacer tu pedido.">
-    <meta property="og:image" content="https://blyxu.online/original-store-logo-color.png">
-    <meta property="og:url" content="https://blyxu.online/producto.html">
+    <meta property="og:image" content="https://aloriginalstore.online/original-store-logo-color.png">
+    <meta property="og:url" content="https://aloriginalstore.online/producto.html">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://script.google.com">
     <link rel="preconnect" href="https://drive.google.com">
@@ -974,7 +974,7 @@
     <link rel="stylesheet" href="storefront-refinement.css?v=nav-spacing-20261006-2">
     <link rel="stylesheet" href="original-store-theme.css?v=20261007-22">
     <script src="original-store-navigation.js?v=20261007-1" defer></script>
-    <link rel="stylesheet" href="original-store-boutique.css?v=20261007-3">
+    <link rel="stylesheet" href="original-store-boutique.css?v=20261008-1">
 </head>
 <body class="dark-mode product-detail-page">
 
@@ -1154,12 +1154,12 @@
 
             <!-- 7. Details Block: Description & Technical Specs -->
             <div class="product-details-block">
-                <div class="detail-desc-card">
-                    <span class="detail-block-label">Descripción</span>
+                <details class="detail-desc-card detail-description-accordion">
+                    <summary class="detail-block-label">Descripción del producto <span aria-hidden="true">+</span></summary>
                     <p class="product-info-desc" id="detail-desc">
                         Cargando detalles del producto...
                     </p>
-                </div>
+                </details>
 
                 <div class="product-specs">
                     <div class="spec-item" id="spec-color-row">
@@ -1218,7 +1218,9 @@
         </div>
     </div>
 
-    <script src="blyxu-app.js?v=original-store-images-20261007-3" defer></script>
+    <script src="original-store-image-cache.js?v=20261008-1" defer></script>
+    <script src="original-store-catalog-bootstrap.js?v=20261008-1" defer></script>
+    <script src="blyxu-app.js?v=original-store-fast-20261008-1" defer></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1227,6 +1229,7 @@
             const catalogBackUrl = detailCatalogMode === 'wholesale' ? 'mayorista.html' : './#coleccion';
             let detailShowsPrices = shouldShowProductPrices(detailCatalogMode);
             let currentDetailProductId = Number.parseInt(urlParams.get('id'), 10);
+            let currentDetailReference = urlParams.get('ref') || '';
             activeCatalogMode = detailCatalogMode;
             setCartMode(detailCatalogMode);
             updateCartUI();
@@ -1277,6 +1280,8 @@
             }
             detailShowsPrices = shouldShowProductPrices(detailCatalogMode);
             updateCartUI();
+            const requestedRef = urlParams.get('ref');
+            if (requestedRef) currentDetailProductId = allProducts.findIndex(p => String(p.idVariacion || p.SKU || '') === requestedRef);
 
             if (!Number.isInteger(currentDetailProductId) || !allProducts[currentDetailProductId]) {
                 document.getElementById('product-detail').innerHTML = `
@@ -1589,7 +1594,8 @@
                     const dimensionLabel = getVariantFieldValue(sib, variantDimension);
                     const labelParts = getVisibleVariantParts(sib);
                     const label = dimensionLabel || labelParts.join(' - ') || `Opción ${index + 1}`;
-                    const variantImg = getProductImageSet(sib, 'thumb')[0] || 'original-store-logo-color.png';
+                    const groupPhoto = siblings.map(item => getProductImageSet(item, 'thumb')[0]).find(Boolean);
+                    const variantImg = getProductImageSet(sib, 'thumb')[0] || groupPhoto || 'original-store-logo-color.png';
                     const colorValue = getVariantFieldValue(sib, 'color');
                     const showColorOnly = variantDimension === 'color' && colorValue;
                     if (showColorOnly) {
@@ -1652,6 +1658,7 @@
                 if (!product) return;
 
                 currentDetailProductId = productId;
+                currentDetailReference = String(product.idVariacion || product.SKU || '');
                 const name = getProductDisplayName(product);
                 const price = getProductPrice(product, detailCatalogMode);
                 const oldPrice = getProductDisplayOldPrice(product, detailCatalogMode, price);
@@ -1742,7 +1749,7 @@
                 document.title = `${name} - Original Store`;
 
                 if (updateUrl) {
-                    const nextUrl = `producto.html?id=${productId}${detailCatalogMode === 'wholesale' ? '&catalogo=mayorista' : ''}`;
+                    const nextUrl = `producto.html?id=${productId}${detailCatalogMode === 'wholesale' ? '&catalogo=mayorista' : ''}&ref=${encodeURIComponent(currentDetailReference)}`;
                     history.replaceState({ productId }, '', nextUrl);
                 }
             }
@@ -1759,7 +1766,7 @@
                 };
 
                 detailImgContainer.addEventListener('click', () => {
-                    zoomImg.src = detailImg.src;
+                    zoomImg.src = normalizeImageUrl(allProducts[currentDetailProductId]?.Imagen || detailImg.src, 'zoom');
                     zoomImg.alt = detailImg.alt || '';
                     zoomOverlay.classList.add('open');
                     zoomOverlay.setAttribute('aria-hidden', 'false');
@@ -1775,6 +1782,17 @@
             }
 
             initDetailZoom();
+            window.addEventListener('original-store-products-updated', () => {
+                const currentRef = currentDetailReference;
+                if (!currentRef) return;
+                const nextIndex = allProducts.findIndex(p => String(p.idVariacion || p.SKU || '') === currentRef);
+                if (nextIndex >= 0) renderVariantInPlace(nextIndex, false);
+                else { currentDetailProductId = -1; cartBtn.disabled = true; cartBtn.textContent = 'No disponible'; document.getElementById('detail-stock').textContent = 'No disponible'; document.getElementById('detail-availability-pill').classList.add('is-out'); }
+            });
+            window.addEventListener('original-store-config-updated', () => {
+                detailShowsPrices = shouldShowProductPrices(detailCatalogMode);
+                if (allProducts[currentDetailProductId]) renderVariantInPlace(currentDetailProductId, false);
+            });
             setTimeout(() => {
                 if (Number.isInteger(currentDetailProductId)) {
                     renderVariantInPlace(currentDetailProductId, false);
