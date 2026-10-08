@@ -975,6 +975,7 @@
     <link rel="stylesheet" href="original-store-theme.css?v=20261007-22">
     <script src="original-store-navigation.js?v=20261007-1" defer></script>
     <link rel="stylesheet" href="original-store-boutique.css?v=20261008-1">
+    <link rel="stylesheet" href="original-store-product-studio.css?v=20261008-2">
 </head>
 <body class="dark-mode product-detail-page">
 
@@ -1115,16 +1116,10 @@
                 </button>
             </div>
             
-            <!-- 3. Price & Badges -->
-            <div class="product-info-price">
-                <span id="detail-price">$0</span>
-                <span class="old" id="detail-old-price" style="display:none;">$0</span>
-                <span class="detail-promo-badge" id="detail-promo-badge" style="display:none;"></span>
-            </div>
-
             <!-- 4. Variations (Opciones disponibles) -->
             <div id="product-variations" style="display: none;"></div>
 
+            <div class="product-purchase-row">
             <!-- 5. Actions (CTA: Add to cart, Favorite, WhatsApp) -->
             <div class="product-info-actions">
                 <button class="btn-buy-now" id="btn-add-to-cart-detail">Añadir al Carrito</button>
@@ -1134,6 +1129,15 @@
                 </button>
                 <button class="btn-consult-direct" id="btn-consult-product-detail" type="button" style="display:none;">Consultar este producto por WhatsApp</button>
                 <p class="cart-consult-note" id="detail-cart-note" style="display:none;">Añadir al carrito sirve para hacer una consulta general de varios productos.</p>
+            </div>
+
+            <!-- 3. Price & Badges -->
+            <div class="product-info-price">
+                <span id="detail-price">$0</span>
+                <span class="old" id="detail-old-price" style="display:none;">$0</span>
+                <span class="detail-promo-badge" id="detail-promo-badge" style="display:none;"></span>
+            </div>
+
             </div>
 
             <!-- 6. Trust Perks -->
@@ -1151,6 +1155,8 @@
                     <span>Atención inmediata</span>
                 </div>
             </div>
+
+        </section>
 
             <!-- 7. Details Block: Description & Technical Specs -->
             <div class="product-details-block">
@@ -1181,7 +1187,6 @@
                 </div>
                 <div id="detail-measurements" class="detail-measurements" style="display:none;"></div>
             </div>
-        </section>
     </main>
 
     <!-- ===== RECOMMENDED PRODUCTS ===== -->
