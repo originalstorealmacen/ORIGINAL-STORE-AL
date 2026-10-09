@@ -6680,9 +6680,9 @@ const INVENTORY_LABEL_CSS = `
 .os-label-layout{position:absolute;box-sizing:border-box;width:50mm;height:30mm;padding:1.5mm;display:grid;grid-template-columns:23mm minmax(0,1fr);gap:1.5mm;transform-origin:top left}
 .os-label *{box-sizing:border-box}
 .os-label-qr{width:23mm;height:23mm;align-self:center;display:block;image-rendering:pixelated}
-.os-label-content{min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:.5mm}
-.os-label-logo{width:13mm;height:8mm;object-fit:contain;align-self:center;display:block}
-.os-label-id{font-size:6.5pt;line-height:1.15;font-weight:700;overflow-wrap:anywhere}
+.os-label-content{min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:.25mm}
+.os-label-logo{width:19mm;height:10.5mm;object-fit:contain;align-self:center;display:block}
+.os-label-id{font-size:6pt;line-height:1.15;font-weight:700;overflow-wrap:anywhere}
 .os-label-id span{display:block;font-size:5.5pt;margin-bottom:.4mm;font-weight:400}
 .os-label-name{font-size:5.5pt;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .os-label-price{font-size:11pt;line-height:1;font-weight:800;white-space:nowrap}
@@ -6739,12 +6739,12 @@ function prepareInventoryLabelImage(ticket, options) {
         c.imageSmoothingEnabled = false;
         c.drawImage(qr, 18, 41, 272, 272);
         c.imageSmoothingEnabled = true;
-        const ratio = Math.min(154 / logo.naturalWidth, 94 / logo.naturalHeight);
+        const ratio = Math.min(225 / logo.naturalWidth, 124 / logo.naturalHeight);
         const lw = logo.naturalWidth * ratio, lh = logo.naturalHeight * ratio;
-        c.drawImage(logo, 438 - lw / 2, 18 + (94 - lh) / 2, lw, lh);
+        c.drawImage(logo, 438 - lw / 2, 18 + (124 - lh) / 2, lw, lh);
         c.fillStyle = '#111'; c.textBaseline = 'top';
-        c.font = '23px Arial'; c.fillText('ID', 308, 117);
-        c.font = 'bold 27px Arial';
+        c.font = '20px Arial'; c.fillText('ID', 308, 147);
+        c.font = 'bold 25px Arial';
         const id = String(ticket.variationId || ticket.sku || ticket.motherId || ticket.reference);
         const lines = []; let line = '';
         for (const char of id) {
@@ -6752,9 +6752,9 @@ function prepareInventoryLabelImage(ticket, options) {
             line += char;
         }
         if (line) lines.push(line);
-        const lineHeight = Math.min(31, 85 / Math.max(1, lines.length));
-        if (lines.length > 3) c.font = 'bold 21px Arial';
-        lines.forEach((text, i) => c.fillText(text, 308, 144 + i * lineHeight, 265));
+        const lineHeight = Math.min(28, 60 / Math.max(1, lines.length));
+        if (lines.length > 2) c.font = 'bold 21px Arial';
+        lines.forEach((text, i) => c.fillText(text, 308, 174 + i * lineHeight, 265));
         if (options.name) {
             c.font = '23px Arial'; let name = String(ticket.name || '');
             if (c.measureText(name).width > 265) {
