@@ -82,6 +82,18 @@ body.admin-graphite .barcode-phone-hint {font-size:12px;line-height:1.6;color:#3
 body.admin-graphite :is(.barcode-scanner-stage video,#barcode-scanner-reader video) {object-fit:contain !important;}
 body.admin-graphite .barcode-scanner-card {max-height:calc(100dvh - 24px);overflow-y:auto;}
 
+/* The decoder measures the video element: preserve its real aspect ratio in portrait. */
+body.admin-graphite #barcode-scanner-modal.barcode-scanner-qr-mode .barcode-scanner-card {display:flex;flex-direction:column;min-height:0;}
+body.admin-graphite .barcode-scanner-qr-mode .barcode-scanner-stage {flex:0 0 auto;height:auto!important;min-height:0;}
+body.admin-graphite .barcode-scanner-qr-mode #barcode-scanner-reader {height:auto!important;min-height:0;}
+body.admin-graphite .barcode-scanner-qr-mode #barcode-scanner-reader video {display:block;width:100%!important;height:auto!important;min-height:0;max-height:none;object-fit:contain!important;}
+body.admin-graphite .barcode-scanner-qr-mode .barcode-scanner-guide {display:none;}
+@media(max-width:560px) {
+ body.admin-graphite #barcode-scanner-modal.barcode-scanner-qr-mode .barcode-scanner-card {height:auto;max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;}
+ body.admin-graphite .barcode-scanner-qr-mode .barcode-phone-hint {font-size:11px;line-height:1.35;margin:6px 0;}
+ body.admin-graphite .barcode-scanner-qr-mode .barcode-scanner-card > * {flex-shrink:0;}
+}
+
 body.admin-graphite .barcode-frame-controls {margin-top:12px;padding:12px;border:1px solid #dab7ca;border-radius:6px;background:#f9eff4;}
 body.admin-graphite .barcode-frame-actions {display:flex;flex-wrap:wrap;gap:8px;}
 body.admin-graphite .barcode-frame-controls p {font-size:12px;line-height:1.6;color:#3e2332;margin:10px 0 0;}

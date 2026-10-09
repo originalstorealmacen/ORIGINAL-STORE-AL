@@ -1871,7 +1871,10 @@ async function startHtml5BarcodeCamera(reader, video, status, handleDetectedCode
             return { width: side, height: side };
         }} : {}),
         disableFlip: qrOnly,
-        videoConstraints: getBarcodeVideoConstraints(preferredDeviceId)
+        videoConstraints: {
+            ...getBarcodeVideoConstraints(preferredDeviceId),
+            ...(qrOnly && isMobileBarcodeDevice() ? { width: { ideal: 1280 }, height: { ideal: 1280 }, aspectRatio: { ideal: 1 } } : {})
+        }
     };
     const onScanSuccess = (decodedText, decodedResult) => {
         const detectedFormat = decodedResult?.result?.format?.formatName || decodedResult?.format?.formatName || '';
@@ -1959,6 +1962,7 @@ async function startHtml5BarcodeCamera(reader, video, status, handleDetectedCode
 
 async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId = '', scannerMode = 'auto' } = {}) {
     const modal = buildBarcodeScannerModal();
+    modal.classList.toggle('barcode-scanner-qr-mode', scannerMode === 'qr');
     const scannerSession = barcodeScannerSession;
     const video = modal.querySelector('#barcode-scanner-video');
     const status = modal.querySelector('#barcode-scanner-status');
