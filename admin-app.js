@@ -1614,7 +1614,7 @@ function buildBarcodeScannerModal() {
                 <button type="button" class="admin-btn secondary barcode-camera-retry" id="barcode-camera-retry" hidden>Reintentar camara</button>
             </div>
             <label class="barcode-reader-mode">Tipo de lectura
-                <select id="barcode-reader-mode" class="form-control" aria-label="Tipo de lectura"><option value="auto">Automática (compatible en PC)</option><option value="compatible">Compatible — si no reconoce el código</option></select>
+                <select id="barcode-reader-mode" class="form-control" aria-label="Tipo de lectura"><option value="qr">QR de tickets</option><option value="auto">Automática — QR y barras</option><option value="compatible">Compatible — QR y barras</option></select>
             </label>
             <p class="barcode-phone-hint">Escanea desde el celular y pulsa Guardar como pendiente para completar el producto después en el PC. Mantén todas las barras visibles, el código enfocado y buena luz.</p>
             <button type="button" id="barcode-camera-refresh" class="admin-btn secondary">Actualizar cámaras</button>
@@ -1815,7 +1815,7 @@ function attachBarcodeCameraStream(video, stream, { status, retryButton, scanner
     }, 4500);
 }
 
-function createStableBarcodeHandler({ status, readout, valueLabel, formatLabel, onConfirmed, stabilityWindowMs = 1600 }) {
+function createStableBarcodeHandler({ status, readout, valueLabel, formatLabel, onConfirmed, stabilityWindowMs = 1600, confirmQrImmediately = false }) {
     let candidate = '';
     let candidateHits = 0;
     let lastSeenAt = 0;
@@ -1841,7 +1841,8 @@ function createStableBarcodeHandler({ status, readout, valueLabel, formatLabel, 
         }
         readout?.classList.add('is-detected');
 
-        if (candidateHits < 2) {
+        const validQr = confirmQrImmediately && getBarcodeFormatLabel(format) === 'QR';
+        if (candidateHits < 2 && !validQr) {
             if (status) status.textContent = 'Codigo detectado. Mantenlo quieto un instante para confirmarlo.';
             return false;
         }
@@ -1855,12 +1856,12 @@ function createStableBarcodeHandler({ status, readout, valueLabel, formatLabel, 
     };
 }
 
-async function startHtml5BarcodeCamera(reader, video, status, handleDetectedCode, { preferredDeviceId = '', onCameraReady } = {}) {
+async function startHtml5BarcodeCamera(reader, video, status, handleDetectedCode, { preferredDeviceId = '', onCameraReady, qrOnly = false } = {}) {
     await loadHtml5QrcodeLibrary();
     if (typeof window.Html5Qrcode !== 'function') return false;
     if (video) video.style.display = 'none';
     if (reader) reader.style.display = 'block';
-    const formatsToSupport = getHtml5BarcodeFormats();
+    const formatsToSupport = qrOnly ? [window.Html5QrcodeSupportedFormats.QR_CODE] : getHtml5BarcodeFormats();
     const scannerConfig = {
         fps: isMobileBarcodeDevice() ? (isIosBarcodeDevice() ? 10 : 15) : 8,
         // Decode the full frame, including smaller or off-center QR codes.
@@ -1977,7 +1978,8 @@ async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId
         valueLabel,
         formatLabel,
         onConfirmed: useCode,
-        stabilityWindowMs: isMobileBarcodeDevice() ? 1600 : 4000
+        stabilityWindowMs: isMobileBarcodeDevice() ? 1600 : 4000,
+        confirmQrImmediately: scannerMode === 'qr'
     });
 
     modal.querySelector('#barcode-scanner-use-manual')?.addEventListener('click', () => useCode(manualInput?.value || ''));
@@ -2006,7 +2008,7 @@ async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId
     try {
         await barcodeCameraStopPromise;
         if (scannerSession !== barcodeScannerSession || !modal.isConnected) { clearTimeout(permissionHintTimer); return; }
-        if (isMobileBarcodeDevice() && scannerMode !== 'compatible' && 'BarcodeDetector' in window && navigator.mediaDevices?.getUserMedia) {
+        if (isMobileBarcodeDevice() && scannerMode !== 'compatible' && scannerMode !== 'qr' && 'BarcodeDetector' in window && navigator.mediaDevices?.getUserMedia) {
             const requestedFormats = ['code_128', 'code_39', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'itf', 'qr_code'];
             const supportedFormats = typeof BarcodeDetector.getSupportedFormats === 'function'
                 ? await BarcodeDetector.getSupportedFormats()
@@ -2066,6 +2068,7 @@ async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId
 
         if (await startHtml5BarcodeCamera(reader, video, status, handleDetectedCode, {
             preferredDeviceId,
+            qrOnly: scannerMode === 'qr',
             onCameraReady: () => populateBarcodeCameraPicker(modal, activeHtml5BarcodeScanner?.getRunningTrackSettings?.().deviceId || preferredDeviceId)
         })) {
             clearTimeout(permissionHintTimer);
@@ -12014,7 +12017,12 @@ async function handleQuickSaleScannedCode(rawCode, addToSale = true) {
     }
     renderQuickSaleResults();
 
-    const product = findQuickSaleProductByReference(code);
+    let product = findQuickSaleProductByReference(code);
+    if (!product) {
+        await cargarInventario({ silent: true });
+        product = findQuickSaleProductByReference(code);
+        renderQuickSaleResults();
+    }
     if (!product) {
         showToast('No se encontro un producto con esa referencia', 'warning');
         input.focus();
@@ -12040,6 +12048,7 @@ window.handleQuickSaleScannedCode = handleQuickSaleScannedCode;
 function openQuickSaleScanner() {
     openBarcodeScanner({
         targetInputId: 'quick-sale-search',
+        scannerMode: 'qr',
         onDetected: code => {
             handleQuickSaleScannedCode(code, true).catch(error => {
                 console.error('No se pudo procesar el codigo escaneado:', error);
