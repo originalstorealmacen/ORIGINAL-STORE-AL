@@ -3534,7 +3534,12 @@ document.addEventListener('DOMContentLoaded', () => {
         actions[control.dataset.inventoryQrAction]?.();
     });
     document.addEventListener('change', event => {
-        if (event.target.matches('[data-qr-option]')) window.updateInventoryQrPreviewOptions?.();
+        if (event.target.matches('[data-qr-option], [data-qr-size]')) window.updateInventoryQrPreviewOptions?.();
+    });
+    document.addEventListener('input', event => {
+        if (!event.target.matches('[data-qr-size]')) return;
+        const input = event.target;
+        if (input.value && input.checkValidity()) window.updateInventoryQrPreviewOptions?.();
     });
     // initAdminCustomCursor(); // Desactivado para evitar lag del cursor
     initLoginBokehBackgrounds();
@@ -6671,7 +6676,8 @@ function setInventoryQrText(id, value) {
 
 // One physical layout for preview and thermal printing; QR payload remains unchanged.
 const INVENTORY_LABEL_CSS = `
-.os-label{box-sizing:border-box;width:50mm;height:30mm;padding:1.5mm;background:#fff;color:#111;display:grid;grid-template-columns:23mm minmax(0,1fr);gap:1.5mm;font-family:Arial,Helvetica,sans-serif;text-align:left;overflow:hidden}
+.os-label{box-sizing:border-box;width:50mm;height:30mm;background:#fff;color:#111;position:relative;font-family:Arial,Helvetica,sans-serif;text-align:left;overflow:hidden}
+.os-label-layout{position:absolute;box-sizing:border-box;width:50mm;height:30mm;padding:1.5mm;display:grid;grid-template-columns:23mm minmax(0,1fr);gap:1.5mm;transform-origin:top left}
 .os-label *{box-sizing:border-box}
 .os-label-qr{width:23mm;height:23mm;align-self:center;display:block;image-rendering:pixelated}
 .os-label-content{min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:.5mm}
@@ -6683,9 +6689,17 @@ const INVENTORY_LABEL_CSS = `
 .os-label-pm{font-size:6pt;line-height:1;align-self:flex-end;font-weight:400}
 `;
 
-function renderInventoryLabel(ticket, options = {}) {
+function getInventoryLabelSize(options = {}) {
+    const width = Math.max(30, Math.min(100, Number(options.width) || 50));
+    const height = Math.max(20, Math.min(100, Number(options.height) || 30));
+    return { width, height, scale: Math.min(width / 50, height / 30) };
+}
+
+function renderInventoryLabel(ticket, options = {}, preview = false) {
     const id = ticket.variationId || ticket.sku || ticket.motherId || ticket.reference;
-    return `<div class="os-label">
+    const {width, height, scale} = getInventoryLabelSize(options);
+    const fit = preview ? Math.min(1, 230 / (width * 3.7795), 160 / (height * 3.7795)) : 1;
+    return `<div class="os-label" style="width:${width * fit}mm;height:${height * fit}mm"><div class="os-label-layout" style="left:${(width - 50 * scale) / 2 * fit}mm;top:${(height - 30 * scale) / 2 * fit}mm;transform:scale(${scale * fit})">
         <img class="os-label-qr" src="${escapeHtml(getInventoryQrImageUrl(ticket.reference, 520))}" alt="QR de la referencia">
         <div class="os-label-content">
             <img class="os-label-logo" src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store">
@@ -6694,12 +6708,12 @@ function renderInventoryLabel(ticket, options = {}) {
             <div class="os-label-price">${escapeHtml(formatAdminMoney(ticket.price))}</div>
             <div class="os-label-pm">PM: ${escapeHtml(ticket.wholesaleCode || '-')}</div>
         </div>
-    </div>`;
+    </div></div>`;
 }
 
 let inventoryLabelImage = { key: '', promise: null, file: null };
 function prepareInventoryLabelImage(ticket, options) {
-    const key = JSON.stringify([ticket.reference, ticket.variationId, ticket.sku, ticket.name, ticket.price, ticket.wholesaleCode, options.name]);
+    const key = JSON.stringify([ticket.reference, ticket.variationId, ticket.sku, ticket.name, ticket.price, ticket.wholesaleCode, options.name, options.width, options.height]);
     if (inventoryLabelImage.key === key) return inventoryLabelImage.promise;
     const state = inventoryLabelImage = { key, promise: null, file: null };
     state.promise = (async () => {
@@ -6714,11 +6728,14 @@ function prepareInventoryLabelImage(ticket, options) {
             loadImage(getInventoryQrImageUrl(ticket.reference, 800)),
             loadImage('https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180', true)
         ]);
-        // 50 × 30 mm at 300 dpi, suitable for label printers and sharing.
+        // Preserve QR proportions and fit all information within the chosen paper size.
         const canvas = document.createElement('canvas');
-        canvas.width = 591; canvas.height = 354;
+        const size = getInventoryLabelSize(options);
+        canvas.width = Math.round(size.width * 300 / 25.4); canvas.height = Math.round(size.height * 300 / 25.4);
         const c = canvas.getContext('2d');
         c.fillStyle = '#fff'; c.fillRect(0, 0, canvas.width, canvas.height);
+        const scale = Math.min(canvas.width / 591, canvas.height / 354);
+        c.setTransform(scale, 0, 0, scale, (canvas.width - 591 * scale) / 2, (canvas.height - 354 * scale) / 2);
         c.imageSmoothingEnabled = false;
         c.drawImage(qr, 18, 41, 272, 272);
         c.imageSmoothingEnabled = true;
@@ -6750,7 +6767,7 @@ function prepareInventoryLabelImage(ticket, options) {
         c.font = '25px Arial'; c.textAlign = 'right';
         c.fillText('PM: ' + (ticket.wholesaleCode || '-'), 573, 319, 265);
         const blob = await new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('No se pudo crear la imagen.')), 'image/png'));
-        const filename = 'Original-Store-' + String(ticket.variationId || ticket.sku || ticket.reference).replace(/[^a-zA-Z0-9_-]/g, '-') + '-50x30.png';
+        const filename = 'Original-Store-' + String(ticket.variationId || ticket.sku || ticket.reference).replace(/[^a-zA-Z0-9_-]/g, '-') + '-' + size.width + 'x' + size.height + '.png';
         const file = new File([blob], filename, { type: 'image/png' });
         state.file = file;
         return file;
@@ -6782,22 +6799,12 @@ window.downloadInventoryQrLabel = async function() {
 window.shareInventoryQrLabel = async function() {
     try {
         const pending = getCurrentInventoryLabelImage();
-        const file = inventoryLabelImage.file;
-        if (!file) {
-            await pending;
-            showToast('Imagen lista. Pulsa nuevamente WhatsApp para compartirla.', 'info');
-            return;
-        }
-        if (navigator.share && navigator.canShare?.({ files: [file] })) {
-            await navigator.share({ files: [file], title: 'Etiqueta Original Store' });
-        } else {
-            downloadInventoryLabelFile(file);
-            window.open('https://web.whatsapp.com/', '_blank', 'noopener');
-            showToast('Etiqueta descargada. Adjunta la imagen en el chat de WhatsApp que elijas.', 'info');
-        }
+        window.open('https://wa.me/573222431225', '_blank', 'noopener');
+        downloadInventoryLabelFile(await pending);
+        showToast('Etiqueta descargada. Adjunta la imagen en el chat de 3222431225 y pulsa Enviar.', 'info');
     } catch (error) {
-        if (error.name === 'AbortError') return;
-        showToast('No se pudo compartir. Usa Descargar imagen y adjúntala en WhatsApp.', 'warning');
+        inventoryLabelImage.key = '';
+        showToast('No se pudo preparar la imagen. Intenta Descargar imagen nuevamente.', 'warning');
     }
 };
 
@@ -6817,6 +6824,8 @@ function getInventoryQrTicketOptions() {
     modal.querySelectorAll('[data-qr-option]').forEach(input => {
         defaults[input.dataset.qrOption] = input.checked;
     });
+    defaults.width = document.getElementById('inventory-label-width')?.value || 50;
+    defaults.height = document.getElementById('inventory-label-height')?.value || 30;
     defaults.sku = defaults.price = defaults.pm = true;
     return defaults;
 }
@@ -6824,12 +6833,27 @@ function getInventoryQrTicketOptions() {
 window.updateInventoryQrPreviewOptions = function() {
     const modal = document.getElementById('inventory-qr-modal');
     if (!modal) return;
+    if (!modal.dataset.sizeInitialized) {
+        try {
+            const saved = JSON.parse(localStorage.getItem('original-store-label-size') || '{}');
+            const size = getInventoryLabelSize(saved);
+            document.getElementById('inventory-label-width').value = size.width;
+            document.getElementById('inventory-label-height').value = size.height;
+        } catch (error) {}
+        modal.dataset.sizeInitialized = 'true';
+    }
     const options = getInventoryQrTicketOptions();
+    const size = getInventoryLabelSize(options);
+    options.width = size.width; options.height = size.height;
+    document.getElementById('inventory-label-width').value = size.width;
+    document.getElementById('inventory-label-height').value = size.height;
+    try { localStorage.setItem('original-store-label-size', JSON.stringify({width:size.width,height:size.height})); } catch(error) {}
+    modal.querySelectorAll('[data-label-dimensions]').forEach(el => el.textContent = size.width + ' × ' + size.height + ' mm');
     const preview = document.getElementById('inventory-label-preview');
     if (preview && modal.dataset.ticketJson) {
         try {
             const ticket = JSON.parse(modal.dataset.ticketJson);
-            preview.innerHTML = renderInventoryLabel(ticket, options);
+            preview.innerHTML = renderInventoryLabel(ticket, options, true);
             prepareInventoryLabelImage(ticket, options);
         }
         catch (error) { preview.textContent = 'No se pudo preparar la etiqueta.'; }
@@ -6913,6 +6937,7 @@ window.printInventoryQrTicket = function() {
         return;
     }
     const options = getInventoryQrTicketOptions();
+    const {width, height} = getInventoryLabelSize(options);
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
         showToast('El navegador bloqueo la ventana de impresion', 'warning');
@@ -6922,7 +6947,7 @@ window.printInventoryQrTicket = function() {
     printWindow.document.open();
     printWindow.document.write(`<!DOCTYPE html><html lang="es"><head>
         <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Etiqueta Original Store — 50 × 30 mm</title>
+        <title>Etiqueta Original Store — ${width} × ${height} mm</title>
         <style>
             ${INVENTORY_LABEL_CSS}
             html,body{margin:0;background:#f4f4f5;color:#111}
@@ -6931,13 +6956,13 @@ window.printInventoryQrTicket = function() {
             .toolbar{text-align:center;font-size:13px}
             .toolbar button{padding:12px 20px;border:0;border-radius:8px;background:#8a2846;color:white;cursor:pointer}
             @media print{
-                @page{size:50mm 30mm;margin:0}
-                html,body{width:50mm;height:30mm;padding:0;background:#fff}
+                @page{size:${width}mm ${height}mm;margin:0}
+                html,body{width:${width}mm;height:${height}mm;padding:0;background:#fff}
                 .toolbar{display:none}
                 .os-label{margin:0;box-shadow:none;break-inside:avoid}
             }
         </style></head><body>
-        <div class="toolbar"><p>50 × 30 mm · Escala 100 % · Sin márgenes ni encabezados</p><button onclick="window.print()">Imprimir etiqueta</button></div>
+        <div class="toolbar"><p>${width} × ${height} mm · Escala 100 % · Sin márgenes ni encabezados</p><button onclick="window.print()">Imprimir etiqueta</button></div>
         ${renderInventoryLabel(ticket, options)}
         <script>
         window.addEventListener('load', function () {
