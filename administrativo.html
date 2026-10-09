@@ -7410,12 +7410,13 @@
 .os-label-name{font-size:5pt;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .os-label-price{font-size:12pt;line-height:1;font-weight:800;white-space:nowrap}
 .os-label-pm{font-size:6pt;line-height:1;font-weight:400}
-.os-label-compact .os-label-layout{width:30mm;height:15mm;grid-template-columns:minmax(0,1fr) 13mm;gap:1mm;padding:1mm}
-.os-label-compact .os-label-logo{width:14mm;height:5mm}
+.os-label-compact .os-label-layout{width:40mm;height:15mm;grid-template-columns:9mm 13mm minmax(0,1fr);gap:1mm;padding:1mm}
+.os-label-compact .os-label-logo{width:9mm;height:13mm;align-self:center}
 .os-label-compact .os-label-qr{width:13mm;height:13mm}
-.os-label-compact .os-label-id{font-size:4.5pt}
-.os-label-compact .os-label-price{font-size:7.5pt}
-.os-label-compact .os-label-pm{font-size:4.2pt}
+.os-label-compact .os-label-content{justify-content:center;gap:1mm}
+.os-label-compact .os-label-id{font-size:4.8pt}
+.os-label-compact .os-label-price{font-size:8pt}
+.os-label-compact .os-label-pm{font-size:5.5pt}
 #inventory-qr-modal{padding:16px;align-items:center}
 #inventory-qr-modal .inventory-qr-card{display:flex;flex-direction:column;max-height:calc(100dvh - 32px);max-width:760px;margin:0;overflow:hidden}
 #inventory-qr-modal .inventory-qr-head{flex:0 0 auto;padding:16px 20px}
@@ -7929,7 +7930,7 @@
                         <div data-qr-element="pm"><span>PM</span><strong id="inventory-qr-pm">PM: -</strong></div>
                     </div>
                     <div class="inventory-label-size">
-                        <label for="inventory-label-format">Tamaño del ticket<select id="inventory-label-format" data-qr-size="format"><option value="30x15">30 × 15 mm · compacto</option><option value="50x30" selected>50 × 30 mm · estándar</option></select></label>
+                        <label for="inventory-label-format">Tamaño del ticket<select id="inventory-label-format" data-qr-size="format"><option value="40x15">40 × 15 mm · alargado</option><option value="50x30" selected>50 × 30 mm · estándar</option></select></label>
                     </div>
                     <div class="inventory-qr-options" aria-label="Elementos del ticket QR">
                         <label><input type="checkbox" data-qr-option="name" checked> Nombre</label>
@@ -8320,7 +8321,7 @@
 <script src="customer-access-admin.js?v=admin-refresh-access-20261006-3" defer></script>
 <script src="qr-camera-tools.js?v=20261006-1" defer></script>
 <script src="barcode-frame-reader.js?v=automatic-20261006-2" defer></script>
-<script src="admin-app.js?v=original-store-label-two-formats-20261008" defer></script>
+<script src="admin-app.js?v=original-store-label-long-20261009" defer></script>
 <script src="inventory-category-manager.js?v=20261006-1" defer></script>
 <script src="order-summary.js?v=pdf-fast-20261007" defer></script>
 <script src="order-receipt-access.js?v=browser-qr-20261006" defer></script>
