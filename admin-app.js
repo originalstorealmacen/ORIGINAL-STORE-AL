@@ -8958,7 +8958,7 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
     ctx.clearRect(0, 0, w, h);
 
     if (!entries.length) {
-        ctx.fillStyle = 'rgba(248,244,255,.3)';
+        ctx.fillStyle = '#766771';
         ctx.font = '600 13px Inter, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('Sin datos de ventas', w / 2, h / 2);
@@ -8975,9 +8975,9 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
 
     // Grid lines + Y-axis labels
     const gridSteps = 4;
-    ctx.strokeStyle = 'rgba(255,255,255,.06)';
+    ctx.strokeStyle = '#eadfe5';
     ctx.lineWidth = 1;
-    ctx.fillStyle = 'rgba(248,244,255,.36)';
+    ctx.fillStyle = '#766771';
     ctx.font = '700 10px Inter, sans-serif';
     ctx.textAlign = 'right';
     for (let i = 0; i <= gridSteps; i++) {
@@ -8992,7 +8992,7 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
 
     // X-axis labels
     ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(248,244,255,.4)';
+    ctx.fillStyle = '#766771';
     ctx.font = '700 9px Inter, sans-serif';
     const step = entries.length > 1 ? chartW / (entries.length - 1) : 0;
     const points = values.map((v, i) => ({
@@ -9005,8 +9005,8 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
 
     // Area gradient
     const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
-    grad.addColorStop(0, 'rgba(244,196,65,.28)');
-    grad.addColorStop(1, 'rgba(244,196,65,.01)');
+    grad.addColorStop(0, 'rgba(138,40,70,.18)');
+    grad.addColorStop(1, 'rgba(138,40,70,.01)');
     ctx.beginPath();
     ctx.moveTo(points[0].x, padT + chartH);
     points.forEach(p => ctx.lineTo(p.x, p.y));
@@ -9017,8 +9017,8 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
 
     // Line
     const lineGrad = ctx.createLinearGradient(padL, 0, w - padR, 0);
-    lineGrad.addColorStop(0, '#f4c441');
-    lineGrad.addColorStop(1, '#22d3ee');
+    lineGrad.addColorStop(0, '#8a2846');
+    lineGrad.addColorStop(1, '#087e80');
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     for (let i = 1; i < points.length; i++) {
@@ -9035,16 +9035,16 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
     points.forEach((p, i) => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = i === points.length - 1 ? '#22d3ee' : '#f4c441';
+        ctx.fillStyle = i === points.length - 1 ? '#087e80' : '#8a2846';
         ctx.fill();
-        ctx.strokeStyle = 'rgba(0,0,0,.5)';
+        ctx.strokeStyle = '#fff';
         ctx.lineWidth = 1.5;
         ctx.stroke();
     });
 
     if (legendBox) {
         const totalFormatted = getDashboardMoney(total);
-        legendBox.innerHTML = `<div class="dashboard-chart-legend-item"><div class="dashboard-chart-legend-dot" style="background:linear-gradient(135deg,#f4c441,#22d3ee)"></div>Total: ${totalFormatted}</div><div class="dashboard-chart-legend-item"><div class="dashboard-chart-legend-dot" style="background:#22d3ee"></div>${entries.length} dias con ventas</div>`;
+        legendBox.innerHTML = `<div class="dashboard-chart-legend-item"><div class="dashboard-chart-legend-dot" style="background:linear-gradient(135deg,#8a2846,#087e80)"></div>Total: ${totalFormatted}</div><div class="dashboard-chart-legend-item"><div class="dashboard-chart-legend-dot" style="background:#087e80"></div>${entries.length} dias con ventas</div>`;
     }
 }
 
@@ -9066,7 +9066,7 @@ function drawDashboardDonutChart(canvasId, legendId, entries, total) {
     ctx.clearRect(0, 0, w, h);
 
     if (!entries.length) {
-        ctx.fillStyle = 'rgba(248,244,255,.3)';
+        ctx.fillStyle = '#766771';
         ctx.font = '600 13px Inter, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('Sin datos de categorias', w / 2, h / 2);
@@ -9075,8 +9075,8 @@ function drawDashboardDonutChart(canvasId, legendId, entries, total) {
     }
 
     const donutColors = [
-        '#f4c441', '#a855f7', '#22d3ee', '#10b981',
-        '#ec4899', '#f59e0b', '#6366f1', '#ef4444'
+        '#8a2846', '#a55273', '#087e80', '#43aaa1',
+        '#b9375e', '#ac7c55', '#746179', '#b52c46'
     ];
 
     const cx = w / 2;
@@ -9102,7 +9102,7 @@ function drawDashboardDonutChart(canvasId, legendId, entries, total) {
         ctx.arc(cx, cy, outerR, startAngle, startAngle + sliceAngle);
         ctx.arc(cx, cy, innerR, startAngle + sliceAngle, startAngle, true);
         ctx.closePath();
-        ctx.strokeStyle = 'rgba(7,3,15,.6)';
+        ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
         ctx.stroke();
 
@@ -9110,12 +9110,12 @@ function drawDashboardDonutChart(canvasId, legendId, entries, total) {
     });
 
     // Center text
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#352a32';
     ctx.font = '950 22px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(String(total), cx, cy - 8);
-    ctx.fillStyle = 'rgba(248,244,255,.5)';
+    ctx.fillStyle = '#766771';
     ctx.font = '800 10px Inter, sans-serif';
     ctx.fillText('PRODUCTOS', cx, cy + 12);
 
@@ -14221,8 +14221,8 @@ function syncDesktopSidebarToggle(compact) {
     button.textContent = compact ? '☰' : '‹';
 }
 function initDesktopSidebar() {
-    let compact = true;
-    try { compact = localStorage.getItem('blyxu-admin-sidebar-compact') !== 'false'; } catch (_) {}
+    let compact = false;
+    try { compact = localStorage.getItem('blyxu-admin-sidebar-compact') === 'true'; } catch (_) {}
     document.getElementById('admin-main-content')?.classList.toggle('sidebar-compact', compact);
     syncDesktopSidebarToggle(compact);
 }
