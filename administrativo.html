@@ -7399,18 +7399,23 @@
 <meta name="robots" content="noindex, follow">
 <style>
 
-.os-label{box-sizing:border-box;width:50mm;height:30mm;background:#fff;color:#111;position:relative;font-family:Arial,Helvetica,sans-serif;text-align:left;overflow:hidden}
-.os-label-layout{position:absolute;box-sizing:border-box;width:50mm;height:30mm;padding:1.5mm;display:grid;grid-template-columns:23mm minmax(0,1fr);gap:1.5mm;transform-origin:top left}
-.os-label *{box-sizing:border-box}
-.os-label-qr{width:23mm;height:23mm;align-self:center;display:block;image-rendering:pixelated}
-.os-label-content{min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:.25mm}
-.os-label-logo{width:19mm;height:10.5mm;object-fit:contain;align-self:center;display:block}
-.os-label-id{font-size:6pt;line-height:1.15;font-weight:700;overflow-wrap:anywhere}
-.os-label-id span{display:block;font-size:5.5pt;margin-bottom:.4mm;font-weight:400}
-.os-label-name{font-size:5.5pt;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.os-label-price{font-size:11pt;line-height:1;font-weight:800;white-space:nowrap}
-.os-label-pm{font-size:6pt;line-height:1;align-self:flex-end;font-weight:400}
 
+.os-label{box-sizing:border-box;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;text-align:left;overflow:hidden;position:relative}
+.os-label *{box-sizing:border-box}
+.os-label-layout{position:absolute;inset:0;width:50mm;height:30mm;padding:1mm;display:grid;grid-template-columns:minmax(0,1fr) 23mm;gap:2mm;transform-origin:top left}
+.os-label-content{min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:.15mm}
+.os-label .os-label-logo{width:21mm;height:11.5mm;object-fit:contain;align-self:center;display:block;aspect-ratio:auto}
+.os-label .os-label-qr{width:23mm;height:23mm;align-self:center;object-fit:contain;display:block;image-rendering:pixelated;aspect-ratio:1}
+.os-label-id{font-size:6.5pt;line-height:1.05;font-weight:700;overflow-wrap:anywhere}
+.os-label-name{font-size:5pt;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.os-label-price{font-size:12pt;line-height:1;font-weight:800;white-space:nowrap}
+.os-label-pm{font-size:6pt;line-height:1;font-weight:400}
+.os-label-compact .os-label-layout{width:30mm;height:15mm;grid-template-columns:minmax(0,1fr) 13mm;gap:1mm;padding:1mm}
+.os-label-compact .os-label-logo{width:14mm;height:5mm}
+.os-label-compact .os-label-qr{width:13mm;height:13mm}
+.os-label-compact .os-label-id{font-size:4.5pt}
+.os-label-compact .os-label-price{font-size:7.5pt}
+.os-label-compact .os-label-pm{font-size:4.2pt}
 #inventory-qr-modal{padding:16px;align-items:center}
 #inventory-qr-modal .inventory-qr-card{display:flex;flex-direction:column;max-height:calc(100dvh - 32px);max-width:760px;margin:0;overflow:hidden}
 #inventory-qr-modal .inventory-qr-head{flex:0 0 auto;padding:16px 20px}
@@ -7425,9 +7430,9 @@
 #inventory-qr-modal .inventory-qr-options{padding:8px}
 #inventory-qr-modal .inventory-qr-options label{min-height:30px;padding:5px}
 #inventory-qr-modal .inventory-qr-actions{flex:0 0 auto;background:#fff;border-top:1px solid #eadce2;padding:12px 20px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-#inventory-qr-modal .inventory-label-size{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#inventory-qr-modal .inventory-label-size{display:grid;grid-template-columns:1fr;gap:10px}
 #inventory-qr-modal .inventory-label-size label{font-size:12px;color:#6e5261;display:grid;gap:5px}
-#inventory-qr-modal .inventory-label-size input{width:100%;min-width:0;padding:9px;border:1px solid #dab7ca;border-radius:6px;background:white;color:#3e2332}
+#inventory-qr-modal .inventory-label-size select{width:100%;min-width:0;padding:9px;border:1px solid #dab7ca;border-radius:6px;background:white;color:#3e2332}
 #inventory-qr-modal .inventory-qr-actions button{min-width:0;min-height:42px;font-size:12px;padding:8px}
 #inventory-qr-modal .inventory-qr-actions [data-inventory-qr-action="download"]{grid-column:span 2}
 #inventory-qr-modal .inventory-qr-actions [data-inventory-qr-action="whatsapp"]{background:#167a48!important;color:#fff!important;border-color:#167a48!important}
@@ -7924,8 +7929,7 @@
                         <div data-qr-element="pm"><span>PM</span><strong id="inventory-qr-pm">PM: -</strong></div>
                     </div>
                     <div class="inventory-label-size">
-                        <label for="inventory-label-width">Ancho (mm)<input id="inventory-label-width" type="number" min="30" max="100" step="1" value="50" data-qr-size="width"></label>
-                        <label for="inventory-label-height">Alto (mm)<input id="inventory-label-height" type="number" min="20" max="100" step="1" value="30" data-qr-size="height"></label>
+                        <label for="inventory-label-format">Tamaño del ticket<select id="inventory-label-format" data-qr-size="format"><option value="30x15">30 × 15 mm · compacto</option><option value="50x30" selected>50 × 30 mm · estándar</option></select></label>
                     </div>
                     <div class="inventory-qr-options" aria-label="Elementos del ticket QR">
                         <label><input type="checkbox" data-qr-option="name" checked> Nombre</label>
@@ -7936,7 +7940,7 @@
                         <label><input type="checkbox" data-qr-option="price" checked disabled> Precio</label>
                         <label><input type="checkbox" data-qr-option="pm" checked disabled> PM cifrado</label>
                     </div>
-                    <div class="inventory-qr-note">Logo, ID, precio y PM siempre incluidos. Imprime en papel de <span data-label-dimensions>50 × 30 mm</span>, a escala 100 %, sin márgenes ni encabezados. WhatsApp: 3222431225; adjunta la imagen descargada en el chat.</div>
+                    <div class="inventory-qr-note">Logo, ID, precio y PM siempre incluidos. El formato compacto prioriza estos datos; el nombre se muestra en 50 × 30 mm. Imprime en papel de <span data-label-dimensions>50 × 30 mm</span>, a escala 100 %, sin márgenes ni encabezados. WhatsApp: 3222431225; adjunta la imagen descargada en el chat.</div>
                 </div>
             </div>
             <div class="inventory-qr-actions">
@@ -8316,7 +8320,7 @@
 <script src="customer-access-admin.js?v=admin-refresh-access-20261006-3" defer></script>
 <script src="qr-camera-tools.js?v=20261006-1" defer></script>
 <script src="barcode-frame-reader.js?v=automatic-20261006-2" defer></script>
-<script src="admin-app.js?v=original-store-label-logo-20261008" defer></script>
+<script src="admin-app.js?v=original-store-label-two-formats-20261008" defer></script>
 <script src="inventory-category-manager.js?v=20261006-1" defer></script>
 <script src="order-summary.js?v=pdf-fast-20261007" defer></script>
 <script src="order-receipt-access.js?v=browser-qr-20261006" defer></script>
