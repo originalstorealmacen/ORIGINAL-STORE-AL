@@ -9,7 +9,7 @@
  }
  body.admin-graphite :is(h1,h2,h3,h4) {color:var(--text);font-weight:600!important;letter-spacing:-.035em!important;}
  body.admin-graphite :is(button,input,select,textarea,summary,a) { -webkit-tap-highlight-color:transparent; }
- body.admin-graphite :is(button,a,input,select,textarea,summary):focus-visible {outline:3px solid #0c9290!important;outline-offset:3px!important;}
+ body.admin-graphite :is(button,a,input,select,textarea,summary):focus-visible {outline:2px solid #9a4565!important;outline-offset:2px!important;}
  body.admin-graphite :is(button,.admin-btn) {transition:background .16s,border-color .16s,box-shadow .16s;}
  body.admin-graphite :is(button,.admin-btn):disabled {opacity:.5!important;}
  body.admin-graphite .dashboard-header {background:#fff!important;border-bottom:1px solid var(--line)!important;padding:20px 28px!important;gap:16px;}
@@ -36,12 +36,12 @@
  body.admin-graphite :is(.admin-kicker,.dashboard-card-head>div>span,.quick-sale-panel-kicker,.enterprise-panel-kicker) {font-size:10px!important;letter-spacing:1.2px!important;text-transform:uppercase;color:#8a2846!important;}
  body.admin-graphite :is(.admin-btn,.admin-otp-submit,.enterprise-charge-btn) {background:linear-gradient(110deg,#8a2846,#b9375e)!important;border:1px solid #982d50!important;color:#fff!important;border-radius:12px!important;min-height:42px;padding:11px 17px;font-weight:600!important;box-shadow:0 4px 12px #8a284617!important;}
  body.admin-graphite :is(.admin-btn,.enterprise-charge-btn):hover:not(:disabled) {filter:none;background:linear-gradient(110deg,#70223e,#a12e53)!important;box-shadow:0 6px 18px #8a284626!important;}
- body.admin-graphite :is(.admin-btn.secondary,.settings-tab-btn,.orders-tab-btn,.product-config-tab,.cost-calculator-tab,.admin-section-tab,.cost-market-btn,.quick-sale-mobile-tabs button,.quick-sale-category-btn,.quick-sale-payment-btn,.quick-sale-action-btn,.enterprise-ticket-action,.quick-sale-refresh-btn,.quick-sale-category-chip,.product-work-tabs button) {background:#faf5f8!important;border:1px solid var(--line)!important;color:#644253!important;border-radius:12px!important;box-shadow:none!important;min-height:40px;}
+ body.admin-graphite :is(.admin-btn.secondary,.settings-tab-btn,.orders-tab-btn,.product-config-tab,.cost-calculator-tab,.admin-section-tab,.cost-market-btn,.quick-sale-mobile-tabs button,.quick-sale-category-btn,.quick-sale-payment-btn,.quick-sale-action-btn,.enterprise-ticket-action,.quick-sale-refresh-btn,.quick-sale-category-chip,.product-work-tabs button) {background:#fff!important;border:1px solid #d9cdd4!important;color:#493640!important;border-radius:12px!important;box-shadow:none!important;min-height:40px;}
  body.admin-graphite :is(.settings-tab-btn.active,.orders-tab-btn.active,.product-config-tab.active,.quick-sale-mobile-tabs button.active,.quick-sale-category-btn.active,.quick-sale-payment-btn.active,.product-work-tabs button[aria-selected=true]) {background:#8a2846!important;border-color:#8a2846!important;color:#fff!important;}
  body.admin-graphite :is(.admin-btn.danger,.btn-delete,.delete-btn) {background:#fff1f4!important;border-color:#f0c6d0!important;color:#a52848!important;box-shadow:none!important;}
  body.admin-graphite :is(.quick-sale-scan-btn,[data-quick-sale-method].active) {background:#eaf6f4!important;border:1px solid #b7ded8!important;color:#12645d!important;border-radius:12px!important;}
- body.admin-graphite :is(.form-control,input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea) {background:#fcfafb!important;border:1px solid #dfd3db!important;color:#352a32!important;border-radius:10px!important;min-height:42px;box-shadow:none!important;}
- body.admin-graphite :is(input,textarea)::placeholder {color:#867781!important;}
+ body.admin-graphite :is(.form-control,input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea) {background:#fff!important;border:1px solid #cfc3cb!important;color:#352a32!important;border-radius:10px!important;min-height:42px;box-shadow:none!important;color-scheme:light;}
+ body.admin-graphite :is(input,textarea)::placeholder {color:#70616b!important;opacity:1;}
  body.admin-graphite :is(input[type=checkbox],input[type=radio],input[type=range]) {accent-color:#8a2846;}
  body.admin-graphite :is(.form-group label,.product-config-card label) {color:#574550!important;font-weight:600!important;font-size:12px;letter-spacing:0!important;}
  body.admin-graphite :is(.field-hint,.dashboard-empty) {color:#766771!important;line-height:1.6;}
@@ -49,7 +49,7 @@
  body.admin-graphite :is(th,td) {border-color:var(--line)!important;}
  body.admin-graphite th {background:#faf5f8!important;color:#715160!important;padding-top:14px!important;padding-bottom:14px!important;font-weight:600!important;}
  body.admin-graphite tbody tr:hover {background:#fcf8fa!important;}
- body.admin-graphite :is(.product-config-card>summary,.admin-fold>summary,.settings-fold>summary,.orders-navigation-fold>summary) {background:#faf5f8!important;border-color:var(--line)!important;color:#574550!important;border-radius:14px;font-weight:600!important;}
+ body.admin-graphite :is(.product-config-card>summary,.admin-fold>summary,.settings-fold>summary,.orders-navigation-fold>summary) {background:#f6f4f5!important;border-color:#e5dce1!important;color:#493640!important;border-radius:14px;font-weight:600!important;}
  body.admin-graphite :is(.settings-fold,.enterprise-pos-header,.enterprise-pos-metrics>div,.quick-sale-change-card,.enterprise-ticket-summary) {background:#faf5f8!important;border-color:var(--line)!important;border-radius:14px!important;}
  body.admin-graphite :is(.quick-sale-product-tile,.dashboard-order-card) {background:#fff!important;border-color:var(--line)!important;border-radius:14px!important;}
  body.admin-graphite :is(.modal-card,#customer-access-dialog,.quick-sale-image-dialog,.admin-section-panel,.cost-calculator-panel) {background:#fff!important;border:1px solid var(--line)!important;border-radius:20px!important;box-shadow:0 24px 90px #35233026!important;}
@@ -108,6 +108,27 @@
  @media(prefers-reduced-motion:reduce) {body.admin-graphite :is(button,.admin-btn) {transition:none;}}
 }
 /* Keep utility drawers within thumb reach, without covering form tabs. */
+@media screen {
+ /* Secondary actions keep dark labels when hovered: primary hover must not bleed into them. */
+ body.admin-graphite .admin-btn.secondary:hover:not(:disabled),
+ body.admin-graphite :is(.settings-tab-btn,.orders-tab-btn,.product-config-tab,.quick-sale-category-btn,.quick-sale-payment-btn,.quick-sale-action-btn,.enterprise-ticket-action,.quick-sale-refresh-btn,.quick-sale-category-chip,.product-work-tabs button):hover:not(:disabled):not(.active):not([aria-selected=true]) {background:#f8edf2!important;border-color:#bc7f98!important;color:#602437!important;box-shadow:none!important;filter:none!important;}
+ body.admin-graphite :is(.admin-btn.danger,.btn-delete,.delete-btn):hover:not(:disabled) {background:#ffe3ea!important;border-color:#cc8297!important;color:#92223f!important;box-shadow:none!important;filter:none!important;}
+ body.admin-graphite :is(.admin-btn.secondary,.admin-btn.danger) :is(span,svg) {color:inherit!important;}
+ body.admin-graphite :is(.settings-tab-btn.active,.orders-tab-btn.active,.product-config-tab.active,.quick-sale-category-btn.active,.quick-sale-payment-btn.active,.product-work-tabs button[aria-selected=true]):hover {background:#70223e!important;color:#fff!important;border-color:#70223e!important;}
+ body.admin-graphite :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea):hover:not(:disabled) {border-color:#aa8f9c!important;}
+ body.admin-graphite :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea):focus {background:#fff!important;color:#352a32!important;border-color:#9a4565!important;box-shadow:0 0 0 3px #8a284612!important;}
+ body.admin-graphite select :is(option,optgroup) {background:#fff!important;color:#352a32!important;}
+ body.admin-graphite input:disabled,body.admin-graphite select:disabled,body.admin-graphite textarea:disabled {background:#f1edef!important;color:#766771!important;border-color:#ded5da!important;}
+ body.admin-graphite :is(.product-config-card,.admin-fold,.settings-fold,.orders-navigation-fold,.payment-method-card,.dashboard-extra-metrics)>summary {background:#f6f4f5!important;color:#493640!important;border-color:#e5dce1!important;}
+ body.admin-graphite details>summary :is(span,strong) {color:inherit!important;}
+ body.admin-graphite details>summary small {color:#70616b!important;}
+ body.admin-graphite :is(.product-config-card,.admin-fold,.settings-fold,.orders-navigation-fold,.payment-method-card,.dashboard-extra-metrics)>summary:hover {background:#f8edf2!important;color:#602437!important;}
+ body.admin-graphite :is(.product-config-card,.admin-fold,.settings-fold,.orders-navigation-fold,.payment-method-card,.dashboard-extra-metrics)[open]>summary {background:#f8edf2!important;color:#602437!important;box-shadow:inset 3px 0 #a55273!important;}
+ body.admin-graphite :is(.inventory-filter-row,.orders-search-row,.dashboard-filter-bar) {background:#faf9fa!important;border-color:#e5dce1!important;}
+ body.admin-graphite :is(.quick-sale-search-icon,.inv-search-input-wrap>span) {color:#766771!important;}
+ body.admin-graphite :is(.inventory-pdf-category-actions button,.dashboard-toggle-btn) {background:#fff!important;color:#493640!important;border:1px solid #d9cdd4!important;}
+ body.admin-graphite :is(.inventory-pdf-category-actions button,.dashboard-toggle-btn):hover:not(:disabled) {background:#f8edf2!important;color:#602437!important;border-color:#bc7f98!important;}
+}
 @media screen and (max-width:1024px) {
  body.admin-graphite #admin-section-drawer {left:12px!important;top:auto!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;width:auto!important;max-width:none!important;transform:none!important;z-index:90!important;}
  body.admin-graphite #admin-section-drawer .admin-section-tab {position:static!important;right:auto!important;top:auto!important;width:auto!important;min-width:130px!important;height:46px!important;padding:0 16px!important;font-size:12px!important;gap:10px!important;background:#8a2846!important;color:#fff!important;border-color:#8a2846!important;box-shadow:0 5px 24px #35233020!important;}
