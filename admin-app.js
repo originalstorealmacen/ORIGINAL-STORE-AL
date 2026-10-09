@@ -1851,7 +1851,8 @@ function createStableBarcodeHandler({ status, readout, valueLabel, formatLabel, 
         readout?.classList.add('is-confirmed');
         if (formatLabel) formatLabel.textContent = `${getBarcodeFormatLabel(format)} · Lectura confirmada`;
         if (status) status.textContent = 'Codigo confirmado. Generando su referencia QR...';
-        window.setTimeout(() => onConfirmed(cleanCode), 180);
+        if (validQr) onConfirmed(cleanCode);
+        else window.setTimeout(() => onConfirmed(cleanCode), 180);
         return true;
     };
 }
@@ -1863,9 +1864,13 @@ async function startHtml5BarcodeCamera(reader, video, status, handleDetectedCode
     if (reader) reader.style.display = 'block';
     const formatsToSupport = qrOnly ? [window.Html5QrcodeSupportedFormats.QR_CODE] : getHtml5BarcodeFormats();
     const scannerConfig = {
-        fps: isMobileBarcodeDevice() ? (isIosBarcodeDevice() ? 10 : 15) : 8,
-        // Decode the full frame, including smaller or off-center QR codes.
-        disableFlip: false,
+        fps: qrOnly && isMobileBarcodeDevice() ? 20 : (isMobileBarcodeDevice() ? (isIosBarcodeDevice() ? 10 : 15) : 8),
+        // A smaller mobile QR region avoids decoding the entire camera image twice.
+        ...(qrOnly && isMobileBarcodeDevice() ? { qrbox: (width, height) => {
+            const side = Math.floor(Math.min(420, Math.min(width, height) * 0.85));
+            return { width: side, height: side };
+        }} : {}),
+        disableFlip: qrOnly,
         videoConstraints: getBarcodeVideoConstraints(preferredDeviceId)
     };
     const onScanSuccess = (decodedText, decodedResult) => {
@@ -1873,11 +1878,17 @@ async function startHtml5BarcodeCamera(reader, video, status, handleDetectedCode
         handleDetectedCode(decodedText, detectedFormat);
     };
 
+    let nativeQr = false;
+    if (qrOnly && isMobileBarcodeDevice() && typeof window.BarcodeDetector?.getSupportedFormats === 'function') {
+        try { nativeQr = (await window.BarcodeDetector.getSupportedFormats()).includes('qr_code'); }
+        catch (_) { /* Keep the software reader when native support cannot be checked. */ }
+    }
+
     const createScanner = () => {
         const instance = new window.Html5Qrcode('barcode-scanner-reader', {
             formatsToSupport,
-            // Always keep the software decoder: some desktop detectors only read QR.
-            useBarCodeDetectorIfSupported: false
+            // QR supports hardware acceleration; the library falls back to its software reader.
+            useBarCodeDetectorIfSupported: nativeQr
         });
         activeHtml5BarcodeScanner = instance;
         return instance;
