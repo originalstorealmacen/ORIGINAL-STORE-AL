@@ -7397,7 +7397,40 @@
     <link rel="stylesheet" href="original-store-theme.css?v=20261007-22">
     <link rel="preconnect" href="https://lh3.googleusercontent.com">
 <meta name="robots" content="noindex, follow">
-</head>
+<style>
+
+.os-label{box-sizing:border-box;width:50mm;height:30mm;padding:1.5mm;background:#fff;color:#111;display:grid;grid-template-columns:23mm minmax(0,1fr);gap:1.5mm;font-family:Arial,Helvetica,sans-serif;text-align:left;overflow:hidden}
+.os-label *{box-sizing:border-box}
+.os-label-qr{width:23mm;height:23mm;align-self:center;display:block;image-rendering:pixelated}
+.os-label-content{min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:.5mm}
+.os-label-logo{width:13mm;height:8mm;object-fit:contain;align-self:center;display:block}
+.os-label-id{font-size:6.5pt;line-height:1.15;font-weight:700;overflow-wrap:anywhere}
+.os-label-id span{display:block;font-size:5.5pt;margin-bottom:.4mm;font-weight:400}
+.os-label-name{font-size:5.5pt;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.os-label-price{font-size:11pt;line-height:1;font-weight:800;white-space:nowrap}
+.os-label-pm{font-size:6pt;line-height:1;align-self:flex-end;font-weight:400}
+
+#inventory-qr-modal{padding:16px;align-items:center}
+#inventory-qr-modal .inventory-qr-card{display:flex;flex-direction:column;max-height:calc(100dvh - 32px);max-width:760px;margin:0;overflow:hidden}
+#inventory-qr-modal .inventory-qr-head{flex:0 0 auto;padding:16px 20px}
+#inventory-qr-modal .inventory-qr-head h2{font-size:22px}
+#inventory-qr-modal .inventory-qr-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;grid-template-columns:minmax(210px,.8fr) minmax(0,1fr);padding:20px;gap:18px}
+#inventory-qr-modal .inventory-qr-preview{display:flex;flex-direction:column;align-items:center;justify-content:center;align-self:start;padding:16px 8px;gap:14px;background:#f8f6f7}
+#inventory-label-preview .os-label{flex:none;box-shadow:0 0 0 1px #ddd}
+#inventory-qr-modal .inventory-qr-preview small{font-size:12px;color:#6b5260}
+#inventory-qr-modal .inventory-qr-info{gap:10px}
+#inventory-qr-modal .inventory-qr-info h3{font-size:18px}
+#inventory-qr-modal .inventory-qr-meta div{padding:9px}
+#inventory-qr-modal .inventory-qr-options{padding:8px}
+#inventory-qr-modal .inventory-qr-options label{min-height:30px;padding:5px}
+#inventory-qr-modal .inventory-qr-actions{flex:0 0 auto;background:#fff;border-top:1px solid #eadce2;padding:12px 20px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#inventory-qr-modal .inventory-qr-actions button{min-width:0;min-height:42px;font-size:12px;padding:8px}
+@media(max-width:600px){
+#inventory-qr-modal .inventory-qr-body{grid-template-columns:1fr;padding:14px}
+#inventory-qr-modal .inventory-qr-meta,#inventory-qr-modal .inventory-qr-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+#inventory-qr-modal .inventory-qr-actions{padding:10px}
+}
+</style></head>
 <body class="admin-graphite">
     <div class="bg-animation"></div>
     <div class="bg-grid"></div>
@@ -7872,8 +7905,7 @@
             </div>
             <div class="inventory-qr-body">
                 <div class="inventory-qr-preview">
-                    <img id="inventory-qr-image" alt="QR de producto">
-                    <strong id="inventory-qr-ref" data-qr-element="reference">BLYXU-REF</strong>
+                    <div id="inventory-label-preview" aria-label="Vista previa de etiqueta 50 por 30 milímetros"></div><small>Etiqueta · 50 × 30 mm</small>
                 </div>
                 <div class="inventory-qr-info">
                     <span>Producto</span>
@@ -7887,14 +7919,14 @@
                     </div>
                     <div class="inventory-qr-options" aria-label="Elementos del ticket QR">
                         <label><input type="checkbox" data-qr-option="name" checked> Nombre</label>
-                        <label><input type="checkbox" data-qr-option="reference" checked> Referencia</label>
-                        <label><input type="checkbox" data-qr-option="sku" checked> SKU / ID</label>
-                        <label><input type="checkbox" data-qr-option="category" checked> Categoria</label>
-                        <label><input type="checkbox" data-qr-option="stock" checked> Stock</label>
-                        <label><input type="checkbox" data-qr-option="price" checked> Precio</label>
-                        <label><input type="checkbox" data-qr-option="pm" checked> PM cifrado</label>
+                        
+                        <label><input type="checkbox" data-qr-option="sku" checked disabled> SKU / ID</label>
+                        
+                        
+                        <label><input type="checkbox" data-qr-option="price" checked disabled> Precio</label>
+                        <label><input type="checkbox" data-qr-option="pm" checked disabled> PM cifrado</label>
                     </div>
-                    <div class="inventory-qr-note">Puedes abrir la imagen del QR o imprimir un ticket de 58 mm para marquillas y referencias.</div>
+                    <div class="inventory-qr-note">Logo, ID, precio y PM siempre incluidos. Imprime en papel de 50 × 30 mm, a escala 100 %, sin márgenes ni encabezados.</div>
                 </div>
             </div>
             <div class="inventory-qr-actions">
@@ -8272,7 +8304,7 @@
 <script src="customer-access-admin.js?v=admin-refresh-access-20261006-3" defer></script>
 <script src="qr-camera-tools.js?v=20261006-1" defer></script>
 <script src="barcode-frame-reader.js?v=automatic-20261006-2" defer></script>
-<script src="admin-app.js?v=original-store-drive-20261008-1" defer></script>
+<script src="admin-app.js?v=original-store-label-50x30-20261008" defer></script>
 <script src="inventory-category-manager.js?v=20261006-1" defer></script>
 <script src="order-summary.js?v=pdf-fast-20261007" defer></script>
 <script src="order-receipt-access.js?v=browser-qr-20261006" defer></script>

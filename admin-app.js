@@ -6666,6 +6666,35 @@ function setInventoryQrText(id, value) {
     if (el) el.textContent = value;
 }
 
+
+// One physical layout for preview and thermal printing; QR payload remains unchanged.
+const INVENTORY_LABEL_CSS = `
+.os-label{box-sizing:border-box;width:50mm;height:30mm;padding:1.5mm;background:#fff;color:#111;display:grid;grid-template-columns:23mm minmax(0,1fr);gap:1.5mm;font-family:Arial,Helvetica,sans-serif;text-align:left;overflow:hidden}
+.os-label *{box-sizing:border-box}
+.os-label-qr{width:23mm;height:23mm;align-self:center;display:block;image-rendering:pixelated}
+.os-label-content{min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:.5mm}
+.os-label-logo{width:13mm;height:8mm;object-fit:contain;align-self:center;display:block}
+.os-label-id{font-size:6.5pt;line-height:1.15;font-weight:700;overflow-wrap:anywhere}
+.os-label-id span{display:block;font-size:5.5pt;margin-bottom:.4mm;font-weight:400}
+.os-label-name{font-size:5.5pt;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.os-label-price{font-size:11pt;line-height:1;font-weight:800;white-space:nowrap}
+.os-label-pm{font-size:6pt;line-height:1;align-self:flex-end;font-weight:400}
+`;
+
+function renderInventoryLabel(ticket, options = {}) {
+    const id = ticket.variationId || ticket.sku || ticket.motherId || ticket.reference;
+    return `<div class="os-label">
+        <img class="os-label-qr" src="${escapeHtml(getInventoryQrImageUrl(ticket.reference, 520))}" alt="QR de la referencia">
+        <div class="os-label-content">
+            <img class="os-label-logo" src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store">
+            <div class="os-label-id"><span>ID</span>${escapeHtml(id)}</div>
+            ${options.name ? `<div class="os-label-name">${escapeHtml(ticket.name)}</div>` : ''}
+            <div class="os-label-price">${escapeHtml(formatAdminMoney(ticket.price))}</div>
+            <div class="os-label-pm">PM: ${escapeHtml(ticket.wholesaleCode || '-')}</div>
+        </div>
+    </div>`;
+}
+
 function getInventoryQrTicketOptions() {
     const modal = document.getElementById('inventory-qr-modal');
     const defaults = {
@@ -6682,6 +6711,7 @@ function getInventoryQrTicketOptions() {
     modal.querySelectorAll('[data-qr-option]').forEach(input => {
         defaults[input.dataset.qrOption] = input.checked;
     });
+    defaults.sku = defaults.price = defaults.pm = true;
     return defaults;
 }
 
@@ -6689,6 +6719,11 @@ window.updateInventoryQrPreviewOptions = function() {
     const modal = document.getElementById('inventory-qr-modal');
     if (!modal) return;
     const options = getInventoryQrTicketOptions();
+    const preview = document.getElementById('inventory-label-preview');
+    if (preview && modal.dataset.ticketJson) {
+        try { preview.innerHTML = renderInventoryLabel(JSON.parse(modal.dataset.ticketJson), options); }
+        catch (error) { preview.textContent = 'No se pudo preparar la etiqueta.'; }
+    }
     modal.querySelectorAll('[data-qr-element]').forEach(element => {
         const key = element.dataset.qrElement;
         element.hidden = options[key] === false;
@@ -6774,129 +6809,31 @@ window.printInventoryQrTicket = function() {
         return;
     }
 
-    const qrUrl = getInventoryQrImageUrl(ticket.reference, 520);
-    const metaItems = [
-        options.sku ? `<div><span>SKU / ID</span>${escapeHtml(ticket.sku || ticket.variationId || '-')}</div>` : '',
-        options.category ? `<div><span>Categoria</span>${escapeHtml(ticket.category || '-')}</div>` : '',
-        options.stock ? `<div><span>Stock</span>${ticket.stock} und.</div>` : '',
-        options.price ? `<div><span>Precio</span>${escapeHtml(formatAdminMoney(ticket.price))}</div>` : '',
-        options.pm ? `<div><span>PM</span>PM: ${escapeHtml(ticket.wholesaleCode || '-')}</div>` : ''
-    ].filter(Boolean).join('');
     printWindow.document.open();
-    printWindow.document.write(`<!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Ticket QR ${escapeHtml(ticket.reference)}</title>
-            <style>
-                * { box-sizing: border-box; }
-                html, body {
-                    margin: 0;
-                    background: #f4f4f5;
-                    color: #111;
-                    font-family: Arial, Helvetica, sans-serif;
-                }
-                body { padding: 18px; }
-                .toolbar {
-                    display: flex;
-                    justify-content: center;
-                    margin-bottom: 14px;
-                }
-                .toolbar button {
-                    min-height: 40px;
-                    border: 0;
-                    border-radius: 8px;
-                    padding: 0 16px;
-                    background: #111;
-                    color: #fff;
-                    font-weight: 800;
-                    cursor: pointer;
-                }
-                .ticket {
-                    width: 58mm;
-                    min-height: 82mm;
-                    margin: 0 auto;
-                    padding: 5mm;
-                    background: #fff;
-                    border: 1px solid #111;
-                    text-align: center;
-                }
-                .brand {
-                    font-size: 16px;
-                    font-weight: 900;
-                    letter-spacing: 1.8px;
-                    margin-bottom: 2mm;
-                }
-                .name {
-                    font-size: 11px;
-                    line-height: 1.25;
-                    font-weight: 800;
-                    min-height: 9mm;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                .qr {
-                    width: 42mm;
-                    height: 42mm;
-                    display: block;
-                    margin: 3mm auto 2mm;
-                    image-rendering: pixelated;
-                }
-                .ref {
-                    border: 1px solid #111;
-                    padding: 2mm;
-                    font-family: "Courier New", monospace;
-                    font-size: 12px;
-                    font-weight: 900;
-                    word-break: break-all;
-                }
-                .meta {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 1.5mm;
-                    margin-top: 2mm;
-                    font-size: 9px;
-                    text-align: left;
-                }
-                .meta div {
-                    border: 1px solid #ddd;
-                    padding: 1.5mm;
-                    min-height: 7mm;
-                }
-                .meta span {
-                    display: block;
-                    color: #666;
-                    font-size: 7px;
-                    font-weight: 800;
-                    text-transform: uppercase;
-                    margin-bottom: 1mm;
-                }
-                @media print {
-                    @page { size: 58mm auto; margin: 0; }
-                    body { background: #fff; padding: 0; }
-                    .toolbar { display: none; }
-                    .ticket { margin: 0; border: 0; width: 58mm; }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="toolbar"><button onclick="window.print()">Imprimir ticket</button></div>
-            <main class="ticket">
-                <div class="brand">Original Store</div>
-                ${options.name ? `<div class="name">${escapeHtml(ticket.name)}</div>` : ''}
-                <img class="qr" src="${escapeHtml(qrUrl)}" alt="QR ${escapeHtml(ticket.reference)}">
-                ${options.reference ? `<div class="ref">${escapeHtml(ticket.reference)}</div>` : ''}
-                ${metaItems ? `<section class="meta">${metaItems}</section>` : ''}
-            </main>
-            <script>
-                window.addEventListener('load', function () {
-                    setTimeout(function () { window.print(); }, 350);
-                });
-            <\/script>
-        </body>
-        </html>`);
+    printWindow.document.write(`<!DOCTYPE html><html lang="es"><head>
+        <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Etiqueta Original Store — 50 × 30 mm</title>
+        <style>
+            ${INVENTORY_LABEL_CSS}
+            html,body{margin:0;background:#f4f4f5;color:#111}
+            body{padding:20px;font-family:Arial,sans-serif}
+            .os-label{margin:16px auto;box-shadow:0 0 0 1px #ddd}
+            .toolbar{text-align:center;font-size:13px}
+            .toolbar button{padding:12px 20px;border:0;border-radius:8px;background:#8a2846;color:white;cursor:pointer}
+            @media print{
+                @page{size:50mm 30mm;margin:0}
+                html,body{width:50mm;height:30mm;padding:0;background:#fff}
+                .toolbar{display:none}
+                .os-label{margin:0;box-shadow:none;break-inside:avoid}
+            }
+        </style></head><body>
+        <div class="toolbar"><p>50 × 30 mm · Escala 100 % · Sin márgenes ni encabezados</p><button onclick="window.print()">Imprimir etiqueta</button></div>
+        ${renderInventoryLabel(ticket, options)}
+        <script>
+        window.addEventListener('load', function () {
+            if (Array.from(document.images).every(function(img){return img.complete && img.naturalWidth > 0;})) window.print();
+        });
+        <\/script></body></html>`);
     printWindow.document.close();
 };
 
