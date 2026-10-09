@@ -7,7 +7,7 @@ const SPREADSHEET_ID = '';
 const MERCADO_PAGO_PUBLIC_KEY = 'APP_USR-72ab41d6-5fc7-4867-8e02-564ab0ae9f99';
 // Token privado de prueba. No lo subas a repositorios públicos.
 const MERCADO_PAGO_ACCESS_TOKEN = ''; // Credencial retirada: usar propiedades privadas con una nueva credencial.
-const SITE_URL = 'https://blyxu.online';
+const SITE_URL = 'https://aloriginalstore.online';
 
 const SHEETS = {
   Productos: {
@@ -645,7 +645,7 @@ function handleMercadoPagoPreference_(body) {
 
   const payerData = {
     name: clientName,
-    email: clientEmail && clientEmail.indexOf('@') >= 0 ? clientEmail : 'compras@blyxu.online'
+    email: clientEmail && clientEmail.indexOf('@') >= 0 ? clientEmail : 'originalstorealmacen@gmail.com'
   };
 
   const cleanPh = cleanPhone_(clientPhone);

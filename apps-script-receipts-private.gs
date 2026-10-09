@@ -599,7 +599,7 @@ const SPREADSHEET_ID = '';
 const MERCADO_PAGO_PUBLIC_KEY = 'APP_USR-72ab41d6-5fc7-4867-8e02-564ab0ae9f99';
 // Token privado de prueba. No lo subas a repositorios públicos.
 const MERCADO_PAGO_ACCESS_TOKEN = ''; // Configurar una credencial nueva en Propiedades del Script.
-const SITE_URL = 'https://blyxu.online';
+const SITE_URL = 'https://aloriginalstore.online';
 
 const SHEETS = {
   Productos: {
@@ -1253,7 +1253,7 @@ function handleMercadoPagoPreference_(body) {
 
   const payerData = {
     name: clientName,
-    email: clientEmail && clientEmail.indexOf('@') >= 0 ? clientEmail : 'compras@blyxu.online'
+    email: clientEmail && clientEmail.indexOf('@') >= 0 ? clientEmail : 'originalstorealmacen@gmail.com'
   };
 
   const cleanPh = cleanPhone_(clientPhone);
@@ -3230,7 +3230,7 @@ function securityAdminIdentity_(body) {
   if (authAdminEnabled_()) return null;
   if (!credential) return null;
   const identity = verifyGoogleIdToken_(credential);
-  const allowed = String(PropertiesService.getScriptProperties().getProperty('BLYXU_ADMIN_EMAILS') || 'blyxu.ventas@gmail.com').toLowerCase().split(',').map(function(email) { return email.trim(); }).filter(Boolean);
+  const allowed = String(PropertiesService.getScriptProperties().getProperty('BLYXU_ADMIN_EMAILS') || 'originalstorealmacen@gmail.com').toLowerCase().split(',').map(function(email) { return email.trim(); }).filter(Boolean);
   if (allowed.indexOf(String(identity.email || '').toLowerCase()) < 0) throw new Error('Cuenta sin permiso de administrador.');
   return identity;
 }
