@@ -7425,6 +7425,8 @@
 #inventory-qr-modal .inventory-qr-options label{min-height:30px;padding:5px}
 #inventory-qr-modal .inventory-qr-actions{flex:0 0 auto;background:#fff;border-top:1px solid #eadce2;padding:12px 20px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 #inventory-qr-modal .inventory-qr-actions button{min-width:0;min-height:42px;font-size:12px;padding:8px}
+#inventory-qr-modal .inventory-qr-actions [data-inventory-qr-action="download"]{grid-column:span 2}
+#inventory-qr-modal .inventory-qr-actions [data-inventory-qr-action="whatsapp"]{background:#167a48!important;color:#fff!important;border-color:#167a48!important}
 @media(max-width:600px){
 #inventory-qr-modal .inventory-qr-body{grid-template-columns:1fr;padding:14px}
 #inventory-qr-modal .inventory-qr-meta,#inventory-qr-modal .inventory-qr-options{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -7933,6 +7935,8 @@
                 <button type="button" class="admin-btn secondary" data-inventory-qr-action="copy">Copiar referencia</button>
                 <button type="button" class="admin-btn secondary" data-inventory-qr-action="image">Ver imagen QR</button>
                 <button type="button" class="admin-btn" data-inventory-qr-action="print">Imprimir ticket</button>
+                <button type="button" class="admin-btn secondary" data-inventory-qr-action="download">Descargar imagen</button>
+                <button type="button" class="admin-btn" data-inventory-qr-action="whatsapp">Enviar imagen a WhatsApp</button>
             </div>
         </div>
     </div>
@@ -8304,7 +8308,7 @@
 <script src="customer-access-admin.js?v=admin-refresh-access-20261006-3" defer></script>
 <script src="qr-camera-tools.js?v=20261006-1" defer></script>
 <script src="barcode-frame-reader.js?v=automatic-20261006-2" defer></script>
-<script src="admin-app.js?v=original-store-label-50x30-20261008" defer></script>
+<script src="admin-app.js?v=original-store-label-share-20261008" defer></script>
 <script src="inventory-category-manager.js?v=20261006-1" defer></script>
 <script src="order-summary.js?v=pdf-fast-20261007" defer></script>
 <script src="order-receipt-access.js?v=browser-qr-20261006" defer></script>

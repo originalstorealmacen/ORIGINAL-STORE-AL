@@ -3527,6 +3527,8 @@ document.addEventListener('DOMContentLoaded', () => {
             close: window.closeInventoryQrTicket,
             copy: window.copyInventoryQrReference,
             image: window.openInventoryQrImage,
+            download: window.downloadInventoryQrLabel,
+            whatsapp: window.shareInventoryQrLabel,
             print: window.printInventoryQrTicket
         };
         actions[control.dataset.inventoryQrAction]?.();
@@ -6695,6 +6697,110 @@ function renderInventoryLabel(ticket, options = {}) {
     </div>`;
 }
 
+let inventoryLabelImage = { key: '', promise: null, file: null };
+function prepareInventoryLabelImage(ticket, options) {
+    const key = JSON.stringify([ticket.reference, ticket.variationId, ticket.sku, ticket.name, ticket.price, ticket.wholesaleCode, options.name]);
+    if (inventoryLabelImage.key === key) return inventoryLabelImage.promise;
+    const state = inventoryLabelImage = { key, promise: null, file: null };
+    state.promise = (async () => {
+        const loadImage = (src, cors = false) => new Promise((resolve, reject) => {
+            const img = new Image();
+            if (cors) img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('No se pudo cargar el logo de la etiqueta. Intenta nuevamente.'));
+            img.src = src;
+        });
+        const [qr, logo] = await Promise.all([
+            loadImage(getInventoryQrImageUrl(ticket.reference, 800)),
+            loadImage('https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180', true)
+        ]);
+        // 50 × 30 mm at 300 dpi, suitable for label printers and sharing.
+        const canvas = document.createElement('canvas');
+        canvas.width = 591; canvas.height = 354;
+        const c = canvas.getContext('2d');
+        c.fillStyle = '#fff'; c.fillRect(0, 0, canvas.width, canvas.height);
+        c.imageSmoothingEnabled = false;
+        c.drawImage(qr, 18, 41, 272, 272);
+        c.imageSmoothingEnabled = true;
+        const ratio = Math.min(154 / logo.naturalWidth, 94 / logo.naturalHeight);
+        const lw = logo.naturalWidth * ratio, lh = logo.naturalHeight * ratio;
+        c.drawImage(logo, 438 - lw / 2, 18 + (94 - lh) / 2, lw, lh);
+        c.fillStyle = '#111'; c.textBaseline = 'top';
+        c.font = '23px Arial'; c.fillText('ID', 308, 117);
+        c.font = 'bold 27px Arial';
+        const id = String(ticket.variationId || ticket.sku || ticket.motherId || ticket.reference);
+        const lines = []; let line = '';
+        for (const char of id) {
+            if (line && c.measureText(line + char).width > 265) { lines.push(line); line = ''; }
+            line += char;
+        }
+        if (line) lines.push(line);
+        const lineHeight = Math.min(31, 85 / Math.max(1, lines.length));
+        if (lines.length > 3) c.font = 'bold 21px Arial';
+        lines.forEach((text, i) => c.fillText(text, 308, 144 + i * lineHeight, 265));
+        if (options.name) {
+            c.font = '23px Arial'; let name = String(ticket.name || '');
+            if (c.measureText(name).width > 265) {
+                while (name && c.measureText(name + '…').width > 265) name = name.slice(0, -1);
+                name += '…';
+            }
+            c.fillText(name, 308, 237);
+        }
+        c.font = 'bold 46px Arial'; c.fillText(formatAdminMoney(ticket.price), 308, 269, 265);
+        c.font = '25px Arial'; c.textAlign = 'right';
+        c.fillText('PM: ' + (ticket.wholesaleCode || '-'), 573, 319, 265);
+        const blob = await new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('No se pudo crear la imagen.')), 'image/png'));
+        const filename = 'Original-Store-' + String(ticket.variationId || ticket.sku || ticket.reference).replace(/[^a-zA-Z0-9_-]/g, '-') + '-50x30.png';
+        const file = new File([blob], filename, { type: 'image/png' });
+        state.file = file;
+        return file;
+    })();
+    // Prepares sharing while the panel is open, preserving the click's user activation.
+    state.promise.catch(() => {});
+    return state.promise;
+}
+
+function getCurrentInventoryLabelImage() {
+    const modal = document.getElementById('inventory-qr-modal');
+    if (!modal?.dataset.ticketJson) throw new Error('Abre primero la etiqueta de un producto.');
+    return prepareInventoryLabelImage(JSON.parse(modal.dataset.ticketJson), getInventoryQrTicketOptions());
+}
+
+function downloadInventoryLabelFile(file) {
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url; link.download = file.name;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+window.downloadInventoryQrLabel = async function() {
+    try { downloadInventoryLabelFile(await getCurrentInventoryLabelImage()); }
+    catch (error) { inventoryLabelImage.key = ''; showToast(error.message || 'No se pudo descargar la etiqueta.', 'error'); }
+};
+
+window.shareInventoryQrLabel = async function() {
+    try {
+        const pending = getCurrentInventoryLabelImage();
+        const file = inventoryLabelImage.file;
+        if (!file) {
+            await pending;
+            showToast('Imagen lista. Pulsa nuevamente WhatsApp para compartirla.', 'info');
+            return;
+        }
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+            await navigator.share({ files: [file], title: 'Etiqueta Original Store' });
+        } else {
+            downloadInventoryLabelFile(file);
+            window.open('https://web.whatsapp.com/', '_blank', 'noopener');
+            showToast('Etiqueta descargada. Adjunta la imagen en el chat de WhatsApp que elijas.', 'info');
+        }
+    } catch (error) {
+        if (error.name === 'AbortError') return;
+        showToast('No se pudo compartir. Usa Descargar imagen y adjúntala en WhatsApp.', 'warning');
+    }
+};
+
 function getInventoryQrTicketOptions() {
     const modal = document.getElementById('inventory-qr-modal');
     const defaults = {
@@ -6721,7 +6827,11 @@ window.updateInventoryQrPreviewOptions = function() {
     const options = getInventoryQrTicketOptions();
     const preview = document.getElementById('inventory-label-preview');
     if (preview && modal.dataset.ticketJson) {
-        try { preview.innerHTML = renderInventoryLabel(JSON.parse(modal.dataset.ticketJson), options); }
+        try {
+            const ticket = JSON.parse(modal.dataset.ticketJson);
+            preview.innerHTML = renderInventoryLabel(ticket, options);
+            prepareInventoryLabelImage(ticket, options);
+        }
         catch (error) { preview.textContent = 'No se pudo preparar la etiqueta.'; }
     }
     modal.querySelectorAll('[data-qr-element]').forEach(element => {
