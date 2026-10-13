@@ -263,3 +263,49 @@ test('preview serves catalogue but rejects business writes without touching data
 test('preview supports admin transport reads without granting anonymous private access',async()=>{
  const f=fixture({env:{ORIGINAL_STORE_API_ENABLED:undefined}});f.getState().properties.ORIGINAL_STORE_API_MODE='preview';assert.equal((await f.post({resource:'productos',action:'get'})).ok,true);assert.equal((await f.post({resource:'clientes',action:'get'})).ok,false);assert.equal((await f.post({resource:'clientes',action:'get',adminCredential:'TEST-GOOGLE-ID'})).ok,true);assert.equal(f.data.Pedidos.rows.length,0);
 });
+
+
+function categoryFixture(){
+ const f=fixture();f.data.Productos.headers.push('Categoría');
+ f.data.Productos.rows[0].record['Categoría']='Aretes';
+ f.data.Productos.rows.push({id:'2',position:3,record:{...f.data.Productos.rows[0].record,'ID Variación':'TEST-V2','Categoría':'ARETE'}},{id:'3',position:4,record:{...f.data.Productos.rows[0].record,'ID Producto':'TEST-P2','ID Variación':'TEST-V3','Categoría':'Aretes'}},{id:'4',position:5,record:{...f.data.Productos.rows[0].record,'ID Producto':'TEST-P3','ID Variación':'TEST-V4','Categoría':'Juegos'}});
+ return f;
+}
+const categoryAdmin={adminCredential:'TEST-GOOGLE-ID',category:'Aretes'};
+test('category deletion and its preview require an authorized administrator',async()=>{
+ const f=categoryFixture();
+ for(const action of ['categorydeletepreview','categorydeleteproducts'])assert.equal((await f.post({action,category:'arete'})).ok,false);
+ f.setEmail('outsider@example.invalid');assert.equal((await f.post({action:'categorydeletepreview',...categoryAdmin})).ok,false);
+ assert.equal(f.data.Productos.rows.length,4);
+});
+test('category deletion previews all variants, deletes atomically and preserves other categories and history',async()=>{
+ const f=categoryFixture();f.data.Pedidos.rows=[{id:'1',position:2,record:{'ID Pedido':'HISTORY'}}];f.data.Facturas.rows=[{id:'1',position:2,record:{'ID Factura':'HISTORY'}}];
+ const history=JSON.stringify([f.data.Pedidos,f.data.Facturas]);
+ const preview=await f.post({action:'categorydeletepreview',...categoryAdmin});
+ assert.equal(preview.ok,true);assert.equal(preview.products,2);assert.equal(preview.records,3);assert.equal(f.data.Productos.rows.length,4);
+ const before=f.commits();const result=await f.post({action:'categorydeleteproducts',...categoryAdmin,confirmation:'ARETES',signature:preview.signature});
+ assert.equal(result.ok,true);assert.equal(result.deletedProducts,2);assert.equal(result.deletedRecords,3);assert.equal(f.commits()-before,1);
+ assert.deepEqual(f.data.Productos.rows.map(r=>r.id),['4']);assert.equal(JSON.stringify([f.data.Pedidos,f.data.Facturas]),history);
+ assert.deepEqual(JSON.parse(f.data.Configuracion.rows.find(r=>r.record.Clave==='Home_Removed_Category_Defaults_JSON').record.Valor),['arete']);
+});
+test('category deletion rejects a wrong name and stale product previews',async()=>{
+ const f=categoryFixture();const preview=await f.post({action:'categorydeletepreview',...categoryAdmin});
+ assert.equal((await f.post({action:'categorydeleteproducts',...categoryAdmin,confirmation:'Juegos',signature:preview.signature})).ok,false);
+ f.data.Productos.rows[0].record.Precio=5000;
+ const result=await f.post({action:'categorydeleteproducts',...categoryAdmin,confirmation:'arete',signature:preview.signature});
+ assert.equal(result.ok,false);assert.match(result.error,/cambiaron/);assert.equal(f.data.Productos.rows.length,4);
+});
+test('category transaction conflicts leave all product rows intact',async()=>{
+ const f=categoryFixture();const preview=await f.post({action:'categorydeletepreview',...categoryAdmin});f.setConflict();
+ const result=await f.post({action:'categorydeleteproducts',...categoryAdmin,confirmation:'Aretes',signature:preview.signature});
+ assert.equal(result.ok,false);assert.equal(f.data.Productos.rows.length,4);assert.ok(!f.data.Configuracion.rows.find(r=>r.record.Clave==='Home_Removed_Category_Defaults_JSON'));
+});
+test('invalid category configuration prevents all inventory deletion',async()=>{
+ const f=categoryFixture();f.data.Configuracion.rows.push({id:'2',position:3,record:{Clave:'Home_Removed_Category_Defaults_JSON',Valor:'invalid'}});
+ const preview=await f.post({action:'categorydeletepreview',...categoryAdmin});
+ assert.equal((await f.post({action:'categorydeleteproducts',...categoryAdmin,confirmation:'Aretes',signature:preview.signature})).ok,false);assert.equal(f.data.Productos.rows.length,4);
+});
+test('preview server mode blocks destructive category actions',async()=>{
+ const f=fixture({env:{ORIGINAL_STORE_API_ENABLED:undefined}});f.getState().properties.ORIGINAL_STORE_API_MODE='preview';
+ assert.equal((await f.post({action:'categorydeleteproducts',...categoryAdmin,confirmation:'Aretes'})).ok,false);assert.equal(f.data.Productos.rows.length,1);
+});

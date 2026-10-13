@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { createController } from './controller.js';
+import {categoryAction} from './category-actions.js';
 import {driveAction,readConnection} from './drive-connection.js';
 
 const MAX_BODY=12*1024*1024;
@@ -42,7 +43,7 @@ export function createHandler({env,fetcher=fetch,now=()=>Date.now()}) {
       const requested=bodyText?JSON.parse(bodyText):{};
       const action=String(requested.action||params.action||'').toLowerCase().replace(/[^a-z0-9]/g,'');
       const resource=String(requested.resource||params.resource||'').toLowerCase();
-      const previewRead=(['GET','POST'].includes(request.method)&&['productos','producto','pedidos','pedido','clientes','cliente','facturas','factura','favoritos','favorito','pedidoschina','configuracion','config'].includes(resource)&&['','get','listar','list'].includes(action))||['getconfig','publicreference','adminsession','drivestatus','drivebegin','drivefinish','uploadimage'].includes(action);
+      const previewRead=(['GET','POST'].includes(request.method)&&['productos','producto','pedidos','pedido','clientes','cliente','facturas','factura','favoritos','favorito','pedidoschina','configuracion','config'].includes(resource)&&['','get','listar','list'].includes(action))||['getconfig','publicreference','categorydeletepreview','adminsession','drivestatus','drivebegin','drivefinish','uploadimage'].includes(action);
       if(mode==='preview'&&!previewRead)return reply({ok:false,status:'error',error:'El servidor está en pruebas. Esta operación sigue disponible en la tienda actual.'},503);
       const runtime={datasets:Object.fromEntries(snapshot.datasets.map(d=>[d.name,d]))};
       let properties=structuredClone(state.properties),cache=structuredClone(state.cache);
@@ -118,6 +119,12 @@ export function createHandler({env,fetcher=fetch,now=()=>Date.now()}) {
           (sheet==='Pedidos'?orders:invoices).push(summary);
         }
         return reply({ok:true,status:'success',orders,invoices});
+      }
+      if(['categorydeletepreview','categorydeleteproducts'].includes(body.action)){
+        if(request.method!=='POST')return reply({ok:false,error:'Utiliza POST.'},405);
+        return reply(await categoryAction({body,controller,checkpoint,getDataset:name=>runtime.datasets[name],authorize:async()=>{
+          const result=JSON.parse((await controller.handle({parameter:{},postData:{contents:JSON.stringify({action:'adminsession',adminCredential:body.adminCredential||''})}},'POST')).getContent());await checkpoint([]);return result.ok===true;
+        }}));
       }
       if(String(body.action||'').startsWith('drive')){
         if(request.method!=='POST')return reply({ok:false,error:'Utiliza POST.'},405);
