@@ -1,5 +1,5 @@
 // Original Store lightweight runtime for informational pages.
-const GOOGLE_SHEET_API = 'https://script.google.com/macros/s/AKfycbyJPGQXLqyFAlAtO7vEih7yZzRuevROj6dcb-AQF02PupM66BGeLbMULKV-bW5LrfoW/exec';
+const GOOGLE_SHEET_API = window.ORIGINAL_STORE_API_URL;
 const BLYXU_WHATSAPP_PHONE = '573112368622';
 const SITE_CONFIG_CACHE_KEY = `blyxu_site_config_cache_v1:${GOOGLE_SHEET_API}`;
 const SITE_CONFIG_TTL = 5 * 60 * 1000;

@@ -1,6 +1,6 @@
 # Servidor de Original Store en Supabase
 
-Estado: servidor desplegado en Original Store; transferencia administrativa completada; pendiente de conexión de Drive, pruebas reales completas y activación del sitio. La página sigue seleccionando Apps Script en `backend-config.js`.
+Estado: servidor desplegado en Original Store; transferencia administrativa completada; Drive conectado; pendientes pruebas reales completas y activación del sitio. La página sigue seleccionando Apps Script en `backend-config.js`.
 
 Proyecto exclusivo: `zhtrwvbmkxxfxvdhgngs`. Función: `original-store-api`. Dominio: https://aloriginalstore.online. Propietario: originalstorealmacen@gmail.com. Google Cloud: `circular-answer-511000-k3`. BLYXU no participa en las operaciones ni en las credenciales de este servidor. Los nombres internos históricos BLYXU de sesiones y propiedades se conservan para compatibilidad con Original Store.
 
@@ -39,3 +39,6 @@ Se aplicó la migración aditiva con respaldo privado de los diez datasets y se 
 La transferencia administrativa se confirmó en la base privada. Pendiente: configurar y autorizar Drive, habilitar las pruebas de negocio y completar el pedido técnico y subida real, publicar el preview y finalmente activar las páginas. La conexión de GitHub ya identifica al propietario originalstorealmacen y reconoce su instalación con permiso administrativo. Esta publicación añade fuentes y un administrador de prueba; no cambia el endpoint de las páginas productivas.
 
 La versión 8 del servidor distingue errores de Drive API deshabilitada, permisos, capacidad y límites temporales. Guarda únicamente un código fijo y estado HTTP en ORIGINAL_STORE_DRIVE_LAST_ERROR; no guarda respuestas de Google ni tokens en el diagnóstico. La reconexión no crea otra carpeta si la consulta de la carpeta existente falla por motivos distintos de 404. Pasaron 30 pruebas locales. Un intento real falló al crear la carpeta; la conexión todavía está pendiente de una comprobación de Drive API y un nuevo intento autorizado.
+
+
+Actualización visual: Drive conectado confirmado. Se publicó el diseño de confirmación y la tarjeta multimedia en el administrador de prueba (commit 017e7035965852208e4e3e64fc1c1dcb3d3b817b). Se verificaron cinco archivos en el dominio y el diseño en computador y celular con respuestas simuladas. Quedan pendientes la subida real, revisión de audiencia OAuth y pruebas completas de negocio antes de activar el sitio. Los párrafos anteriores registran comprobaciones históricas.

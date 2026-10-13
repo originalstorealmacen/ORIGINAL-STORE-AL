@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tabs = Array.from(document.querySelectorAll('[data-orders-view]'));
             const apiUrl = typeof GOOGLE_SHEET_API !== 'undefined'
                 ? GOOGLE_SHEET_API
-                : 'https://script.google.com/macros/s/AKfycbyJPGQXLqyFAlAtO7vEih7yZzRuevROj6dcb-AQF02PupM66BGeLbMULKV-bW5LrfoW/exec';
+                : window.ORIGINAL_STORE_API_URL;
             let currentOrders = [];
             let currentInvoices = [];
             let currentView = 'orders';
@@ -1199,7 +1199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const lookup = input.value.trim();
-                if (!/^(PED|FAC)-[0-9]{14}-[0-9]{4}$/i.test(lookup)) {
+                if (!/^(PED|DET|FAC)-[0-9]{14}-[0-9]{4}$/i.test(lookup)) {
                     status.textContent = 'Escribe el ID completo del pedido o factura, o escanea su QR. No se consulta por celular.';
                     panel.classList.remove('open');
                     return;

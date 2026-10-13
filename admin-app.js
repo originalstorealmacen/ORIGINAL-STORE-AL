@@ -1,4 +1,4 @@
-const GOOGLE_SHEET_API = 'https://script.google.com/macros/s/AKfycbyJPGQXLqyFAlAtO7vEih7yZzRuevROj6dcb-AQF02PupM66BGeLbMULKV-bW5LrfoW/exec';
+const GOOGLE_SHEET_API = window.ORIGINAL_STORE_API_URL;
 
 // Las credenciales administrativas se mantienen en memoria y se envían solo al servidor.
 const adminNativeFetch = window.fetch.bind(window);

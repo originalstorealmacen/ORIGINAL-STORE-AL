@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script src="backend-config.js?v=original-store-server-20261013"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Peluches y accesorios | Original Store</title>
@@ -12,7 +13,7 @@
     <meta property="og:image" content="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
     <meta property="og:url" content="https://aloriginalstore.online/producto.html">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://zhtrwvbmkxxfxvdhgngs.supabase.co">
     <link rel="preconnect" href="https://drive.google.com">
     <link rel="preconnect" href="https://lh3.googleusercontent.com">
 
@@ -24,7 +25,7 @@
                 const id = Number.parseInt(params.get('id'), 10);
                 const mode = params.get('catalogo') === 'mayorista' ? 'wholesale' : 'retail';
                 const ref = params.get('ref') || '';
-                const preview = JSON.parse(sessionStorage.getItem("original_store_product_detail_drive_v2:https://script.google.com/macros/s/AKfycbyJPGQXLqyFAlAtO7vEih7yZzRuevROj6dcb-AQF02PupM66BGeLbMULKV-bW5LrfoW/exec") || 'null');
+                const preview = JSON.parse(sessionStorage.getItem("original_store_product_detail_drive_v2:" + window.ORIGINAL_STORE_API_URL + "") || 'null');
                 if (!preview || Date.now() - Number(preview.savedAt || 0) > 120000 || preview.id !== id || preview.mode !== mode || (ref && preview.ref && preview.ref !== ref)) return;
                 const src = preview.imageCard || preview.image || preview.imageDetail;
                 if (!src || !/^https:\/\//.test(src)) return;
@@ -37,7 +38,7 @@
         })();
     </script>
     <script src="original-store-catalog-bootstrap.js?v=drive-20261008-1" defer></script>
-    <script src="blyxu-app.js?v=original-store-detail-fast-20261008-1" defer></script>
+    <script src="blyxu-app.js?v=original-store-server-20261013" defer></script>
     <link rel="stylesheet" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006">
     <style>
         /* STUDIO NOIR PRODUCT DETAIL */
@@ -1081,7 +1082,7 @@
                         let initialName = '';
 
                         try {
-                            const preview = window.ORIGINAL_STORE_INITIAL_DETAIL || JSON.parse(sessionStorage.getItem("original_store_product_detail_drive_v2:https://script.google.com/macros/s/AKfycbyJPGQXLqyFAlAtO7vEih7yZzRuevROj6dcb-AQF02PupM66BGeLbMULKV-bW5LrfoW/exec") || 'null');
+                            const preview = window.ORIGINAL_STORE_INITIAL_DETAIL || JSON.parse(sessionStorage.getItem("original_store_product_detail_drive_v2:" + window.ORIGINAL_STORE_API_URL + "") || 'null');
                             const fresh = preview && Date.now() - Number(preview.savedAt || 0) < 120000;
                             if (fresh && preview.id === productId && preview.mode === mode) {
                                 initialSrc = preview.imageCard || preview.image || preview.imageDetail || '';
@@ -1090,7 +1091,7 @@
                         } catch (_) {}
 
                         if (!initialSrc) try {
-                            const cache = JSON.parse(localStorage.getItem("original_store_products_drive_v4:https://script.google.com/macros/s/AKfycbyJPGQXLqyFAlAtO7vEih7yZzRuevROj6dcb-AQF02PupM66BGeLbMULKV-bW5LrfoW/exec") || 'null');
+                            const cache = JSON.parse(localStorage.getItem("original_store_products_drive_v4:" + window.ORIGINAL_STORE_API_URL + "") || 'null');
                             const cachedProducts = cache?.data?.products || [];
                             const product = params.get('ref') ? cachedProducts.find(p => String(p.idVariacion || p.SKU || '') === params.get('ref')) : cachedProducts[productId];
                             if (product) {
