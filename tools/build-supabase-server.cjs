@@ -1,0 +1,62 @@
+// Builds the independent server from the audited controller. No credentials are bundled.
+const fs = require('node:fs'), vm = require('node:vm'), path = require('node:path');
+const mod = {exports:{}};
+vm.runInNewContext(process.binding('natives')['internal/deps/acorn/acorn/dist/acorn'], {module:mod,exports:mod.exports});
+const acorn = mod.exports;
+const root = path.resolve(__dirname,'..');
+let source = fs.readFileSync(path.join(root,'.supabase-server-private/controller-source.gs'),'utf8');
+const parse = text => acorn.parse(text,{ecmaVersion:'latest',sourceType:'module'});
+const replacements = {
+  getSheet_: 'function getSheet_(name){return sbSheet_(name);}',
+  ensureSheets_: 'function ensureSheets_(){}',
+  caTable_: 'function caTable_(name){const sheet=sbSheet_(name);CA_HEADERS_.forEach(h=>{if(!sheet.headers.includes(h))sheet.headers.push(h);});return sheet;}',
+  updateStockFromOrder_: 'function updateStockFromOrder_(raw){return sbDiscountStock_(raw);}',
+  sbSheet_: `function sbSheet_(name){if(!sbContext_[name]){const data=runtime.datasets[name];if(!data)throw new Error('Dataset no disponible.');const sheet=new SbSheet_(data);if(SHEETS[name])SHEETS[name].headers.forEach(h=>{if(!sheet.headers.some(v=>normalizeKey_(v)===normalizeKey_(h)))sheet.headers.push(h);});sbContext_[name]=sheet;}return sbContext_[name];}`,
+  sbCheckpoint_: 'async function sbCheckpoint_(){await runtime.checkpoint(Object.values(sbContext_).map(s=>s.changes()));sbContext_={};}',
+};
+const remove = new Set(['doGet','doPost','autorizarMercadoPago','getSpreadsheet_','caPrivateSpreadsheet_',
+  'configurarBlyxuSpreadsheet','verificarSistemaClientes','probarRegistroCliente','probarControladorSupabaseBlyxu',
+  'verificarLecturaSupabaseBlyxu','probarConexionBlyxuSupabase','sbRpc_','sbHandleRequest_',
+  'abrirConfiguracionPrivadaSupabaseBlyxu','guardarConexionPrivadaSupabaseBlyxu','pausarCambioFinalBlyxu',
+  'activarCambioFinalBlyxu','revisarCambioFinalBlyxu','blyxuFinalPlan_','respaldarBlyxuParaSupabase','comprobarEnlacePublicoBlyxu']);
+let edits=[];
+for(const node of parse(source).body){
+  if(node.type!=='FunctionDeclaration')continue;
+  if(remove.has(node.id.name)||replacements[node.id.name])edits.push([node.start,node.end,replacements[node.id.name]||'']);
+}
+const apply = (text,changes) => changes.sort((a,b)=>b[0]-a[0]).reduce((s,[start,end,value])=>s.slice(0,start)+value+s.slice(end),text);
+source=apply(source,edits);
+// Uploads now use the Google Drive API, not an Apps Script service.
+let ast=parse(source);
+function walk(node,visit,ancestors=[]){if(!node||typeof node.type!=='string')return;visit(node,ancestors);for(const [key,value] of Object.entries(node)){if(key==='start'||key==='end')continue;if(Array.isArray(value))value.forEach(n=>walk(n,visit,[...ancestors,node]));else if(value&&typeof value==='object')walk(value,visit,[...ancestors,node]);}}
+edits=[];
+walk(ast,node=>{if(node.type==='IfStatement'&&source.slice(node.test.start,node.test.end).includes("action === 'uploadimage'"))edits.push([node.consequent.start,node.consequent.end,'{ return json_(await runtime.upload(body)); }']);});
+source=apply(source,edits);
+ast=parse(source.replace('await runtime.upload(body)','runtime.upload(body)'));
+source=source.replace('await runtime.upload(body)','runtime.upload(body)');
+const functions=[],calls=[];
+const isFunction = n => ['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(n.type);
+walk(ast,(node,ancestors)=>{
+  if(isFunction(node))functions.push(node);
+  if(node.type==='CallExpression')calls.push({node,parent:ancestors.at(-1),owner:ancestors.findLast(isFunction)});
+});
+const byName=new Map(functions.filter(n=>n.id).map(n=>[n.id.name,n]));
+const asynchronous=new Set(functions.filter(n=>n.async));
+const isExternal=n=>n.callee.type==='MemberExpression'&&((n.callee.object.name==='UrlFetchApp'&&n.callee.property.name==='fetch')||(n.callee.object.name==='runtime'&&n.callee.property.name==='upload'));
+for(const c of calls)if(isExternal(c.node))asynchronous.add(c.owner);
+let changed=true;
+while(changed){changed=false;for(const c of calls)if(c.node.callee.type==='Identifier'&&asynchronous.has(byName.get(c.node.callee.name))&&!asynchronous.has(c.owner)){asynchronous.add(c.owner);changed=true;}}
+edits=[];
+for(const fn of asynchronous){if(!fn)throw new Error('Top-level async call');if(fn.type!=='FunctionDeclaration')throw new Error('Async callback requires explicit port');if(!fn.async)edits.push([fn.start,fn.start,'async ']);}
+for(const c of calls)if(isExternal(c.node)||(c.node.callee.type==='Identifier'&&asynchronous.has(byName.get(c.node.callee.name)))){
+  if(c.parent?.type!=='AwaitExpression')edits.push([c.node.start,c.node.end,'(await '+source.slice(c.node.start,c.node.end)+')']);
+}
+source=apply(source,edits);
+source=source.replace('let sbContext_ = null;','let sbContext_ = {};');
+if(/DriveApp|SpreadsheetApp|HtmlService/.test(source))throw new Error('Unported Google service');
+const output=`// Generated by tools/build-supabase-server.cjs; retain existing business rules.\nexport function createController(runtime) {\nconst {Utilities,PropertiesService,CacheService,LockService,ContentService,Session,ScriptApp,UrlFetchApp,Logger}=runtime.services;\n${source}\nreturn {handle:handleRequest_,changes:()=>Object.values(sbContext_).map(s=>s.changes())};\n}\n`;
+parse(output);
+if(/sb_secret_[A-Za-z0-9]{10}|service_role\s*[:=]\s*['"]/.test(output))throw new Error('Credential in source');
+fs.mkdirSync(path.join(root,'supabase/functions/original-store-api'),{recursive:true});
+fs.writeFileSync(path.join(root,'supabase/functions/original-store-api/controller.js'),output);
+console.log(`Controller compiled: ${asynchronous.size} asynchronous functions; no Apps Script storage or media services.`);

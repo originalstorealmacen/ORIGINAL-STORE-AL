@@ -1,0 +1,2 @@
+[functions.original-store-api]
+verify_jwt = false
