@@ -1001,6 +1001,15 @@
     <link rel="stylesheet" href="original-store-boutique.css?v=mobile-polish-20261013">
     <link rel="stylesheet" href="original-store-product-studio.css?v=20261008-4">
 <meta name="robots" content="index, follow, max-image-preview:large">
+    <style>
+    /* Color-only products use compact swatches without repeated photographs. */
+    html body.product-detail-page #product-detail .detail-variant-list.color-only-list {display:flex!important;flex-wrap:wrap;gap:10px!important;align-items:center;}
+    html body.product-detail-page #product-detail .detail-variant-chip.swatch-only {display:flex!important;align-items:center!important;justify-content:center!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;padding:6px!important;border-radius:50%!important;border:1px solid transparent!important;background:transparent!important;box-shadow:none!important;transform:none!important;}
+    html body.product-detail-page #product-detail .detail-variant-chip.swatch-only .detail-variant-color-dot {display:block!important;width:30px!important;height:30px!important;margin:0!important;flex-shrink:0;background:var(--variant-color)!important;border:1px solid #b9a5af!important;border-radius:50%!important;box-shadow:inset 0 0 0 1px #ffffff30!important;}
+    html body.product-detail-page #product-detail .detail-variant-chip.swatch-only.active {border-color:#87334f!important;box-shadow:0 0 0 1px #87334f!important;}
+    html body.product-detail-page #product-detail .detail-variant-chip.swatch-only:hover {background:#f8eaf0!important;}
+    html body.product-detail-page #product-detail .detail-variant-chip.swatch-only:focus-visible {outline:2px solid #087e80!important;outline-offset:3px;}
+    </style>
 </head>
 <body class="dark-mode product-detail-page">
 
@@ -1412,6 +1421,16 @@
                 return winner.count > 1 ? winner.field : 'style';
             }
 
+            function getColorOnlyVariantGroup(siblings) {
+                const colored = siblings.filter(item => getVariantFieldValue(item, 'color'));
+                const colors = new Set(colored.map(item => normalizeSearchText(getVariantFieldValue(item, 'color'))));
+                if (colors.size < 2) return null;
+                const otherDimensionsVary = ['style', 'size'].some(field =>
+                    new Set(siblings.map(item => normalizeSearchText(getVariantFieldValue(item, field))).filter(Boolean)).size > 1
+                );
+                return otherDimensionsVary ? null : colored;
+            }
+
             function getAvailabilityText(stock) {
                 return stock > 0 ? 'Disponible' : 'Agotado por ahora';
             }
@@ -1586,7 +1605,9 @@
             }
 
             function renderVariantChips(productId, product) {
-                const siblings = getProductVariantGroup(product);
+                const group = getProductVariantGroup(product);
+                const colorVariants = getColorOnlyVariantGroup(group);
+                const siblings = colorVariants || group;
 
                 if (!variationContainer) return;
                 if (siblings.length <= 1) {
@@ -1595,7 +1616,7 @@
                     return;
                 }
 
-                const variantDimension = getGroupVariantDimension(siblings);
+                const variantDimension = colorVariants ? 'color' : getGroupVariantDimension(siblings);
                 const activeSib = siblings.find(sib => allProducts.indexOf(sib) === productId) || product;
                 const activeDimLabel = getVariantFieldValue(activeSib, variantDimension);
                 const activeParts = getVisibleVariantParts(activeSib);
@@ -1603,10 +1624,10 @@
 
                 variationContainer.innerHTML = `
                     <div class="variant-header-row">
-                        <span class="variant-heading-title">Opciones disponibles</span>
+                        <span class="variant-heading-title">${colorVariants ? 'Colores disponibles' : 'Opciones disponibles'}</span>
                         ${activeLabel ? `<span class="variant-active-badge">${activeLabel}</span>` : ''}
                     </div>
-                    <div class="detail-variant-list"></div>
+                    <div class="detail-variant-list ${colorVariants ? 'color-only-list' : ''}"></div>
                 `;
                 const list = variationContainer.querySelector('.detail-variant-list');
 
@@ -1621,6 +1642,20 @@
                     const dimensionLabel = getVariantFieldValue(sib, variantDimension);
                     const labelParts = getVisibleVariantParts(sib);
                     const label = dimensionLabel || labelParts.join(' - ') || `Opción ${index + 1}`;
+                    chip.title = label;
+                    chip.setAttribute('aria-label', label);
+                    chip.setAttribute('aria-pressed', String(isActive));
+                    if (colorVariants) {
+                        const colorValue = getVariantFieldValue(sib, 'color');
+                        chip.classList.add('color-only', 'swatch-only');
+                        chip.style.setProperty('--variant-color', getColorHex(colorValue));
+                        const colorDot = document.createElement('span');
+                        colorDot.className = 'detail-variant-color-dot';
+                        colorDot.setAttribute('aria-hidden', 'true');
+                        chip.appendChild(colorDot);
+                        list.appendChild(chip);
+                        return;
+                    }
                     const groupPhoto = siblings.map(item => getProductImageSet(item, 'thumb')[0]).find(Boolean);
                     const variantImg = getProductImageSet(sib, 'thumb')[0] || groupPhoto || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
                     const colorValue = getVariantFieldValue(sib, 'color');
@@ -1683,6 +1718,12 @@
             function renderVariantInPlace(productId, updateUrl = true, preferredImage = '') {
                 const product = allProducts[productId];
                 if (!product) return;
+
+                const colorVariants = getColorOnlyVariantGroup(getProductVariantGroup(product));
+                if (colorVariants && !getVariantFieldValue(product, 'color')) {
+                    const firstColor = colorVariants.find(item => getProductStock(item) > 0) || colorVariants[0];
+                    return renderVariantInPlace(allProducts.indexOf(firstColor), updateUrl);
+                }
 
                 currentDetailProductId = productId;
                 currentDetailReference = String(product.idVariacion || product.SKU || '');
