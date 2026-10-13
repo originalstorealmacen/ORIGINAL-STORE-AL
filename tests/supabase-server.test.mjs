@@ -106,6 +106,34 @@ test('Drive token errors distinguish configuration from expired grants without l
   }
 });
 
+test('Drive folder failures distinguish disabled API, permissions and capacity without leaking tokens',async()=>{
+  for(const [reason,status,expected] of [['SERVICE_DISABLED',403,'DRIVE_API_DISABLED'],['accessNotConfigured',403,'DRIVE_API_DISABLED'],['insufficientPermissions',403,'DRIVE_PERMISSION_DENIED'],['storageQuotaExceeded',403,'DRIVE_STORAGE_FULL'],['userRateLimitExceeded',403,'DRIVE_RATE_LIMITED'],['unknown',500,'DRIVE_UNAVAILABLE']]){
+    const f=fixture({env:{GOOGLE_DRIVE_CLIENT_ID:'CLIENT',GOOGLE_DRIVE_CLIENT_SECRET:'SECRET'},fetcher:async url=>String(url).endsWith('/token')?Response.json({access_token:'PRIVATE-ACCESS',refresh_token:'PRIVATE-REFRESH',scope:'https://www.googleapis.com/auth/drive.file'}):Response.json({error:{message:'PRIVATE-UPSTREAM',details:[{reason}],errors:[{reason}]}},{status})});
+    const start=await f.post({action:'drivebegin',adminCredential:'TEST-GOOGLE-ID'});
+    const result=await f.post({action:'drivefinish',state:start.state,code:'CODE'});
+    assert.equal(result.ok,false);assert.equal(result.errorCode,expected);
+    assert.equal(JSON.parse(f.getState().properties.ORIGINAL_STORE_DRIVE_LAST_ERROR).code,expected);
+    assert.ok(!f.getState().properties.ORIGINAL_STORE_DRIVE_CONNECTION);
+    assert.ok(!JSON.stringify({result,state:f.getState()}).includes('PRIVATE'));
+    assert.equal((await f.post({action:'drivefinish',state:start.state,code:'CODE'})).ok,false);
+  }
+});
+
+test('Drive folder lookup failures preserve the connected folder and never create duplicates',async()=>{
+  let created=0;
+  const f=fixture({env:{GOOGLE_DRIVE_CLIENT_ID:'CLIENT',GOOGLE_DRIVE_CLIENT_SECRET:'SECRET'},fetcher:async(url,options)=>{
+    if(String(url).endsWith('/token'))return Response.json({access_token:'PRIVATE-ACCESS',refresh_token:'PRIVATE-REFRESH',scope:'https://www.googleapis.com/auth/drive.file'});
+    if(options.method==='POST')created++;
+    return Response.json({error:{details:[{reason:'SERVICE_DISABLED'}]}},{status:403});
+  }});
+  const original=sealConnection({refreshToken:'SAVED-PRIVATE',folderId:'SAVED-FOLDER',clientId:'CLIENT'},name=>name==='SUPABASE_SERVICE_ROLE_KEY'?'TEST-SERVER-KEY':undefined);
+  f.getState().properties.ORIGINAL_STORE_DRIVE_CONNECTION=original;
+  const start=await f.post({action:'drivebegin',adminCredential:'TEST-GOOGLE-ID'});
+  const result=await f.post({action:'drivefinish',state:start.state,code:'CODE'});
+  assert.equal(result.errorCode,'DRIVE_API_DISABLED');assert.equal(created,0);
+  assert.equal(f.getState().properties.ORIGINAL_STORE_DRIVE_CONNECTION,original);
+});
+
 test('expired or denied Drive authorization cannot exchange a code',async()=>{
   let calls=0;const f=fixture({env:{GOOGLE_DRIVE_CLIENT_ID:'CLIENT',GOOGLE_DRIVE_CLIENT_SECRET:'SECRET'},fetcher:async()=>{calls++;throw new Error('Unexpected call');}});
   const begin=()=>f.post({action:'drivebegin',adminCredential:'TEST-GOOGLE-ID'});

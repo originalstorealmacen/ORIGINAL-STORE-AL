@@ -25,6 +25,23 @@ export function readConnection(props,env){
   decipher.setAAD(Buffer.from(DRIVE_REDIRECT));decipher.setAuthTag(tag);
   return JSON.parse(Buffer.concat([decipher.update(content),decipher.final()]).toString('utf8'));
 }
+async function folderFailure(response,props,checkpoint){
+  let payload;try{payload=await response.json();}catch{}
+  const error=payload?.error;
+  const reasons=new Set([...(Array.isArray(error?.errors)?error.errors:[]),...(Array.isArray(error?.details)?error.details:[])].map(item=>item?.reason).filter(reason=>typeof reason==='string'));
+  let code='DRIVE_FOLDER_FAILED',message='Google no pudo preparar la carpeta de imágenes. Inicia una conexión nueva; si persiste, revisa la configuración de Drive.';
+  if(['SERVICE_DISABLED','API_DISABLED','accessNotConfigured','serviceDisabled'].some(reason=>reasons.has(reason))){code='DRIVE_API_DISABLED';message='Google Drive API no está habilitada para el cliente de Original Store. Habilítala en el proyecto circular-answer-511000-k3 y después conecta Drive otra vez.';}
+  else if(reasons.has('storageQuotaExceeded')){code='DRIVE_STORAGE_FULL';message='La cuenta de Google no tiene espacio disponible en Drive. Libera espacio y vuelve a conectar Drive.';}
+  else if(response.status===429||['rateLimitExceeded','userRateLimitExceeded','dailyLimitExceeded','quotaExceeded'].some(reason=>reasons.has(reason))){code='DRIVE_RATE_LIMITED';message='Google limitó temporalmente las solicitudes a Drive. Espera unos minutos y vuelve a conectar Drive.';}
+  else if(response.status===401){code='DRIVE_AUTH_EXPIRED';message='Google rechazó el acceso a Drive. Inicia una autorización nueva con la cuenta de Original Store.';}
+  else if(response.status===403){code='DRIVE_PERMISSION_DENIED';message='Google no permitió crear o acceder a la carpeta. Comprueba Google Drive API y autoriza el permiso de archivos con originalstorealmacen@gmail.com.';}
+  else if(response.status>=500){code='DRIVE_UNAVAILABLE';message='Google Drive no está disponible temporalmente. Espera unos minutos y vuelve a conectar Drive.';}
+  // Store only fixed diagnostic identifiers; never persist upstream payloads or tokens.
+  props.setProperty('ORIGINAL_STORE_DRIVE_LAST_ERROR',JSON.stringify({code,status:response.status,at:new Date().toISOString()}));
+  await checkpoint([]);
+  return {ok:false,error:message,errorCode:code};
+}
+
 export async function driveAction({body,env,props,cache,checkpoint,fetcher,authorize}){
   const action=body.action;
   if(!['drivestatus','drivebegin','drivefinish'].includes(action))return null;
@@ -72,13 +89,15 @@ export async function driveAction({body,env,props,cache,checkpoint,fetcher,autho
   if(previous?.folderId){
     const existing=await fetcher('https://www.googleapis.com/drive/v3/files/'+encodeURIComponent(previous.folderId)+'?fields=id,name,mimeType,trashed',{headers:{Authorization:'Bearer '+token.access_token},signal:AbortSignal.timeout(20000)});
     if(existing.ok){const value=await existing.json();if(!value.trashed&&value.mimeType==='application/vnd.google-apps.folder')folder=value;}
+    else if(existing.status!==404)return folderFailure(existing,props,checkpoint);
   }
   if(!folder){
     const created=await fetcher('https://www.googleapis.com/drive/v3/files?fields=id,name',{method:'POST',headers:{Authorization:'Bearer '+token.access_token,'Content-Type':'application/json'},body:JSON.stringify({name:folderName,mimeType:'application/vnd.google-apps.folder'}),signal:AbortSignal.timeout(20000)});
-    if(!created.ok)return {ok:false,error:'No se pudo preparar la carpeta de imágenes. Vuelve a conectar Drive.'};
+    if(!created.ok)return folderFailure(created,props,checkpoint);
     folder=await created.json();
   }
   if(!folder.id)return {ok:false,error:'No se pudo confirmar la carpeta de imágenes.'};
+  props.deleteProperty('ORIGINAL_STORE_DRIVE_LAST_ERROR');
   props.setProperty(PROPERTY,sealConnection({refreshToken:token.refresh_token,folderId:folder.id,folderName:folder.name||folderName,clientId:client},env));
   await checkpoint([]);
   return {ok:true,connected:true,folderName:folder.name||folderName};
