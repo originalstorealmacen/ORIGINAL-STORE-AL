@@ -234,3 +234,37 @@
   html body .products-grid .product-card .product-card-info .catalog-add-btn {font-size:11px !important;padding:10px 8px !important;gap:5px !important;}
   html body .home-ad-section {border-radius:18px !important;margin-bottom:24px !important;}
 }
+
+/* Mobile catalogue: readable menus, filled category pills and uncropped artwork. */
+@media screen {
+ html body .home-category-track .home-category-pill {background:#87334f !important;border-color:#87334f !important;color:#fff !important;}
+ html body .home-category-track .home-category-pill:is(:hover,.active,.is-ring-front) {background:#722840 !important;border-color:#722840 !important;}
+ html body .home-category-track .home-category-pill span {color:#fff !important;}
+ html body .home-category-track .home-category-pill small {background:#ffffff20 !important;border-color:#ffffff40 !important;color:#fff !important;}
+ html body .collection-section .catalog-filter-bar .glass-dropdown-item:is(:hover,.active) span {color:#87334f !important;}
+ html body .collection-section .catalog-filter-bar .glass-dropdown-item:is(:hover,.active) {background:#f8eaf0 !important;color:#87334f !important;}
+}
+@media screen and (max-width:768px) {
+ html body .collection-section .section-header > div:first-child {width:100% !important;min-width:0 !important;}
+ html body .collection-section .smart-search {width:100% !important;max-width:none !important;min-width:0 !important;height:auto !important;margin-top:14px !important;padding:0 !important;border:1px solid #e3c4cf !important;border-radius:999px !important;background:#fff !important;box-shadow:none !important;}
+ html body .collection-section .smart-search:focus-within {border-color:#87334f !important;box-shadow:0 0 0 3px #87334f15 !important;}
+ html body .collection-section .smart-search::before,html body .collection-section .smart-search::after {display:none !important;}
+ html body .collection-section .smart-search input {display:block !important;box-sizing:border-box !important;min-width:0 !important;width:100% !important;min-height:48px !important;padding:12px 16px !important;border:0 !important;outline:0 !important;border-radius:inherit !important;background:transparent !important;font-size:16px !important;line-height:1.4 !important;box-shadow:none !important;-webkit-appearance:none;appearance:none;}
+ html body .collection-section .catalog-filter-bar .custom-glass-dropdown-menu {max-height:min(320px,50svh) !important;overflow-y:auto !important;overscroll-behavior:contain;}
+ html body .collection-section .catalog-filter-bar .glass-dropdown-item {min-height:44px !important;}
+ html body #inicio {height:auto !important;}
+ html body #inicio .main-banner-track {height:auto !important;align-items:flex-start !important;}
+ html body #inicio .main-banner-slide {height:auto !important;display:flex !important;flex-direction:column !important;padding:0 !important;flex:0 0 100% !important;box-sizing:border-box !important;}
+ html body #inicio .main-banner-slide > img:not(.main-banner-fallback-media) {position:static !important;inset:auto !important;display:block !important;width:100% !important;height:auto !important;object-fit:contain !important;transform:none !important;filter:none !important;}
+ html body #inicio .main-banner-content {position:relative !important;inset:auto !important;width:100% !important;box-sizing:border-box !important;padding:16px !important;transform:none !important;background:#fff !important;}
+ html body #inicio .main-banner-actions {width:100% !important;display:flex !important;flex-direction:row !important;gap:10px !important;}
+ html body #inicio .main-banner-btn {min-width:0 !important;flex:1 !important;padding:12px 8px !important;font-size:12px !important;}
+ html body #inicio .hero-promo-inject:empty {display:none !important;}
+ html body #home-ad-banner:not(.is-empty) {display:block !important;padding:0 !important;min-height:0 !important;height:auto !important;aspect-ratio:auto !important;background:#fff !important;}
+ html body #home-ad-banner:not(.is-empty) .home-ad-media {position:relative !important;inset:auto !important;display:block !important;width:100% !important;border-radius:inherit !important;overflow:hidden !important;}
+ html body #home-ad-banner:not(.is-empty) #home-ad-image {position:static !important;display:block !important;width:100% !important;height:auto !important;object-fit:contain !important;opacity:1 !important;filter:none !important;}
+ html body #home-ad-banner:not(.is-empty) .home-ad-content {display:none !important;}
+ html body #home-ad-banner.is-empty .home-ad-content {position:relative !important;inset:auto !important;padding:16px !important;}
+}
+
+@media screen {html body .collection-section .catalog-filter-bar .glass-dropdown-item.active::after {background:#87334f !important;box-shadow:none !important;}html body .collection-section .catalog-filter-bar .glass-dropdown-item span {font-family:inherit !important;}}
