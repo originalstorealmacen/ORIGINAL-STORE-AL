@@ -7444,7 +7444,8 @@
 #inventory-qr-modal .inventory-qr-meta,#inventory-qr-modal .inventory-qr-options{grid-template-columns:repeat(2,minmax(0,1fr))}
 #inventory-qr-modal .inventory-qr-actions{padding:10px}
 }
-</style></head>
+</style><link rel="stylesheet" href="inventory-tools.css?v=20261013-1">
+</head>
 <body class="admin-graphite">
     <div class="bg-animation"></div>
     <div class="bg-grid"></div>
@@ -7763,7 +7764,16 @@
 
                 <div id="view-inventory" class="dashboard-section"><button type="button" class="admin-btn secondary" onclick="switchDashboardView('products','Gestión de Productos');BlyxuPendingProducts.showPending()">Abrir pendientes del escáner</button>
                     <div class="admin-panel gradient-bg">
-                        <div class="inventory-filter-row"><label class="inventory-category-filter"><span>Categoria</span><select class="form-control" id="admin-inventory-category-filter"><option value="todos">Todas las categorias</option></select></label><input type="search" class="form-control" id="admin-inventory-search" placeholder="Buscar producto, categoria, SKU o ID..." autocomplete="off"><div class="inventory-pdf-toolbar"><label class="inventory-toggle-switch"><input type="checkbox" id="inventory-pdf-show-detal" checked> Detal</label><label class="inventory-toggle-switch"><input type="checkbox" id="inventory-pdf-show-mayorista" checked> Mayorista</label><button type="button" class="admin-btn" id="btn-download-inventory-pdf">Ver PDF</button></div></div>
+                        <div class="inventory-search-panel" role="search" aria-label="Buscar en el inventario">
+                            <label for="admin-inventory-search">Buscar productos en el inventario</label>
+                            <div class="inventory-search-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg>
+                                <input type="search" class="form-control" id="admin-inventory-search" placeholder="Nombre, categoría, referencia, SKU o ID…" autocomplete="off" aria-describedby="inventory-search-summary">
+                                <button type="button" id="inventory-search-clear" hidden>Limpiar</button>
+                            </div>
+                            <p class="inventory-search-summary" id="inventory-search-summary" role="status" aria-live="polite">Busca por nombre, categoría, referencia, SKU o ID.</p>
+                        </div>
+                        <div class="inventory-filter-row"><label class="inventory-category-filter"><span>Categoria</span><select class="form-control" id="admin-inventory-category-filter"><option value="todos">Todas las categorias</option></select></label><div class="inventory-pdf-toolbar"><label class="inventory-toggle-switch"><input type="checkbox" id="inventory-pdf-show-detal" checked> Detal</label><label class="inventory-toggle-switch"><input type="checkbox" id="inventory-pdf-show-mayorista" checked> Mayorista</label><button type="button" class="admin-btn" id="btn-download-inventory-pdf">Ver PDF</button></div></div>
                         <details class="inventory-pdf-category-panel admin-fold" id="inventory-pdf-category-panel"><summary>PDF por categorías · elegir categorías</summary><div><div class="inventory-pdf-category-head"><div><span>PDF por categorias</span><strong id="inventory-pdf-category-summary">Todas las categorias</strong></div><div class="inventory-pdf-category-actions"><button type="button" data-inventory-pdf-categories-action="all">Todas</button><button type="button" data-inventory-pdf-categories-action="clear">Limpiar</button></div></div><div class="inventory-pdf-category-list" id="inventory-pdf-category-list"></div></div></details>
                         <details class="inventory-pdf-category-panel admin-fold" id="inventory-category-manager"><summary>Gestionar categorías</summary><div>
                             <p>Elige si quieres conservar los productos o eliminar la categoría con todo su inventario.</p>
@@ -8325,7 +8335,8 @@
 <script src="qr-camera-tools.js?v=20261006-1" defer></script>
 <script src="barcode-frame-reader.js?v=automatic-20261006-2" defer></script>
 <script src="admin-app.js?v=original-store-cutover-20261013" defer></script>
-<script src="inventory-category-manager.js?v=category-delete-20261013" defer></script>
+<script src="inventory-tools.js?v=20261013-1"></script>
+    <script src="inventory-category-manager.js?v=category-dialog-20261013" defer></script>
 <script src="order-summary.js?v=pdf-fast-20261007" defer></script>
 <script src="order-receipt-access.js?v=browser-qr-20261006" defer></script>
 <script src="order-notifications-admin.js?v=admin-refresh-access-20261006-3" defer></script>
