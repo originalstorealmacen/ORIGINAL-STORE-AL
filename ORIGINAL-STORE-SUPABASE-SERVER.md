@@ -1,6 +1,6 @@
 # Servidor de Original Store en Supabase
 
-Estado: servidor desplegado en Original Store; transferencia administrativa completada; Drive conectado; pendientes pruebas reales completas y activación del sitio. La página sigue seleccionando Apps Script en `backend-config.js`.
+Estado: Supabase seleccionado para la tienda principal; Drive conectado y comprobado con una subida real; pedido técnico, precio del servidor, stock pendiente y comprobantes verificados. Apps Script se conserva únicamente para reversión deliberada.
 
 Proyecto exclusivo: `zhtrwvbmkxxfxvdhgngs`. Función: `original-store-api`. Dominio: https://aloriginalstore.online. Propietario: originalstorealmacen@gmail.com. Google Cloud: `circular-answer-511000-k3`. BLYXU no participa en las operaciones ni en las credenciales de este servidor. Los nombres internos históricos BLYXU de sesiones y propiedades se conservan para compatibilidad con Original Store.
 
@@ -42,3 +42,10 @@ La versión 8 del servidor distingue errores de Drive API deshabilitada, permiso
 
 
 Actualización visual: Drive conectado confirmado. Se publicó el diseño de confirmación y la tarjeta multimedia en el administrador de prueba (commit 017e7035965852208e4e3e64fc1c1dcb3d3b817b). Se verificaron cinco archivos en el dominio y el diseño en computador y celular con respuestas simuladas. Quedan pendientes la subida real, revisión de audiencia OAuth y pruebas completas de negocio antes de activar el sitio. Los párrafos anteriores registran comprobaciones históricas.
+
+
+## Activación autorizada el 13 de octubre de 2026
+
+El propietario autorizó explícitamente una imagen y un pedido técnico sin cobro ni mensajes, su eliminación y la activación. Se verificaron subida real a Drive, respuesta pública de imagen, lecturas privadas con sesión temporal, rechazo de clientes anónimos, precio calculado por el servidor, stock pendiente sin reducción, duplicado de ID y límites del comprobante. La imagen y los registros del pedido y comprobante se eliminaron. Se guardó el respaldo privado original_store_cutover_20261013 y se seleccionó provider=supabase en las páginas. La comprobación visual aislada cargó el catálogo y administrador con cero llamadas a Apps Script y cero errores JavaScript. El estado privado ORIGINAL_STORE_API_MODE es active.
+
+La sesión de mantenimiento se revoca al terminar; no reemplaza contraseñas ni segundo factor. Pendiente independiente: confirmar que el cliente OAuth de Drive está en Producción en Google Cloud para evitar la caducidad de siete días propia de aplicaciones externas en pruebas. No se verificaron cobros reales ni se enviaron notificaciones.

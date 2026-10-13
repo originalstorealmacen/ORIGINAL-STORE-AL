@@ -6,8 +6,8 @@ const root=new URL('../',import.meta.url),read=file=>fs.readFileSync(new URL(fil
 test('all application pages load shared backend config before consumers',()=>{
  for(const file of fs.readdirSync(root).filter(f=>f.endsWith('.html'))){const html=read(file);const consumer=html.search(/<script[^>]+src="(?:blyxu-app|blyxu-lite|admin-app|orders-page|original-store-catalog-bootstrap)\.js/);if(consumer<0)continue;const config=html.indexOf('src="backend-config.js');assert.ok(config>=0&&config<consumer,file);}
 });
-test('prepared frontend keeps live endpoint unchanged until activation',()=>{
- const context={window:{}};vm.runInNewContext(read('backend-config.js'),context);const config=context.window.ORIGINAL_STORE_BACKEND;assert.equal(config.provider,'apps-script');assert.match(config.supabase,/zhtrwvbmkxxfxvdhgngs.*original-store-api$/);assert.equal(context.window.ORIGINAL_STORE_API_URL,config.appsScript);
+test('activated frontend selects the Original Store Supabase endpoint',()=>{
+ const context={window:{}};vm.runInNewContext(read('backend-config.js'),context);const config=context.window.ORIGINAL_STORE_BACKEND;assert.equal(config.provider,'supabase');assert.match(config.supabase,/zhtrwvbmkxxfxvdhgngs.*original-store-api$/);assert.equal(context.window.ORIGINAL_STORE_API_URL,config.supabase);
  for(const file of ['blyxu-app.js','blyxu-lite.js','admin-app.js','orders-page.js'])assert.ok(read(file).includes('window.ORIGINAL_STORE_API_URL'),file);
 });
 test('product inline caches and inline scripts use valid selected endpoint',()=>{
