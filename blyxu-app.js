@@ -654,7 +654,8 @@ function hydrateProductsFromCache(cached = readCache(PRODUCTS_CACHE_KEY)) {
     if (!Array.isArray(products) || !products.length) return false;
 
     allProducts = products;
-    bannerProducts = Array.isArray(banners) ? banners.filter(isActiveProduct) : [];
+    // Banners must come from the current server, never an old catalog snapshot.
+    bannerProducts = [];
     productsLoadError = '';
     setProductsLoading(false);
     return true;
@@ -1245,7 +1246,7 @@ async function loadProducts(options = {}) {
     const bootstrap = window.ORIGINAL_STORE_CATALOG_BOOTSTRAP;
     if (useCache && !allProducts.length && Array.isArray(bootstrap?.rows)) {
         const products = bootstrap.rows.map(normalizeGoogleProduct).filter(isActiveProduct);
-        usedProductCache = hydrateProductsFromCache({data:{products:products.filter(p=>!isPublicBannerProduct(p)),banners:products.filter(isPublicBannerProduct)}});
+        usedProductCache = hydrateProductsFromCache({data:{products:products.filter(p=>!isPublicBannerProduct(p)),banners:[]}});
     }
 
     const usedConfigCache = useCache && Object.keys(siteConfig).length === 0 && hydrateSiteConfigFromCache();
@@ -1938,6 +1939,7 @@ async function fetchProducts(options = {}) {
     // Separar banners del catalogo regular
     bannerProducts = dataProducts.filter(p => isPublicBannerProduct(p) && isActiveProduct(p) && getPublicProductImage(p));
     allProducts = dataProducts.filter(p => !isPublicBannerProduct(p));
+    renderBanners(bannerProducts);
     writeCache(PRODUCTS_CACHE_KEY, { products: allProducts, banners: bannerProducts });
     window.dispatchEvent(new CustomEvent('original-store-products-updated'));
 
@@ -2283,6 +2285,12 @@ function renderBanners(banners) {
         .filter(isPublicBannerProduct)
         .filter(getPublicProductImage);
     
+    const signature = JSON.stringify(banners.map(b => [getPublicProductImage(b, 'banner'), b.Descripcion || b.Color || '']));
+    if (track.dataset.bannerSignature === signature) return;
+    track.dataset.bannerSignature = signature;
+    // Reset before replacing the slides so a previous carousel offset cannot reveal stale content.
+    track.style.transform = 'translateX(0)';
+
     if (!banners.length) {
         banners = [{
             Nombre: 'Original Store',
