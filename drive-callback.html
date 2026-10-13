@@ -1,2 +1,22 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Conectar Drive — Original Store</title><script src="backend-config.js?v=original-store-server-20261013"></script><script src="drive-callback.js?v=original-store-server-20261013" defer></script></head><body style="font:16px system-ui;max-width:600px;margin:60px auto;padding:24px"><h1>Conectar Drive</h1><p id="drive-status" role="status">Comprobando la autorización…</p><a id="drive-return" href="administrativo.html">Volver al administrador</a></body></html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Conectar Drive — Original Store</title>
+<link rel="stylesheet" href="drive-ui.css?v=original-store-drive-ui-20261013">
+<script src="backend-config.js?v=original-store-server-20261013"></script>
+<script src="drive-callback.js?v=original-store-drive-ui-20261013" defer></script>
+</head>
+<body class="drive-page">
+<main class="drive-result" id="drive-result" data-state="loading" aria-labelledby="drive-heading">
+<span class="drive-eyebrow">Original Store · Multimedia</span>
+<div class="drive-result-top">
+<div class="drive-result-icon" id="drive-result-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-8-8"/></svg></div>
+<span class="drive-pill" id="drive-result-badge">En proceso</span>
+</div>
+<h1 id="drive-heading">Conectando Drive</h1>
+<p id="drive-status" role="status" aria-live="polite">Estamos comprobando la autorización de tu cuenta.</p>
+<div class="drive-folder" id="drive-folder" hidden><span>Carpeta de imágenes</span><strong id="drive-folder-name"></strong></div>
+<div class="drive-result-actions"><a class="drive-button" id="drive-return" href="administrativo.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 5-7 7 7 7M5 12h14"/></svg>Volver al administrador</a></div>
+</main>
+</body></html>
