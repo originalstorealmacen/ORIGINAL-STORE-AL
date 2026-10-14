@@ -26,9 +26,12 @@
     <link rel="stylesheet" href="original-store-boutique.css?v=mobile-polish-20261013">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://aloriginalstore.online/#organization","name":"Original Store","url":"https://aloriginalstore.online/","logo":{"@type":"ImageObject","url":"https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180"}},{"@type":"WebSite","@id":"https://aloriginalstore.online/#website","url":"https://aloriginalstore.online/","name":"Original Store","description":"Descubre peluches y accesorios en Original Store. Explora nuestro catálogo, consulta disponibilidad y elige detalles especiales para regalar.","inLanguage":"es-CO","publisher":{"@id":"https://aloriginalstore.online/#organization"}}]}</script>
+    <link rel="preload" as="image" href="original-store-hero-poster.webp" fetchpriority="high">
+    <link rel="stylesheet" href="original-store-video-hero.css?v=20261013-1">
+    <script src="original-store-video-hero.js?v=20261013-1" defer></script>
 </head>
 
-<body>
+<body class="home-video-page">
 
     <!-- Animated Background -->
     <div class="bg-animation"></div>
@@ -72,39 +75,24 @@
         </div>
     </nav>
 
-    <!-- ===== MAIN BANNER (INICIO) ===== -->
-    <section class="main-banner" id="inicio">
-        <div class="main-banner-track" id="main-banner-track">
-            <!-- Los banners dinámicos se insertarán aquí por JS -->
-            <div class="main-banner-slide active is-placeholder">
-                <img class="main-banner-fallback-media" src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" loading="eager" decoding="sync">
-                <div class="main-banner-overlay"></div>
-                <div class="main-banner-content">
-                    
-                    <div class="main-banner-actions">
-                        <a href="#coleccion" class="main-banner-btn">Explorar Colección</a>
-                        <a href="mayorista.html" class="main-banner-btn" style="background:rgba(255,255,255,0.05); color:#3e2332; border:1px solid rgba(218,183,202,0.2);">Acceso Mayorista</a>
-                    </div>
-                </div>
+    <!-- ===== VIDEO DE BIENVENIDA ===== -->
+    <section class="main-banner original-store-video-hero" id="inicio" aria-label="Bienvenidos a Original Store">
+        <video class="original-store-hero-video" id="original-store-hero-video" autoplay muted loop playsinline preload="auto" poster="original-store-hero-poster.webp" disablepictureinpicture aria-label="Peluches de Original Store cobran vida">
+            <source src="original-store-hero.mp4" type="video/mp4">
+        </video>
+        <div class="original-store-hero-shade" aria-hidden="true"></div>
+        <div class="original-store-hero-content">
+            <h1 class="original-store-hero-sr">Original Store: peluches y accesorios para regalar sonrisas</h1>
+            <div class="original-store-hero-actions">
+                <a href="#coleccion" class="original-store-hero-primary">Explorar colección <span aria-hidden="true">↗</span></a>
+                <a href="mayorista.html" class="original-store-hero-secondary">Acceso mayorista</a>
             </div>
         </div>
-
-        <button class="main-banner-arrow prev" id="banner-prev">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 18l-6-6 6-6" />
-            </svg>
+        <button class="original-store-hero-toggle" id="original-store-hero-toggle" type="button" aria-label="Pausar video de bienvenida">
+            <svg class="hero-pause-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 5v14M15 5v14"></path></svg>
+            <svg class="hero-play-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8 5 11 7-11 7Z"></path></svg>
         </button>
-        <button class="main-banner-arrow next" id="banner-next">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 18l6-6-6-6" />
-            </svg>
-        </button>
-
-        <div class="main-banner-nav" id="main-banner-nav">
-            <div class="main-banner-dot active"></div>
-        </div>
     </section>
-
 
     <!-- ===== CATEGORIAS PRINCIPALES ===== -->
     <section class="home-categories-section" aria-label="Categorias principales">
