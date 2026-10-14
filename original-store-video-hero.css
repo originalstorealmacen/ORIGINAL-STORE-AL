@@ -50,3 +50,23 @@ html body.home-video-page #inicio :is(a,button):focus-visible {outline:3px solid
 
 /* Keep the welcome video free of playback buttons. */
 html body.home-video-page #inicio #original-store-hero-toggle {display:none!important;}
+
+/* On phones, preserve the landscape frame instead of cropping it to a tall screen. */
+@media screen and (max-width:768px) {
+    html body.home-video-page #inicio.original-store-video-hero {
+        height:auto!important;min-height:0!important;padding:var(--original-store-header-height,76px) 0 0!important;
+    }
+    html body.home-video-page #inicio .original-store-hero-video {
+        position:relative;top:auto;left:auto;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;object-position:center;
+    }
+    html body.home-video-page #inicio .original-store-hero-content {
+        left:4%;right:4%;bottom:12px;
+    }
+    html body.home-video-page #inicio .original-store-hero-actions {gap:8px;}
+    html body.home-video-page #inicio .original-store-hero-actions a {
+        flex:1;min-width:0;min-height:44px;padding:10px 9px;font-size:11px;gap:7px;white-space:nowrap;
+    }
+    html body.home-video-page #inicio .original-store-hero-shade {
+        background:linear-gradient(0deg,#2e111f40,transparent 38%);
+    }
+}
