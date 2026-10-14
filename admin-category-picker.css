@@ -1,0 +1,12 @@
+/* Registered categories are rendered in the page, including on phones. */
+.admin-category-combobox {position:relative;min-width:0;}
+body.admin-graphite .admin-category-combobox #prod-categoria {padding-right:50px!important;width:100%;min-width:0;}
+.admin-category-picker-toggle {position:absolute;right:2px;top:50%;transform:translateY(-50%);width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:9px;background:#f8eaf0;color:#87334f;cursor:pointer;}
+.admin-category-picker-toggle svg {width:18px;height:18px;}
+.admin-category-picker-toggle:hover {background:#efd4df;}
+.admin-category-picker-toggle:focus-visible {outline:2px solid #087e80;outline-offset:2px;}
+.admin-category-picker-popup {position:fixed;z-index:10050;box-sizing:border-box;margin:0;padding:6px;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;background:#fff;color:#352a32;border:1px solid #dbc6d0;border-radius:12px;box-shadow:0 12px 32px #352a3226;font-family:inherit;}
+.admin-category-picker-popup[hidden] {display:none!important;}
+.admin-category-picker-option {display:block;box-sizing:border-box;width:100%;min-height:44px;padding:11px 12px;border:0;border-radius:8px;background:#fff;color:#352a32;font:inherit;font-size:13px;line-height:1.5;text-align:left;overflow-wrap:anywhere;cursor:pointer;}
+.admin-category-picker-option:hover,.admin-category-picker-option.is-active {background:#f8eaf0;color:#87334f;}
+.admin-category-picker-empty {margin:0;padding:12px;font-size:13px;line-height:1.5;color:#766771;}

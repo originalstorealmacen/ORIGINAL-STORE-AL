@@ -7445,6 +7445,7 @@
 #inventory-qr-modal .inventory-qr-actions{padding:10px}
 }
 </style><link rel="stylesheet" href="inventory-tools.css?v=20261013-1">
+    <link rel="stylesheet" href="admin-category-picker.css?v=20261014-1">
 </head>
 <body class="admin-graphite">
     <div class="bg-animation"></div>
@@ -7670,7 +7671,7 @@
                                     <div class="admin-form-grid">
                                         <div class="form-group product-id-field"><div class="product-id-label-row"><label>ID Producto Madre</label><label class="barcode-mode-toggle" title="Usar codigo real de la marquilla"><input type="checkbox" id="prod-barcode-scan-mode"> C&oacute;digo f&iacute;sico</label></div><input type="text" class="form-control important-code-field" id="prod-id-producto" name="ID Producto" placeholder="Automático" readonly><input type="hidden" id="prod-id-producto-hidden" name="idProducto"><div class="product-barcode-compact" id="prod-barcode-panel"><input type="text" class="form-control important-code-field" id="prod-barcode" name="Codigo Barras" placeholder="Escanea o escribe el codigo de barras"><button type="button" class="admin-btn secondary" id="btn-scan-product-barcode">Detectar c&oacute;digo</button></div><small class="field-hint" id="prod-barcode-hint">Se genera solo para unir todas las variantes y asigna codigo interno automatico.</small><div class="product-qr-generator" id="prod-qr-generator"><img id="prod-generated-qr" alt="QR automatico del producto"><div class="product-qr-generator-copy"><span>QR autom&aacute;tico</span><strong id="prod-generated-qr-code">Generando referencia...</strong><small>Este mismo c&oacute;digo identifica el producto en inventario y Caja r&aacute;pida.</small></div><button type="button" class="admin-btn secondary" id="btn-preview-product-qr">Ver QR</button></div></div>
                                         <div class="form-group"><label>Nombre del producto</label><input type="text" class="form-control" id="prod-nombre" name="Nombre" placeholder="Ej: Collar luna dorado" required><small class="field-hint">Es el nombre visible para el cliente.</small></div>
-                                        <div class="form-group"><label>Categoria</label><input type="text" class="form-control" id="prod-categoria" name="Categoria" list="admin-category-options" placeholder="Escribe o elige una categoria" required><datalist id="admin-category-options"><option value="Collares"></option><option value="Pulseras"></option><option value="Aretes"></option><option value="Anillos"></option><option value="Sets"></option><option value="Dijes"></option><option value="BANNER"></option></datalist><small class="field-hint">Ayuda a ordenar tienda e inventario.</small></div>
+                                        <div class="form-group"><label for="prod-categoria">Categoría</label><div class="admin-category-combobox"><input type="text" class="form-control" id="prod-categoria" name="Categoria" placeholder="Elige una categoría o escribe una nueva" required autocomplete="off" autocapitalize="words" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="admin-category-picker-list" aria-describedby="admin-category-picker-hint"><button type="button" class="admin-category-picker-toggle" id="admin-category-picker-toggle" aria-label="Ver categorías registradas" aria-expanded="false" aria-controls="admin-category-picker-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button></div><small class="field-hint" id="admin-category-picker-hint">Elige una categoría registrada o escribe una nueva. Se unifican mayúsculas y minúsculas.</small></div>
                                         <div class="form-group"><label>Catálogo</label><select class="form-control" id="prod-catalogo" name="Catálogo"><option value="Ambos">Minorista y Mayorista</option><option value="Minorista">Solo Minorista</option><option value="Mayorista">Solo Mayorista</option></select><small class="field-hint">Define en que catalogo se publica.</small></div>
                                         <div class="product-subdivider">Precios y descripción</div>
                                         <div class="form-group price-field"><label>Precio minorista</label><input type="text" class="form-control" id="prod-precio" name="Precio" placeholder="Ej: 25000" required><small class="field-hint">Precio para compra normal.</small></div>
@@ -8342,6 +8343,7 @@
 <script src="order-notifications-admin.js?v=admin-refresh-access-20261006-3" defer></script>
 <script src="pending-products-admin.js?v=pending-actions-20261006-4" defer></script>
 <script src="drive-connect-admin.js?v=original-store-drive-ui-20261013" defer></script>
+    <script src="admin-category-picker.js?v=20261014-1"></script>
 </body>
 </html>
 
