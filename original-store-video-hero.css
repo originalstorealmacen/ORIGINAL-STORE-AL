@@ -47,3 +47,6 @@ html body.home-video-page #inicio :is(a,button):focus-visible {outline:3px solid
     html body.home-video-page #inicio .original-store-hero-shade {background:linear-gradient(0deg,#2e111f55,transparent 42%);}
 }
 }
+
+/* Keep the welcome video free of playback buttons. */
+html body.home-video-page #inicio #original-store-hero-toggle {display:none!important;}
