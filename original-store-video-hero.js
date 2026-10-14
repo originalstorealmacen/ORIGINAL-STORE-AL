@@ -4,21 +4,35 @@
     const toggle = document.getElementById('original-store-hero-toggle');
     if (!video || !toggle) return;
     let userPaused = false;
+    let finished = false;
+    video.loop = false;
     let visible = true;
     video.muted = true;
     video.defaultMuted = true;
     function syncButton() {
         toggle.classList.toggle('is-paused', video.paused);
-        toggle.setAttribute('aria-label', video.paused ? 'Reproducir video de bienvenida' : 'Pausar video de bienvenida');
+        toggle.setAttribute('aria-label', finished ? 'Volver a reproducir video de bienvenida' : (video.paused ? 'Reproducir video de bienvenida' : 'Pausar video de bienvenida'));
     }
     function play() {
-        if (userPaused || !visible || document.hidden) return;
+        if (finished || video.ended || userPaused || !visible || document.hidden) return;
         const result = video.play();
         if (result?.catch) result.catch(syncButton);
     }
     video.addEventListener('play', syncButton);
     video.addEventListener('pause', syncButton);
+    video.addEventListener('ended', () => {
+        finished = true;
+        userPaused = true;
+        syncButton();
+    });
     toggle.addEventListener('click', () => {
+        if (finished || video.ended) {
+            finished = false;
+            userPaused = false;
+            video.currentTime = 0;
+            play();
+            return;
+        }
         userPaused = !video.paused;
         if (userPaused) video.pause();
         else play();
