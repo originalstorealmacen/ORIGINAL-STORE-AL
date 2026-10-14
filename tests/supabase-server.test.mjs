@@ -309,3 +309,12 @@ test('preview server mode blocks destructive category actions',async()=>{
  const f=fixture({env:{ORIGINAL_STORE_API_ENABLED:undefined}});f.getState().properties.ORIGINAL_STORE_API_MODE='preview';
  assert.equal((await f.post({action:'categorydeleteproducts',...categoryAdmin,confirmation:'Aretes'})).ok,false);assert.equal(f.data.Productos.rows.length,1);
 });
+
+test('shared scanner actions require the existing authenticated administrator, never public access',async()=>{
+ const f=fixture(),target={formId:crypto.randomUUID(),epoch:crypto.randomUUID(),targetId:'prod-barcode',label:'Original Store'};
+ const body={action:'scancreate',tabId:crypto.randomUUID(),target};
+ assert.equal((await f.post(body)).ok,false);
+ f.setEmail('other@example.invalid');assert.equal((await f.post({...body,adminCredential:'TEST-GOOGLE-ID'})).ok,false);
+ f.setEmail('originalstorealmacen@gmail.com');const result=await f.post({...body,adminCredential:'TEST-GOOGLE-ID'});assert.equal(result.ok,true);
+ assert.equal(f.data.Productos.rows.length,1);assert.equal(f.data.Productos.rows[0].record.SKU,'TEST-V1');
+});

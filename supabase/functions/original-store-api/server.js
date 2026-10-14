@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto';
 import { createController } from './controller.js';
+import {sharedScanAction} from './shared-scan.js';
 import {categoryAction} from './category-actions.js';
 import {driveAction,readConnection} from './drive-connection.js';
 
 const MAX_BODY=12*1024*1024;
-export function createHandler({env,fetcher=fetch,now=()=>Date.now()}) {
+export function createHandler({env,fetcher=fetch,now=()=>Date.now(),subscribe}) {
   const base=(env('SUPABASE_URL')||'https://zhtrwvbmkxxfxvdhgngs.supabase.co').replace(/\/$/,'');
   const key=env('ORIGINAL_STORE_DB_SECRET')||env('SUPABASE_SERVICE_ROLE_KEY');
   const origins=new Set((env('ORIGINAL_STORE_ALLOWED_ORIGINS')||'https://aloriginalstore.online,https://www.aloriginalstore.online').split(',').map(v=>v.trim()).filter(Boolean));
@@ -100,7 +101,16 @@ export function createHandler({env,fetcher=fetch,now=()=>Date.now()}) {
       };
       const controller=createController(runtime);
       const body=bodyText?JSON.parse(bodyText):{};
+      if(/^scan(create|join|target|send|ack|status|stream|close|unlink)$/.test(body.action||'')){
+        if(request.method!=='POST')return reply({ok:false,error:'Utiliza POST.'},405);
+        const auth=JSON.parse((await controller.handle({parameter:{},postData:{contents:JSON.stringify({action:'adminsession',adminCredential:body.adminCredential||''})}},'POST')).getContent());
+        await checkpoint([]);
+        if(!auth.ok||!auth.email)return reply({ok:false,error:'Inicia sesión con tu cuenta administradora.'},401);
+        const result=await sharedScanAction({body,owner:auth.email,cache:persistedCache,checkpoint,env,fetcher,subscribe,now,headers,signal:request.signal});
+        return result instanceof Response?result:reply(result);
+      }
       if(body.action==='publicreference'){
+
         if(request.method!=='POST')return reply({ok:false,status:'error',error:'Utiliza POST.'},405);
         const reference=String(body.reference||'').trim().toUpperCase();
         if(!/^(PED|DET|FAC)-[0-9]{14}-[0-9]{4}$/.test(reference))return reply({ok:false,status:'error',error:'Escribe el ID completo de pedido o factura. No se permite consultar por teléfono.'});
