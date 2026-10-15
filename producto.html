@@ -1,44 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <script src="backend-config.js?v=original-store-cutover-20261013"></script>
+    <script src="backend-config.js?v=supabase-live-20261013"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Peluches y accesorios | Original Store</title>
-    <meta name="description" content="Descubre peluches y accesorios en Original Store. Explora nuestro catálogo, consulta disponibilidad y elige detalles especiales para regalar.">
-    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
-    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
-    <meta property="og:title" content="Peluches y accesorios | Original Store">
-    <meta property="og:description" content="Descubre peluches y accesorios en Original Store. Explora nuestro catálogo, consulta disponibilidad y elige detalles especiales para regalar.">
-    <meta property="og:image" content="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
-    <meta property="og:url" content="https://aloriginalstore.online/producto.html">
+    <title>Producto - BLYXU</title>
+    <meta name="description" content="Consulta joyas y accesorios BLYXU: piezas, colores, medidas, disponibilidad y opciones para hacer tu pedido.">
+    <link rel="icon" type="image/png" href="/blyxu-search-logo.png">
+    <link rel="apple-touch-icon" href="/blyxu-search-logo.png">
+    <meta property="og:title" content="Producto BLYXU">
+    <meta property="og:description" content="Consulta joyas y accesorios BLYXU: piezas, colores, medidas, disponibilidad y opciones para hacer tu pedido.">
+    <meta property="og:image" content="https://blyxu.online/blyxu-search-logo.png">
+    <meta property="og:url" content="https://blyxu.online/producto.html">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="preconnect" href="https://zhtrwvbmkxxfxvdhgngs.supabase.co">
+    <link rel="preconnect" href="https://script.google.com">
     <link rel="preconnect" href="https://drive.google.com">
     <link rel="preconnect" href="https://lh3.googleusercontent.com">
-
-    <script>
-        // Start the already viewed Drive image while the document is being parsed.
-        (() => {
-            try {
-                const params = new URLSearchParams(location.search);
-                const id = Number.parseInt(params.get('id'), 10);
-                const mode = params.get('catalogo') === 'mayorista' ? 'wholesale' : 'retail';
-                const ref = params.get('ref') || '';
-                const preview = JSON.parse(sessionStorage.getItem("original_store_product_detail_drive_v2:" + window.ORIGINAL_STORE_API_URL + "") || 'null');
-                if (!preview || Date.now() - Number(preview.savedAt || 0) > 120000 || preview.id !== id || preview.mode !== mode || (ref && preview.ref && preview.ref !== ref)) return;
-                const src = preview.imageCard || preview.image || preview.imageDetail;
-                if (!src || !/^https:\/\//.test(src)) return;
-                window.ORIGINAL_STORE_INITIAL_DETAIL = preview;
-                const link = document.createElement('link');
-                link.rel = 'preload'; link.as = 'image'; link.href = src;
-                link.fetchPriority = 'high'; link.referrerPolicy = 'no-referrer';
-                document.head.appendChild(link);
-            } catch (_) {}
-        })();
-    </script>
-    <script src="original-store-catalog-bootstrap.js?v=drive-20261008-1" defer></script>
-    <script src="blyxu-app.js?v=original-store-cutover-20261013" defer></script>
     <link rel="stylesheet" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006">
     <style>
         /* STUDIO NOIR PRODUCT DETAIL */
@@ -74,9 +51,9 @@
             grid-column: 2;
             grid-row: 1;
             border-radius: 20px;
-            border: 1px solid rgba(218,183,202,0.08);
-            background: rgba(255,255,255,0.85);
-            box-shadow: 0 24px 60px rgba(90,36,65,0.15);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(16, 16, 19, 0.85);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
             overflow: hidden;
             aspect-ratio: 1 / 1;
             cursor: zoom-in;
@@ -109,8 +86,8 @@
             width: 72px;
             padding: 4px;
             border-radius: 12px;
-            border: 1px solid rgba(218,183,202,0.08);
-            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(18, 18, 22, 0.6);
             opacity: 0.55;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -131,7 +108,7 @@
             margin-top: 3px;
             font-size: 9px;
             font-weight: 700;
-            color: rgba(62,35,50,0.6);
+            color: rgba(255, 255, 255, 0.6);
             text-align: center;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -142,21 +119,21 @@
         .product-detail-luxury .gallery-thumb:hover,
         .product-detail-luxury .gallery-thumb.active {
             opacity: 1;
-            border-color: rgba(218,183,202,0.85);
-            background: rgba(255,255,255,0.06);
-            box-shadow: 0 4px 14px rgba(90,36,65,0.15);
+            border-color: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
             transform: translateY(-1px);
         }
 
         /* Info Card */
         .product-detail-luxury .product-info {
-            background: rgba(255,255,255,0.82) !important;
+            background: rgba(18, 18, 22, 0.82) !important;
             backdrop-filter: blur(28px) saturate(180%);
             -webkit-backdrop-filter: blur(28px) saturate(180%);
-            border: 1px solid rgba(218,183,202,0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
             border-radius: 22px !important;
             padding: clamp(24px, 3.5vw, 36px) !important;
-            box-shadow: 0 28px 70px rgba(90,36,65,0.15), inset 0 1px 0 rgba(90,36,65,0.06) !important;
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -184,9 +161,9 @@
             align-items: center;
             padding: 5px 12px;
             border-radius: 999px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(218,183,202,0.09);
-            color: rgba(62,35,50,0.9) !important;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            color: rgba(216, 209, 194, 0.9) !important;
             font-size: 11px;
             font-weight: 700;
             letter-spacing: 1.5px;
@@ -199,9 +176,9 @@
             gap: 8px;
             padding: 5px 12px;
             border-radius: 999px;
-            background: rgba(243,223,234,0.1);
-            border: 1px solid rgba(218,183,202,0.28);
-            color: #691d46;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.28);
+            color: #22c55e;
             font-size: 11px;
             font-weight: 800;
             line-height: 1.15;
@@ -209,7 +186,7 @@
         }
 
         .product-availability-pill span {
-            color: rgba(62,35,50,0.48);
+            color: rgba(255, 255, 255, 0.48);
             font-weight: 700;
             letter-spacing: 0.9px;
             text-transform: uppercase;
@@ -221,9 +198,9 @@
         }
 
         .product-availability-pill.is-out {
-            background: rgba(251,230,242,0.12);
-            border-color: rgba(230,185,211,0.32);
-            color: #953368;
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.32);
+            color: #f87171;
         }
 
         .product-stock-alert {
@@ -241,16 +218,16 @@
         }
 
         .product-stock-alert.is-low {
-            background: rgba(242,218,231,0.12) !important;
-            border: 1px solid rgba(218,183,202,0.3) !important;
-            color: #792452 !important;
+            background: rgba(245, 158, 11, 0.12) !important;
+            border: 1px solid rgba(245, 158, 11, 0.3) !important;
+            color: #fbbf24 !important;
             box-shadow: none !important;
         }
 
         .product-stock-alert.is-out {
-            background: rgba(251,230,242,0.12) !important;
-            border: 1px solid rgba(230,185,211,0.3) !important;
-            color: #953368 !important;
+            background: rgba(239, 68, 68, 0.12) !important;
+            border: 1px solid rgba(239, 68, 68, 0.3) !important;
+            color: #f87171 !important;
             box-shadow: none !important;
         }
 
@@ -260,7 +237,7 @@
             font-weight: 800 !important;
             letter-spacing: -0.025em !important;
             line-height: 1.15 !important;
-            color: #3e2332 !important;
+            color: #ffffff !important;
             margin: 0 !important;
         }
 
@@ -282,14 +259,14 @@
             min-height: 42px;
             padding: 8px 15px 8px 42px;
             border-radius: 999px;
-            border: 1px solid rgba(230,185,211,0.42);
+            border: 1px solid rgba(168, 85, 247, 0.42);
             background:
-                radial-gradient(circle at 18% 12%, rgba(251,230,242,0.2), transparent 34%),
-                rgba(255,255,255,0.72);
-            box-shadow: 0 0 0 1px rgba(90,36,65,0.08), 0 12px 30px rgba(90,36,65,0.15);
+                radial-gradient(circle at 18% 12%, rgba(216, 180, 254, 0.2), transparent 34%),
+                rgba(28, 16, 44, 0.72);
+            box-shadow: 0 0 0 1px rgba(216, 180, 254, 0.08), 0 12px 30px rgba(124, 58, 237, 0.18);
             font-size: clamp(17px, 1.55vw, 22px);
             font-weight: 900;
-            color: #3e2332 !important;
+            color: #ffffff !important;
             letter-spacing: -0.01em;
             line-height: 1;
             white-space: nowrap;
@@ -306,9 +283,9 @@
             border-radius: 50%;
             transform: translateY(-50%);
             background:
-                radial-gradient(circle at 50% 48%, rgba(255,255,255,0.95) 0 18%, transparent 19%),
-                linear-gradient(135deg, rgba(251,230,242,0.72), rgba(251,230,242,0.52));
-            box-shadow: inset 0 1px 0 rgba(90,36,65,0.15), 0 0 12px rgba(90,36,65,0.15);
+                radial-gradient(circle at 50% 48%, rgba(255,255,255,.95) 0 18%, transparent 19%),
+                linear-gradient(135deg, rgba(216,180,254,.72), rgba(124,58,237,.52));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 0 12px rgba(168,85,247,.42);
         }
 
         #detail-price::after {
@@ -319,20 +296,20 @@
             width: 11px;
             height: 11px;
             transform: translateY(-50%);
-            background: #ffffff;
+            background: #12091d;
             -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M7 2h2v2h6V2h2v2h2.5A2.5 2.5 0 0 1 22 6.5v12A2.5 2.5 0 0 1 19.5 21h-15A2.5 2.5 0 0 1 2 18.5v-12A2.5 2.5 0 0 1 4.5 4H7V2Zm12.5 8h-15v8.5h15V10Z'/%3E%3C/svg%3E") center / contain no-repeat;
             mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M7 2h2v2h6V2h2v2h2.5A2.5 2.5 0 0 1 22 6.5v12A2.5 2.5 0 0 1 19.5 21h-15A2.5 2.5 0 0 1 2 18.5v-12A2.5 2.5 0 0 1 4.5 4H7V2Zm12.5 8h-15v8.5h15V10Z'/%3E%3C/svg%3E") center / contain no-repeat;
         }
 
         #detail-price.discount-active {
-            color: #3e2332 !important;
-            border-color: rgba(230,185,211,0.52);
-            box-shadow: 0 0 0 1px rgba(90,36,65,0.12), 0 12px 34px rgba(90,36,65,0.15);
+            color: #ffffff !important;
+            border-color: rgba(216, 180, 254, 0.52);
+            box-shadow: 0 0 0 1px rgba(216, 180, 254, 0.12), 0 12px 34px rgba(168, 85, 247, 0.25);
         }
 
         #detail-old-price {
             font-size: 14px;
-            color: rgba(62,35,50,0.36) !important;
+            color: rgba(255, 255, 255, 0.36) !important;
             text-decoration: line-through;
             font-weight: 600;
         }
@@ -343,9 +320,9 @@
             gap: 4px;
             padding: 4px 10px;
             border-radius: 999px;
-            background: rgba(255,255,255,0.08) !important;
-            border: 1px solid rgba(218,183,202,0.18) !important;
-            color: #3e2332 !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            color: #ffffff !important;
             font-size: 11px;
             font-weight: 800;
             letter-spacing: 0.5px;
@@ -359,14 +336,14 @@
         .promo-circle-num {
             font-size: 11px;
             font-weight: 800;
-            color: #3e2332;
+            color: #ffffff;
             line-height: 1;
         }
 
         .promo-circle-text {
             font-size: 10px;
             font-weight: 700;
-            color: rgba(62,35,50,0.85);
+            color: rgba(216, 209, 194, 0.85);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             line-height: 1;
@@ -376,7 +353,7 @@
         /* Variations Container */
         #product-variations {
             padding-top: 18px;
-            border-top: 1px solid rgba(218,183,202,0.07);
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
             margin: 0 !important;
         }
 
@@ -393,15 +370,15 @@
             font-weight: 700;
             letter-spacing: 1.4px;
             text-transform: uppercase;
-            color: rgba(62,35,50,0.5);
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .variant-active-badge {
             font-size: 11px;
             font-weight: 700;
-            color: #3e2332;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(218,183,202,0.14);
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
             padding: 3px 10px;
             border-radius: 999px;
             text-transform: uppercase;
@@ -418,9 +395,9 @@
             min-width: 0;
             padding: 6px;
             border-radius: 12px !important;
-            border: 1.5px solid rgba(218,183,202,0.08) !important;
-            background: rgba(255,255,255,0.03) !important;
-            color: rgba(62,35,50,0.65) !important;
+            border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+            background: rgba(255, 255, 255, 0.03) !important;
+            color: rgba(255, 255, 255, 0.65) !important;
             font-family: inherit;
             cursor: pointer;
             display: flex;
@@ -437,7 +414,7 @@
             aspect-ratio: 1 / 1;
             border-radius: 8px;
             overflow: hidden;
-            background: rgba(255,255,255,0.3);
+            background: rgba(0, 0, 0, 0.3);
         }
 
         .detail-variant-chip img {
@@ -457,11 +434,11 @@
             height: 16px;
             border-radius: 50%;
             background: #ffffff;
-            color: #3e2332;
+            color: #0a0a0c;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 6px rgba(90,36,65,0.15);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
         }
 
         .detail-variant-chip .detail-variant-label,
@@ -480,9 +457,9 @@
         }
 
         .detail-variant-chip:hover {
-            border-color: rgba(218,183,202,0.28) !important;
-            background: rgba(255,255,255,0.06) !important;
-            color: #3e2332 !important;
+            border-color: rgba(255, 255, 255, 0.28) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: #ffffff !important;
             transform: translateY(-2px);
         }
 
@@ -491,24 +468,24 @@
         }
 
         .detail-variant-chip.active {
-            border-color: #dab7ca !important;
-            color: #3e2332 !important;
-            background: rgba(255,255,255,0.08) !important;
-            box-shadow: 0 0 0 1px rgba(90,36,65,0.15), 0 8px 24px rgba(90,36,65,0.15) !important;
+            border-color: #ffffff !important;
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 8px 24px rgba(0, 0, 0, 0.5) !important;
             transform: translateY(-2px);
         }
 
         .detail-variant-chip.active .detail-variant-label {
             font-weight: 800;
-            color: #3e2332;
+            color: #ffffff;
         }
         .detail-variant-color-dot {
             width: 24px;
             height: 24px;
             border-radius: 50%;
-            border: 2px solid rgba(218,183,202,0.86);
-            background: var(--variant-color, #f9eff4);
-            box-shadow: 0 5px 16px rgba(90,36,65,0.15), inset 0 0 0 1px rgba(90,36,65,0.15);
+            border: 2px solid rgba(255, 255, 255, 0.86);
+            background: var(--variant-color, #888);
+            box-shadow: 0 5px 16px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.16);
             display: block;
             margin: 7px auto 1px;
         }
@@ -520,6 +497,40 @@
             clip-path: inset(50%);
             white-space: nowrap;
             margin: 0;
+        }
+
+        body.product-detail-page #product-detail .detail-variant-list.colors-only {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        body.product-detail-page #product-detail .colors-only .detail-variant-chip {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            padding: 5px !important;
+            border-radius: 50% !important;
+            border: 2px solid transparent !important;
+            background: transparent !important;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+        body.product-detail-page #product-detail .colors-only .detail-variant-chip .detail-variant-color-dot {
+            width: 30px;
+            height: 30px;
+            flex: 0 0 30px;
+            margin: 0;
+            border: 1px solid rgba(255,255,255,.65);
+            box-sizing: border-box;
+        }
+        body.product-detail-page #product-detail .colors-only .detail-variant-chip.active {
+            border-color: #c9a3f6 !important;
+        }
+        body.product-detail-page #product-detail .colors-only .detail-variant-chip:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 3px;
         }
 
         /* Actions CTA */
@@ -583,7 +594,7 @@
             padding: 11px 28px;
             border-radius: 999px !important;
             background: #ffffff !important;
-            color: #3e2332 !important;
+            color: #0a0a0c !important;
             font-size: 14px;
             font-weight: 800;
             letter-spacing: 0.3px;
@@ -593,14 +604,14 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            box-shadow: 0 8px 24px rgba(90,36,65,0.15) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
             transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
         }
 
         .product-detail-luxury .btn-buy-now:hover:not(:disabled) {
-            background: #f2dae7 !important;
+            background: #f2eee5 !important;
             transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(90,36,65,0.15) !important;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
         }
 
         .product-detail-luxury .btn-pay-now {
@@ -613,8 +624,8 @@
 
         .product-detail-luxury .btn-buy-now:disabled {
             opacity: 0.4 !important;
-            background: rgba(255,255,255,0.12) !important;
-            color: rgba(62,35,50,0.4) !important;
+            background: rgba(255, 255, 255, 0.12) !important;
+            color: rgba(255, 255, 255, 0.4) !important;
             cursor: not-allowed;
             transform: none !important;
             box-shadow: none !important;
@@ -626,9 +637,9 @@
             min-height: 44px;
             padding: 0;
             border-radius: 999px !important;
-            background: rgba(255,255,255,0.05) !important;
-            border: 1px solid rgba(218,183,202,0.12) !important;
-            color: #3e2332 !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            color: #ffffff !important;
             font-family: inherit;
             font-size: 13px;
             font-weight: 700;
@@ -642,16 +653,16 @@
         .btn-save-favorite-detail span { display: none; }
 
         .btn-save-favorite-detail:hover {
-            background: rgba(255,255,255,0.1) !important;
-            border-color: rgba(218,183,202,0.28) !important;
-            color: #3e2332 !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-color: rgba(255, 255, 255, 0.28) !important;
+            color: #ffffff !important;
             transform: translateY(-1px);
         }
 
         .btn-save-favorite-detail.is-saved {
-            background: rgba(251,230,242,0.12) !important;
-            border-color: rgba(230,185,211,0.35) !important;
-            color: #953368 !important;
+            background: rgba(239, 68, 68, 0.12) !important;
+            border-color: rgba(239, 68, 68, 0.35) !important;
+            color: #f87171 !important;
         }
 
         .product-favorite-mobile {
@@ -663,9 +674,9 @@
             min-height: 42px;
             padding: 10px 22px;
             border-radius: 999px !important;
-            background: rgba(243,223,234,0.08) !important;
-            border: 1px solid rgba(218,183,202,0.28) !important;
-            color: #691d46 !important;
+            background: rgba(37, 211, 102, 0.08) !important;
+            border: 1px solid rgba(37, 211, 102, 0.28) !important;
+            color: #25d366 !important;
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
@@ -677,9 +688,9 @@
         }
 
         .product-detail-luxury .btn-consult-direct:hover {
-            background: rgba(243,223,234,0.16) !important;
-            border-color: rgba(218,183,202,0.45) !important;
-            color: #691d46 !important;
+            background: rgba(37, 211, 102, 0.16) !important;
+            border-color: rgba(37, 211, 102, 0.45) !important;
+            color: #25d366 !important;
             transform: translateY(-1px);
         }
 
@@ -687,10 +698,10 @@
             flex-basis: 100%;
             margin: 0;
             padding: 10px 14px;
-            border: 1px solid rgba(218,183,202,0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
             border-radius: 10px;
-            background: rgba(255,255,255,0.03) !important;
-            color: rgba(62,35,50,0.65) !important;
+            background: rgba(255, 255, 255, 0.03) !important;
+            color: rgba(255, 255, 255, 0.65) !important;
             font-size: 12px;
             line-height: 1.45;
         }
@@ -714,18 +725,18 @@
             gap: 7px;
             font-size: 11.5px;
             font-weight: 600;
-            color: rgba(62,35,50,0.65);
+            color: rgba(255, 255, 255, 0.65);
         }
 
         .perk-item svg {
-            color: rgba(62,35,50,0.85);
+            color: rgba(216, 209, 194, 0.85);
             flex-shrink: 0;
         }
 
         /* Details & Specs Block */
         .product-details-block {
             padding-top: 18px;
-            border-top: 1px solid rgba(218,183,202,0.07);
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -759,11 +770,11 @@
             font-weight: 700;
             letter-spacing: 1.4px;
             text-transform: uppercase;
-            color: rgba(62,35,50,0.45);
+            color: rgba(255, 255, 255, 0.45);
         }
 
         .product-info-desc {
-            color: rgba(62,35,50,0.75) !important;
+            color: rgba(255, 255, 255, 0.75) !important;
             font-size: 14px !important;
             line-height: 1.65 !important;
             margin: 0 !important;
@@ -773,9 +784,9 @@
         .product-specs {
             margin: 0 !important;
             padding: 0 !important;
-            border: 1px solid rgba(218,183,202,0.07) !important;
+            border: 1px solid rgba(255, 255, 255, 0.07) !important;
             border-radius: 14px;
-            background: rgba(255,255,255,0.02) !important;
+            background: rgba(255, 255, 255, 0.02) !important;
             overflow: hidden;
         }
 
@@ -784,7 +795,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 11px 16px !important;
-            border-bottom: 1px solid rgba(218,183,202,0.05) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
             margin: 0 !important;
             gap: 14px;
         }
@@ -794,7 +805,7 @@
         }
 
         .spec-label {
-            color: rgba(62,35,50,0.45) !important;
+            color: rgba(255, 255, 255, 0.45) !important;
             font-size: 12px !important;
             font-weight: 600 !important;
             text-transform: uppercase;
@@ -802,7 +813,7 @@
         }
 
         .spec-value {
-            color: #3e2332 !important;
+            color: #ffffff !important;
             font-size: 13px !important;
             font-weight: 700 !important;
             text-align: right;
@@ -816,7 +827,7 @@
             background: transparent !important;
             font-size: 12px;
             line-height: 1.35;
-            color: rgba(62,35,50,0.64);
+            color: rgba(255, 255, 255, 0.64);
         }
 
         .product-mobile-heading {
@@ -852,7 +863,7 @@
             .product-detail-luxury .product-mobile-heading {
                 display: block;
                 margin: 0 2px 2px;
-                color: #3e2332;
+                color: #fff;
                 font-size: clamp(20px, 5.8vw, 26px);
                 font-weight: 900;
                 line-height: 1.05;
@@ -877,9 +888,9 @@
                 width: 48px;
                 height: 48px;
                 min-height: 48px;
-                background: rgba(255,255,255,0.72) !important;
-                border-color: rgba(218,183,202,0.3) !important;
-                box-shadow: 0 10px 26px rgba(90,36,65,0.15);
+                background: rgba(10, 10, 13, 0.72) !important;
+                border-color: rgba(255, 255, 255, 0.3) !important;
+                box-shadow: 0 10px 26px rgba(0, 0, 0, 0.34);
                 -webkit-backdrop-filter: blur(14px);
                 backdrop-filter: blur(14px);
             }
@@ -993,23 +1004,9 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="product-detail-minimal.css?v=blyxu-gray-aligned-20261006">
+    <link rel="stylesheet" href="product-detail-minimal.css?v=delicate-detail-20261008">
     <link rel="stylesheet" href="catalog-minimal-dark.css?v=blyxu-gray-aligned-20261006">
-    <link rel="stylesheet" href="storefront-refinement.css?v=nav-spacing-20261006-2">
-    <link rel="stylesheet" href="original-store-theme.css?v=20261007-22">
-    <script src="original-store-navigation.js?v=20261007-1" defer></script>
-    <link rel="stylesheet" href="original-store-boutique.css?v=mobile-polish-20261013">
-    <link rel="stylesheet" href="original-store-product-studio.css?v=20261008-4">
-<meta name="robots" content="index, follow, max-image-preview:large">
-    <style>
-    /* Color-only products use compact swatches without repeated photographs. */
-    html body.product-detail-page #product-detail .detail-variant-list.color-only-list {display:flex!important;flex-wrap:wrap;gap:10px!important;align-items:center;}
-    html body.product-detail-page #product-detail .detail-variant-chip.swatch-only {display:flex!important;align-items:center!important;justify-content:center!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;padding:6px!important;border-radius:50%!important;border:1px solid transparent!important;background:transparent!important;box-shadow:none!important;transform:none!important;}
-    html body.product-detail-page #product-detail .detail-variant-chip.swatch-only .detail-variant-color-dot {display:block!important;width:30px!important;height:30px!important;margin:0!important;flex-shrink:0;background:var(--variant-color)!important;border:1px solid #b9a5af!important;border-radius:50%!important;box-shadow:inset 0 0 0 1px #ffffff30!important;}
-    html body.product-detail-page #product-detail .detail-variant-chip.swatch-only.active {border-color:#87334f!important;box-shadow:0 0 0 1px #87334f!important;}
-    html body.product-detail-page #product-detail .detail-variant-chip.swatch-only:hover {background:#f8eaf0!important;}
-    html body.product-detail-page #product-detail .detail-variant-chip.swatch-only:focus-visible {outline:2px solid #087e80!important;outline-offset:3px;}
-    </style>
+    <link rel="stylesheet" href="storefront-refinement.css?v=nav-fixed-position-20261007">
 </head>
 <body class="dark-mode product-detail-page">
 
@@ -1020,12 +1017,13 @@
     <nav class="navbar scrolled" id="navbar">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">
-                <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store">
+                <img src="Logo2-nav.png" alt="BLYXU">
             </a>
 
             <ul class="nav-links" id="nav-links">
                 <li><a href="index.html">Inicio</a></li>
                 <li><a href="index.html#coleccion">Catálogo</a></li>
+                <li><a href="mayorista.html">Mayorista</a></li>
                 <li><a href="contacto.html">Contacto</a></li>
                 <li><a href="pagos.html">Pagos</a></li>
                 <li><a href="facturas-pedidos.html">Facturas y Pedidos</a></li>
@@ -1033,7 +1031,7 @@
 
             <div class="nav-actions">
                 
-            <a class="nav-ally-btn" href="https://www.blyxu.online/" target="_blank" rel="noopener noreferrer" aria-label="Aliados: visitar BLYXU (abre en una nueva pestaña)" title="Visitar BLYXU"><span class="nav-ally-mark"><img src="https://lh3.googleusercontent.com/d/1jGZ2YaxoOGUVKVbqafa9S4eNJWmHi7xS=w180" alt="BLYXU" width="100" height="100"></span><span>Aliados</span></a>
+            <a class="nav-ally-btn" href="https://aloriginalstore.online/" target="_blank" rel="noopener noreferrer" aria-label="Aliados: visitar Original Store (abre en una nueva pestaña)" title="Visitar Original Store"><img src="original-store-ally.png?v=2" alt="Original Store" width="42" height="36"><span>Aliados</span></a>
             <button class="nav-icon-btn nav-search-btn" type="button" onclick="openCatalogSearch()" aria-label="Buscar productos" title="Buscar">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="7"></circle>
@@ -1091,21 +1089,20 @@
                         let initialName = '';
 
                         try {
-                            const preview = window.ORIGINAL_STORE_INITIAL_DETAIL || JSON.parse(sessionStorage.getItem("original_store_product_detail_drive_v2:" + window.ORIGINAL_STORE_API_URL + "") || 'null');
+                            const preview = JSON.parse(sessionStorage.getItem('blyxu_product_detail_preview_v1') || 'null');
                             const fresh = preview && Date.now() - Number(preview.savedAt || 0) < 120000;
                             if (fresh && preview.id === productId && preview.mode === mode) {
-                                initialSrc = preview.imageCard || preview.image || preview.imageDetail || '';
+                                initialSrc = preview.imageDetail || preview.image || preview.imageCard || '';
                                 initialName = preview.name || '';
                             }
                         } catch (_) {}
 
                         if (!initialSrc) try {
-                            const cache = JSON.parse(localStorage.getItem("original_store_products_drive_v4:" + window.ORIGINAL_STORE_API_URL + "") || 'null');
-                            const cachedProducts = cache?.data?.products || [];
-                            const product = params.get('ref') ? cachedProducts.find(p => String(p.idVariacion || p.SKU || '') === params.get('ref')) : cachedProducts[productId];
+                            const cache = JSON.parse(localStorage.getItem('blyxu_products_cache_v3') || 'null');
+                            const product = cache?.data?.products?.[productId];
                             if (product) {
                                 initialName = product.Nombre || product.nombre || product.Producto || '';
-                                initialSrc = normalizeImage(product.Imagen || product.imagen || product.Foto || (product.Galeria && product.Galeria[0]), 420);
+                                initialSrc = normalizeImage(product.Imagen || product.imagen || product.Foto || (product.Galeria && product.Galeria[0]), window.innerWidth <= 640 ? 640 : 800);
                             }
                         } catch (_) {}
 
@@ -1118,7 +1115,7 @@
                             if (mobileName && initialName) mobileName.textContent = initialName;
                         }
 
-                        document.write(`<img ${initialSrc ? `src="${escapeAttr(initialSrc)}"` : ''} alt="${escapeAttr(initialName)}" id="detail-img" class="is-ready" loading="eager" decoding="sync" fetchpriority="high" referrerpolicy="no-referrer">`);
+                        document.write(`<img ${initialSrc ? `src="${escapeAttr(initialSrc)}"` : ''} alt="${escapeAttr(initialName)}" id="detail-img" class="is-ready" loading="eager" decoding="async" fetchpriority="high" referrerpolicy="no-referrer">`);
                     })();
                 </script>
                 <button class="btn-save-favorite-detail product-favorite-mobile" id="btn-save-favorite-detail-mobile" type="button" aria-label="Guardar favorito" title="Guardar favorito">
@@ -1151,10 +1148,16 @@
                 </button>
             </div>
             
+            <!-- 3. Price & Badges -->
+            <div class="product-info-price">
+                <span id="detail-price">$0</span>
+                <span class="old" id="detail-old-price" style="display:none;">$0</span>
+                <span class="detail-promo-badge" id="detail-promo-badge" style="display:none;"></span>
+            </div>
+
             <!-- 4. Variations (Opciones disponibles) -->
             <div id="product-variations" style="display: none;"></div>
 
-            <div class="product-purchase-row">
             <!-- 5. Actions (CTA: Add to cart, Favorite, WhatsApp) -->
             <div class="product-info-actions">
                 <button class="btn-buy-now" id="btn-add-to-cart-detail">Añadir al Carrito</button>
@@ -1164,15 +1167,6 @@
                 </button>
                 <button class="btn-consult-direct" id="btn-consult-product-detail" type="button" style="display:none;">Consultar este producto por WhatsApp</button>
                 <p class="cart-consult-note" id="detail-cart-note" style="display:none;">Añadir al carrito sirve para hacer una consulta general de varios productos.</p>
-            </div>
-
-            <!-- 3. Price & Badges -->
-            <div class="product-info-price">
-                <span id="detail-price">$0</span>
-                <span class="old" id="detail-old-price" style="display:none;">$0</span>
-                <span class="detail-promo-badge" id="detail-promo-badge" style="display:none;"></span>
-            </div>
-
             </div>
 
             <!-- 6. Trust Perks -->
@@ -1193,8 +1187,8 @@
 
             <!-- 7. Details Block: Description & Technical Specs -->
             <div class="product-details-block">
-                <details class="detail-desc-card detail-description-accordion">
-                    <summary class="detail-block-label">Descripción del producto <span aria-hidden="true">+</span></summary>
+                <details class="detail-desc-card product-description-disclosure">
+                    <summary class="detail-block-label">Descripción del producto</summary>
                     <p class="product-info-desc" id="detail-desc">
                         Cargando detalles del producto...
                     </p>
@@ -1257,6 +1251,7 @@
         </div>
     </div>
 
+    <script src="blyxu-app.js?v=supabase-live-20261013" defer></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1265,7 +1260,6 @@
             const catalogBackUrl = detailCatalogMode === 'wholesale' ? 'mayorista.html' : './#coleccion';
             let detailShowsPrices = shouldShowProductPrices(detailCatalogMode);
             let currentDetailProductId = Number.parseInt(urlParams.get('id'), 10);
-            let currentDetailReference = urlParams.get('ref') || '';
             activeCatalogMode = detailCatalogMode;
             setCartMode(detailCatalogMode);
             updateCartUI();
@@ -1290,13 +1284,13 @@
                         const alternate = typeof getImageFallbackUrl === 'function'
                             ? getImageFallbackUrl(previewImage, 'detail')
                             : '';
-                        if (!previewFallbackTried && alternate && alternate !== previewImage && alternate !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900') {
+                        if (!previewFallbackTried && alternate && alternate !== previewImage && alternate !== 'hero_necklace.png') {
                             previewFallbackTried = true;
                             detailImg.src = alternate;
                             return;
                         }
                         detailImg.onerror = null;
-                        detailImg.src = 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
+                        detailImg.src = 'hero_necklace.png';
                         detailImgContainer.classList.add('is-fallback');
                         detailImgContainer.style.backgroundImage = '';
                     };
@@ -1316,8 +1310,6 @@
             }
             detailShowsPrices = shouldShowProductPrices(detailCatalogMode);
             updateCartUI();
-            const requestedRef = urlParams.get('ref');
-            if (requestedRef) currentDetailProductId = allProducts.findIndex(p => String(p.idVariacion || p.SKU || '') === requestedRef);
 
             if (!Number.isInteger(currentDetailProductId) || !allProducts[currentDetailProductId]) {
                 document.getElementById('product-detail').innerHTML = `
@@ -1346,7 +1338,7 @@
                     product['Nombre del Producto'],
                     product.Producto,
                     product.SKU,
-                    'Producto Original Store'
+                    'Producto BLYXU'
                 );
             }
 
@@ -1421,14 +1413,9 @@
                 return winner.count > 1 ? winner.field : 'style';
             }
 
-            function getColorOnlyVariantGroup(siblings) {
-                const colored = siblings.filter(item => getVariantFieldValue(item, 'color'));
-                const colors = new Set(colored.map(item => normalizeSearchText(getVariantFieldValue(item, 'color'))));
-                if (colors.size < 2) return null;
-                const otherDimensionsVary = ['style', 'size'].some(field =>
-                    new Set(siblings.map(item => normalizeSearchText(getVariantFieldValue(item, field))).filter(Boolean)).size > 1
-                );
-                return otherDimensionsVary ? null : colored;
+            function hasOnlyColorVariants(siblings) {
+                const values = field => new Set(siblings.map(item => normalizeSearchText(getVariantFieldValue(item, field))).filter(Boolean));
+                return values('color').size > 1 && values('style').size <= 1 && values('size').size <= 1;
             }
 
             function getAvailabilityText(stock) {
@@ -1451,18 +1438,10 @@
                 if (!src || preloadedDetailImages.has(src)) return;
                 preloadedDetailImages.add(src);
 
-                const link = document.createElement('link');
-                link.rel = 'preload';
-                link.as = 'image';
-                link.href = src;
-                link.fetchPriority = 'high';
-                link.setAttribute('fetchpriority', 'high');
-                link.referrerPolicy = 'no-referrer';
-                document.head.appendChild(link);
-
                 const img = new Image();
                 img.decoding = 'async';
                 img.referrerPolicy = 'no-referrer';
+                img.fetchPriority = 'low';
                 img.src = src;
             }
 
@@ -1478,19 +1457,10 @@
             }
 
             function switchMainImage(src, alt) {
-                const nextSrc = src || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
+                const nextSrc = src || 'hero_necklace.png';
                 const currentSrc = detailImg.getAttribute('src') || '';
                 const isSameImage = currentSrc === nextSrc;
                 if (isSameImage && detailImg.complete && detailImg.naturalWidth > 0) return;
-                if (currentSrc && getImageIdentity(currentSrc) === getImageIdentity(nextSrc) && detailImg.naturalWidth > 0) {
-                    preloadDetailImage(nextSrc);
-                    detailImg.alt = alt || detailImg.alt || '';
-                    detailImg.classList.add('is-ready');
-                    detailImgContainer.classList.remove('is-loading', 'is-fallback');
-                    detailImgContainer.style.backgroundImage = '';
-                    return;
-                }
-
                 detailImgContainer.classList.add('is-loading');
                 detailImg.classList.add('is-ready');
                 detailImg.alt = alt || '';
@@ -1510,7 +1480,7 @@
                 const usePlaceholder = () => {
                     detailImg.onerror = null;
                     detailImg.onload = null;
-                    detailImg.src = 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
+                    detailImg.src = 'hero_necklace.png';
                     detailImgContainer.classList.add('is-fallback');
                     finishSwap();
                 };
@@ -1519,7 +1489,7 @@
                     const alternate = typeof getImageFallbackUrl === 'function'
                         ? getImageFallbackUrl(nextSrc, 'detail')
                         : '';
-                    if (!alternateTried && alternate && alternate !== nextSrc && alternate !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900') {
+                    if (!alternateTried && alternate && alternate !== nextSrc && alternate !== 'hero_necklace.png') {
                         alternateTried = true;
                         preloadDetailImage(alternate);
                         detailImg.referrerPolicy = 'no-referrer';
@@ -1605,9 +1575,7 @@
             }
 
             function renderVariantChips(productId, product) {
-                const group = getProductVariantGroup(product);
-                const colorVariants = getColorOnlyVariantGroup(group);
-                const siblings = colorVariants || group;
+                const siblings = getProductVariantGroup(product);
 
                 if (!variationContainer) return;
                 if (siblings.length <= 1) {
@@ -1616,7 +1584,8 @@
                     return;
                 }
 
-                const variantDimension = colorVariants ? 'color' : getGroupVariantDimension(siblings);
+                const variantDimension = getGroupVariantDimension(siblings);
+                const colorsOnly = hasOnlyColorVariants(siblings);
                 const activeSib = siblings.find(sib => allProducts.indexOf(sib) === productId) || product;
                 const activeDimLabel = getVariantFieldValue(activeSib, variantDimension);
                 const activeParts = getVisibleVariantParts(activeSib);
@@ -1624,12 +1593,13 @@
 
                 variationContainer.innerHTML = `
                     <div class="variant-header-row">
-                        <span class="variant-heading-title">${colorVariants ? 'Colores disponibles' : 'Opciones disponibles'}</span>
+                        <span class="variant-heading-title">Opciones disponibles</span>
                         ${activeLabel ? `<span class="variant-active-badge">${activeLabel}</span>` : ''}
                     </div>
-                    <div class="detail-variant-list ${colorVariants ? 'color-only-list' : ''}"></div>
+                    <div class="detail-variant-list"></div>
                 `;
                 const list = variationContainer.querySelector('.detail-variant-list');
+                list.classList.toggle('colors-only', colorsOnly);
 
                 siblings.forEach((sib, index) => {
                     const sibIndex = allProducts.indexOf(sib);
@@ -1638,27 +1608,26 @@
                     chip.type = 'button';
                     chip.className = `detail-variant-chip ${isActive ? 'active' : ''}`;
                     chip.dataset.productIndex = String(sibIndex);
+                    chip.setAttribute('aria-pressed', String(isActive));
 
                     const dimensionLabel = getVariantFieldValue(sib, variantDimension);
                     const labelParts = getVisibleVariantParts(sib);
                     const label = dimensionLabel || labelParts.join(' - ') || `Opción ${index + 1}`;
-                    chip.title = label;
-                    chip.setAttribute('aria-label', label);
-                    chip.setAttribute('aria-pressed', String(isActive));
-                    if (colorVariants) {
-                        const colorValue = getVariantFieldValue(sib, 'color');
-                        chip.classList.add('color-only', 'swatch-only');
-                        chip.style.setProperty('--variant-color', getColorHex(colorValue));
-                        const colorDot = document.createElement('span');
-                        colorDot.className = 'detail-variant-color-dot';
-                        colorDot.setAttribute('aria-hidden', 'true');
-                        chip.appendChild(colorDot);
+                    const variantImg = getProductImageSet(sib, 'thumb')[0] || 'Logo2.png';
+                    const colorValue = getVariantFieldValue(sib, 'color');
+                    if (colorsOnly) {
+                        const colorLabel = colorValue || 'Sin color especificado';
+                        chip.classList.add('color-only');
+                        chip.style.setProperty('--variant-color', colorValue ? getColorHex(colorValue) : '#9b9ba1');
+                        chip.setAttribute('aria-label', colorLabel);
+                        chip.title = colorLabel;
+                        const dot = document.createElement('span');
+                        dot.className = 'detail-variant-color-dot';
+                        dot.setAttribute('aria-hidden', 'true');
+                        chip.appendChild(dot);
                         list.appendChild(chip);
                         return;
                     }
-                    const groupPhoto = siblings.map(item => getProductImageSet(item, 'thumb')[0]).find(Boolean);
-                    const variantImg = getProductImageSet(sib, 'thumb')[0] || groupPhoto || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
-                    const colorValue = getVariantFieldValue(sib, 'color');
                     const showColorOnly = variantDimension === 'color' && colorValue;
                     if (showColorOnly) {
                         chip.classList.add('color-only');
@@ -1671,7 +1640,7 @@
                     const img = document.createElement('img');
                     img.src = variantImg;
                     img.alt = label;
-                    img.onerror = () => { img.src = 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'; };
+                    img.onerror = () => { img.src = 'Logo2.png'; };
                     imgWrap.appendChild(img);
 
                     if (isActive) {
@@ -1719,14 +1688,7 @@
                 const product = allProducts[productId];
                 if (!product) return;
 
-                const colorVariants = getColorOnlyVariantGroup(getProductVariantGroup(product));
-                if (colorVariants && !getVariantFieldValue(product, 'color')) {
-                    const firstColor = colorVariants.find(item => getProductStock(item) > 0) || colorVariants[0];
-                    return renderVariantInPlace(allProducts.indexOf(firstColor), updateUrl);
-                }
-
                 currentDetailProductId = productId;
-                currentDetailReference = String(product.idVariacion || product.SKU || '');
                 const name = getProductDisplayName(product);
                 const price = getProductPrice(product, detailCatalogMode);
                 const oldPrice = getProductDisplayOldPrice(product, detailCatalogMode, price);
@@ -1814,20 +1776,10 @@
                 }
                 if (cartNote) cartNote.style.display = !detailShowsPrices && stock > 0 ? 'block' : 'none';
 
-                document.title = `${name} - Original Store`;
-                const productDescription = `${name}. ${desc === 'Sin descripcion disponible.' ? 'Consulta disponibilidad y opciones en Original Store, tienda de peluches y accesorios.' : desc}`.slice(0, 170);
-                document.querySelector('meta[name="description"]')?.setAttribute('content', productDescription);
-                document.querySelector('meta[property="og:title"]')?.setAttribute('content', document.title);
-                document.querySelector('meta[property="og:description"]')?.setAttribute('content', productDescription);
-                document.querySelector('meta[property="og:image"]')?.setAttribute('content', img);
-                const productUrl = `https://aloriginalstore.online/producto.html?ref=${encodeURIComponent(currentDetailReference)}`;
-                document.querySelector('meta[property="og:url"]')?.setAttribute('content', productUrl);
-                let canonical = document.querySelector('link[rel="canonical"]');
-                if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
-                canonical.href = productUrl;
+                document.title = `${name} - BLYXU`;
 
                 if (updateUrl) {
-                    const nextUrl = `producto.html?id=${productId}${detailCatalogMode === 'wholesale' ? '&catalogo=mayorista' : ''}&ref=${encodeURIComponent(currentDetailReference)}`;
+                    const nextUrl = `producto.html?id=${productId}${detailCatalogMode === 'wholesale' ? '&catalogo=mayorista' : ''}`;
                     history.replaceState({ productId }, '', nextUrl);
                 }
             }
@@ -1844,7 +1796,7 @@
                 };
 
                 detailImgContainer.addEventListener('click', () => {
-                    zoomImg.src = normalizeImageUrl(allProducts[currentDetailProductId]?.Imagen || detailImg.src, 'zoom');
+                    zoomImg.src = detailImg.src;
                     zoomImg.alt = detailImg.alt || '';
                     zoomOverlay.classList.add('open');
                     zoomOverlay.setAttribute('aria-hidden', 'false');
@@ -1860,17 +1812,6 @@
             }
 
             initDetailZoom();
-            window.addEventListener('original-store-products-updated', () => {
-                const currentRef = currentDetailReference;
-                if (!currentRef) return;
-                const nextIndex = allProducts.findIndex(p => String(p.idVariacion || p.SKU || '') === currentRef);
-                if (nextIndex >= 0) renderVariantInPlace(nextIndex, false);
-                else { currentDetailProductId = -1; cartBtn.disabled = true; cartBtn.textContent = 'No disponible'; document.getElementById('detail-stock').textContent = 'No disponible'; document.getElementById('detail-availability-pill').classList.add('is-out'); }
-            });
-            window.addEventListener('original-store-config-updated', () => {
-                detailShowsPrices = shouldShowProductPrices(detailCatalogMode);
-                if (allProducts[currentDetailProductId]) renderVariantInPlace(currentDetailProductId, false);
-            });
             setTimeout(() => {
                 if (Number.isInteger(currentDetailProductId)) {
                     renderVariantInPlace(currentDetailProductId, false);
@@ -1905,8 +1846,6 @@
 <script src="order-receipt-access.js?v=browser-qr-20261006" defer></script>
 </body>
 </html>
-
-
 
 
 

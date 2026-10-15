@@ -7,7 +7,7 @@ const SPREADSHEET_ID = '';
 const MERCADO_PAGO_PUBLIC_KEY = 'APP_USR-72ab41d6-5fc7-4867-8e02-564ab0ae9f99';
 // Token privado de prueba. No lo subas a repositorios públicos.
 const MERCADO_PAGO_ACCESS_TOKEN = ''; // Configurar una credencial nueva en Propiedades del Script.
-const SITE_URL = 'https://aloriginalstore.online';
+const SITE_URL = 'https://blyxu.online';
 
 const SHEETS = {
   Productos: {
@@ -205,7 +205,21 @@ function handleRequest_(e, method) {
     // 1) LÓGICA DE SUBIDA DE IMÁGENES
     // ==========================================
     if (method === 'POST' && action === 'uploadimage') {
-      return json_(originalStoreUploadImage_(body));
+      const folders = DriveApp.getFoldersByName('PRODUCTOS_Images');
+      const folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('PRODUCTOS_Images');
+      
+      const blob = Utilities.newBlob(Utilities.base64Decode(body.base64Data), body.mimeType, body.fileName);
+      const file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      
+      const fileId = file.getId();
+      return json_({
+        ok: true,
+        status: 'success',
+        url: 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1000',
+        directUrl: 'https://lh3.googleusercontent.com/d/' + fileId,
+        id: fileId
+      });
     }
 
     // ==========================================
@@ -659,7 +673,7 @@ function handleMercadoPagoPreference_(body) {
 
   const payerData = {
     name: clientName,
-    email: clientEmail && clientEmail.indexOf('@') >= 0 ? clientEmail : 'originalstorealmacen@gmail.com'
+    email: clientEmail && clientEmail.indexOf('@') >= 0 ? clientEmail : 'compras@blyxu.online'
   };
 
   const cleanPh = cleanPhone_(clientPhone);
@@ -2634,7 +2648,7 @@ function securityAdminIdentity_(body) {
   const credential = String(body.adminCredential || '').trim();
   if (!credential) return null;
   const identity = verifyGoogleIdToken_(credential);
-  const allowed = String(PropertiesService.getScriptProperties().getProperty('BLYXU_ADMIN_EMAILS') || 'originalstorealmacen@gmail.com').toLowerCase().split(',').map(function(email) { return email.trim(); }).filter(Boolean);
+  const allowed = String(PropertiesService.getScriptProperties().getProperty('BLYXU_ADMIN_EMAILS') || 'blyxu.ventas@gmail.com').toLowerCase().split(',').map(function(email) { return email.trim(); }).filter(Boolean);
   if (allowed.indexOf(String(identity.email || '').toLowerCase()) < 0) throw new Error('Cuenta sin permiso de administrador.');
   return identity;
 }

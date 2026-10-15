@@ -1,175 +1,232 @@
-/* Original Store: the existing camera sends codes; product saving remains on the PC. */
 (() => {
   'use strict';
-  let api, form, panel, pc=null, phone=null, target=null, epoch=crypto.randomUUID(), formId=crypto.randomUUID();
-  const tabId=crypto.randomUUID(),deviceId=crypto.randomUUID();
-  let streamController, heartbeat, stopping=false, pending=null, applying=false, queue=Promise.resolve(), generation=0;
-  const receipts=new Map();
-  const seen=new Set(), $=id=>panel.querySelector('[data-scan="'+id+'"]');
-  const pairHash=location.hash.startsWith('#os-scan=')?location.hash.slice(9):'';
-  if(pairHash)history.replaceState(null,'',location.pathname+location.search);
-  const context=()=>[document.getElementById('prod-id')?.value,form?.dataset.originalVariationId||'',epoch].join('|');
-  const matches=(a,b)=>a&&b&&a.formId===b.formId&&a.epoch===b.epoch&&a.targetId===b.targetId;
-  const message=(value,bad=false)=>{if(!panel)return;$('status').textContent=value;$('status').classList.toggle('is-error',bad);};
-  const identity=()=>pc?{sessionId:pc.sessionId,pcToken:pc.pcToken,tabId}:phone?{sessionId:phone.sessionId,phoneToken:phone.phoneToken,deviceId}:{};
-  async function request(action,extra={},signal){
-    if(!api?.getCredential())throw Error('Inicia sesión con la cuenta administradora de Original Store.');
-    for(let attempt=0;attempt<3;attempt++){
-      const response=await api.fetcher(window.ORIGINAL_STORE_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,adminCredential:api.getCredential(),...identity(),...extra}),signal});
-      if(action==='scanstream'&&response.headers.get('Content-Type')?.includes('text/event-stream'))return response;
-      const result=await response.json();
-      if(result.ok)return result;
-      if(attempt<2&&/Otra operación/.test(result.error||'')){await new Promise(r=>setTimeout(r,120+Math.random()*180));continue;}
-      throw Error(result.error||'No se pudo conectar el escáner.');
+  const uuid=()=>crypto.randomUUID();
+  const storageKey='blyxu-shared-scan-tab-v2';
+  let saved;try{saved=JSON.parse(sessionStorage.getItem(storageKey)||'null');if(!['pc','phone'].includes(saved?.role)||!saved?.lease||typeof saved.lease.expires!=='number'||saved.lease.expires<=Date.now()||typeof saved.tab!=='string'||!/^[a-zA-Z0-9_-]{8,100}$/.test(saved.tab))saved=null;}catch{}
+  const forget=()=>{try{sessionStorage.removeItem(storageKey);}catch{}};
+  let tab=saved?.tab||uuid(),device=saved?.device||uuid(),releaseTab,canPersist=false,initialization;
+  let credential,nativeFetch,scanner,pc=null,phone=null,formId=uuid(),epoch=uuid(),targetId='prod-barcode';
+  let panel,pcStream,phoneStream,heartbeat,phoneHeartbeat,watchActive,publishing=false,targetDirty=false;
+  let lastSequence=0,ackWait=null,receiving=Promise.resolve(),seen=new Set(),context='',applyingRemote=false;
+  const form=()=>document.getElementById('product-form');
+  const input=()=>document.getElementById(targetId);
+  const active=()=>!!(form()?.getClientRects().length&&input()?.isConnected&&input()?.getClientRects().length&&document.visibilityState==='visible'&&!document.querySelector('#barcode-scanner-modal'));
+  const status=(text,tone='idle')=>{if(!panel)return;const node=panel.querySelector('[data-share-status]');node.textContent=text;node.dataset.tone=tone;};
+  async function request(action,data={}){
+    if(!credential?.())throw new Error('Inicia sesión como administrador.');
+    const response=await nativeFetch(window.BLYXU_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...data,adminCredential:credential()}),signal:AbortSignal.timeout(20000)});
+    const value=await response.json();if(!response.ok||value.ok!==true)throw new Error(value.error||'No se pudo conectar el escáner.');return value;
+  }
+  const pcData=()=>({id:pc.id,pcToken:pc.pcToken,tab});
+  const phoneData=()=>({id:phone.id,phoneToken:phone.phoneToken});
+  function remember(){
+    if(!canPersist||(!pc&&!phone))return;
+    try{sessionStorage.setItem(storageKey,JSON.stringify({tab,device,role:pc?'pc':'phone',lease:pc||phone,targetId,draft:pc?window.BlyxuSharedScanBridge?.captureDraft():null}));}catch{}
+  }
+  async function claimTab(){
+    // Web Locks distinguish a genuine reload from a duplicated tab whose sessionStorage was copied.
+    if(!navigator.locks){saved=null;forget();return;}
+    while(true){
+      const acquired=await new Promise(resolve=>navigator.locks.request('blyxu-shared-scan-'+tab,{ifAvailable:true},lock=>{
+        if(!lock){resolve(false);return;}canPersist=true;resolve(true);return new Promise(release=>{releaseTab=release;});
+      }).catch(()=>resolve(null)));
+      if(acquired===true)return;
+      saved=null;forget();tab=uuid();device=uuid();if(acquired===null)return;
     }
   }
-  function targetOptions(){
-    if(!panel)return;
-    const selected=$('target').value;$('target').replaceChildren();
-    document.querySelectorAll('#prod-barcode,.var-barcode,.ve-barcode').forEach((input,i)=>{
-      if(!input.id)input.id='os-barcode-'+crypto.randomUUID();
-      if(input.disabled)return;
-      const option=document.createElement('option');option.value=input.id;
-      option.textContent=input.id==='prod-barcode'?'Código del producto':input.classList.contains('ve-barcode')?'Variante en edición '+(input.closest('[data-vid]')?.dataset.vid||input.id.replace('ve-barcode-','')):'Código de variante '+i;
-      $('target').append(option);
-    });
-    if([...$('target').options].some(o=>o.value===selected))$('target').value=selected;
-  }
-  function reveal(input){
-    if(input.id==='prod-barcode')api.barcodeMode?.();
-    else {const toggle=input.closest('.admin-panel')?.querySelector('.var-barcode-mode');if(toggle&&!toggle.checked){toggle.checked=true;toggle.dispatchEvent(new Event('change',{bubbles:true}));}}
-    let fold=input.closest('details');while(fold){fold.open=true;fold=fold.parentElement?.closest('details');}
-  }
-  function currentTarget(){
-    const input=document.getElementById($('target').value);if(!input)return null;
-    return {formId,epoch,targetId:input.id,label:[document.getElementById('prod-nombre')?.value,document.getElementById('prod-id')?.value,$('target').selectedOptions[0]?.textContent].filter(Boolean).join(' · ').slice(0,120)};
-  }
-  function updatePhone(state){
-    if(!phone)return;
-    phone.target=state.target;phone.expires=state.expires||phone.expires;
-    $('destination').textContent='Destino: '+(state.target?.label||'Esperando formulario del computador');
-    if(state.lastAck&&pending?.eventId===state.lastAck.eventId){
-      const accepted=state.lastAck.accepted;receipts.set(pending.eventId,accepted);pending=null;$('retry').hidden=true;
-      message(accepted?'Código recibido en el computador. Puedes escanear el siguiente.':'El formulario cambió. Escanea de nuevo.',!accepted);
-    }
-    $('scan').disabled=!phone.target||!!pending||state.pcOnline===false;
-  }
-  async function receive(reading){
-    if(!pc||!reading||!reading.eventId)return;
-    const input=document.getElementById(reading.target?.targetId);
-    const accepted=Date.now()<pc.expires&&matches(target,reading.target)&&pc.context===context()&&input?.isConnected&&!input.disabled&&input.getClientRects().length>0;
-    if(accepted&&!seen.has(reading.eventId)){
-      seen.add(reading.eventId);applying=true;
-      input.value=reading.value;input.dataset.autoBarcode='0';
-      input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));applying=false;
-      message('Recibido: '+reading.value+' · El producto sigue sin guardar.');
-    }
-    try{await request('scanack',{eventId:reading.eventId,accepted});}catch(e){message('Lectura recibida; reconectando la confirmación…',true);}
-  }
-  function handle(event,data){
-    if(event==='closed'||event==='expired'){stopLocal();message('La vinculación terminó. Crea una nueva para continuar.');return;}
-    if(event==='ready'){status();return;}
-    if(pc){if(event==='scan')receive(data);if(data.pending)receive(data.pending);if(event==='joined')message('Celular vinculado. Esperando lecturas…');}
-    if(phone){if(event==='target'||event==='ready')updatePhone(data);if(event==='ack')updatePhone({target:phone.target,lastAck:data});}
-  }
-  async function status(){
-    if(!pc&&!phone)return;
-    try{const state=await request('scanstatus');if(pc&&state.pending)await receive(state.pending);if(phone)updatePhone(state);}catch(e){message(e.message,true);if(/venció|pertenece|Inicia sesión/.test(e.message))stopLocal();}
-  }
-  async function stream(run){
-    while(!stopping&&run===generation&&(pc||phone)){
-      streamController=new AbortController();
+  function stream(lease,role,onEvent){
+    const abort=new AbortController();let retry;
+    const run=async()=>{
       try{
-        const response=await request('scanstream',{},streamController.signal),reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';
-        await status();
-        while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});let end;
-          while((end=buffer.indexOf('\n\n'))>=0){const chunk=buffer.slice(0,end);buffer=buffer.slice(end+2);const event=chunk.match(/^event: (.+)$/m)?.[1],data=chunk.match(/^data: (.+)$/m)?.[1];if(event&&data&&run===generation)handle(event,JSON.parse(data));}
+        const response=await nativeFetch(window.BLYXU_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'scanstream',...lease,role,adminCredential:credential()}),signal:abort.signal});
+        if(!response.ok||!response.headers.get('content-type')?.includes('text/event-stream')){const v=await response.json();onEvent('expired',{error:v.error||'La sesión terminó.'});abort.abort();return;}
+        const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';
+        while(!abort.signal.aborted){const {done,value}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});let end;
+          while((end=buffer.indexOf('\n\n'))>=0){const block=buffer.slice(0,end);buffer=buffer.slice(end+2);const event=/^event: (.+)$/m.exec(block)?.[1],raw=/^data: (.*)$/m.exec(block)?.[1];if(event&&raw)onEvent(event,JSON.parse(raw));}
         }
-      }catch(e){if(e.name!=='AbortError'&&run===generation)message('Reconectando el escáner…',true);}
-      if(run===generation&&!stopping)await new Promise(r=>setTimeout(r,800));
-    }
+      }catch(error){if(!abort.signal.aborted)onEvent('offline',{error:error.message});}
+      if(!abort.signal.aborted)retry=setTimeout(run,1800);
+    };run();return ()=>{abort.abort();clearTimeout(retry);};
   }
-  function startConnection(){stopping=false;const run=++generation;clearInterval(heartbeat);heartbeat=setInterval(status,15000);stream(run);}
-  function stopLocal(){
-    stopping=true;++generation;streamController?.abort();clearInterval(heartbeat);pc=null;phone=null;target=null;pending=null;seen.clear();
-    if(panel){$('pair').hidden=true;$('scan').hidden=true;$('retry').hidden=true;$('disconnect').hidden=true;$('create').disabled=false;$('join').disabled=false;$('target').disabled=false;$('destination').textContent='';}
-  }
-  async function close(){try{if(pc||phone)await request(pc?'scanclose':'scanunlink');}catch{}stopLocal();api?.closeScanner?.();message('Escáner desvinculado. Los campos se conservan.');}
-  async function create(){
-    try{
-      if(pc||phone)await close();targetOptions();target=currentTarget();if(!target)throw Error('Abre un formulario de producto.');
-      reveal(document.getElementById(target.targetId));
-      $('create').disabled=true;const created=await request('scancreate',{tabId,target});
-      pc={...created,context:context()};$('join').disabled=true;$('disconnect').hidden=false;$('pair').hidden=false;
-      const link=location.origin+location.pathname+'#os-scan='+created.sessionId+'.'+created.pairCode;
-      $('link').value=link;$('qr').src='';
-      // Reuse the bundled QR encoder. Pairing secrets never go to a remote QR image service.
-      if(typeof window.qrcode==='function'){
-        const qr=window.qrcode(0,'L');qr.addData(link);qr.make();$('qr').src=qr.createDataURL(5,4);
-      }
-
-      startConnection();message('Desde el celular entra con la misma cuenta y pulsa Vincular celular. La sesión dura 30 minutos.');
-    }catch(e){$('create').disabled=false;message(e.message,true);}
-  }
-  function parsePair(value){
-    let raw=String(value).trim();if(raw.includes('#os-scan='))raw=raw.split('#os-scan=')[1];
-    if(!/^[0-9a-f-]{36}\.[0-9a-f]{48}$/i.test(raw))throw Error('Escanea el QR de vinculación que aparece en el computador.');
-    const [sessionId,pairCode]=raw.split('.');return {sessionId,pairCode};
-  }
-  async function join(value){
-    try{const pair=parsePair(value);if(pc||phone)await close();$('join').disabled=true;
-      const state=await request('scanjoin',{...pair,deviceId});phone={...state,sessionId:pair.sessionId};$('create').disabled=true;$('target').disabled=true;$('disconnect').hidden=false;$('scan').hidden=false;
-      updatePhone(state);startConnection();message('Vinculado. Abre el escáner para enviar códigos al computador.');
-    }catch(e){$('join').disabled=false;message(e.message,true);}
-  }
-  async function send(value){
-    if(!phone||pending||!phone.target)throw Error('Espera la confirmación o vuelve a vincular el celular.');
-    const read={eventId:crypto.randomUUID(),value,target:{...phone.target}};pending=read;
-    return transmit(read);
-  }
-  async function transmit(read){
-    $('scan').disabled=true;$('retry').hidden=true;message('Enviando '+read.value+'…');
-    try{
-      const state=await request('scansend',read);updatePhone(state);
-      const deadline=Date.now()+12000;
-      while(pending?.eventId===read.eventId&&Date.now()<deadline){await new Promise(r=>setTimeout(r,350));}
-      if(pending?.eventId===read.eventId){await status();if(pending)throw Error('Sin confirmación del computador. Revisa la conexión y pulsa Reintentar envío.');}
-      if(receipts.get(read.eventId)===false)throw Error('El formulario cambió. Vuelve a escanear.');
-      receipts.delete(read.eventId);
-    }catch(e){if(pending?.eventId===read.eventId){try{await status();}catch{}}
-      if(pending?.eventId===read.eventId)$('retry').hidden=false;
-      message(e.message,true);throw e;
-    }
-  }
-  function invalidate(){
-    epoch=crypto.randomUUID();target=null;if(!pc)return;
-    pc.context='';message('Actualizando el campo de destino…');
-    queue=queue.catch(()=>{}).then(async()=>{
-      if(!pc)return;targetOptions();const next=currentTarget();if(!next){await close();return;}
-      const snapshot=context();reveal(document.getElementById(next.targetId));
-      target=next;pc.context=snapshot;
-      try{await request('scantarget',{target:next});if(pc&&context()===snapshot)message('Destino preparado. Puedes escanear desde el celular.');}catch(e){if(pc&&context()===snapshot){target=null;pc.context='';}message(e.message,true);}
+  function currentContext(){return [form()?.dataset.originalVariationId||'new',document.getElementById('prod-id-producto')?.value||'',document.getElementById('prod-id')?.value||''].join('|');}
+  function options(){
+    const select=panel.querySelector('[data-share-target]'),old=targetId;select.replaceChildren();
+    form()?.querySelectorAll('#prod-barcode,.var-barcode,.ve-barcode').forEach((field,index)=>{
+      if(!field.id)field.id='shared-barcode-'+uuid();
+      const option=document.createElement('option');option.value=field.id;
+      const card=field.closest('.variant-edit-card,.admin-panel');
+      option.textContent=field.id==='prod-barcode'?'Producto principal':card?.querySelector('.ve-id,.var-id')?.value||'Variante '+index;select.appendChild(option);
     });
+    if([...select.options].some(o=>o.value===old))select.value=old;else{targetId='prod-barcode';select.value=targetId;epoch=uuid();}
   }
-  function initialize(options){
-    if(panel)return;api=options;form=document.getElementById('product-form');if(!form)return;
-    panel=document.createElement('section');panel.className='os-shared-scan';panel.setAttribute('aria-label','Escáner compartido');
-    panel.innerHTML='<div class="os-scan-heading"><div><strong>Escáner compartido</strong><small>Celular + computador · Original Store</small></div><span>Sesión temporal</span></div><div class="os-scan-actions"><button type="button" class="admin-btn" data-scan="create">Vincular desde este PC</button><button type="button" class="admin-btn secondary" data-scan="join">Vincular celular</button><button type="button" class="admin-btn secondary" data-scan="scan" hidden>Abrir escáner del celular</button><button type="button" class="admin-btn secondary" data-scan="retry" hidden>Reintentar envío</button><button type="button" class="admin-btn secondary" data-scan="disconnect" hidden>Desvincular</button></div><label class="os-scan-target">Recibir el código en<select class="form-control" data-scan="target"></select></label><div class="os-scan-pair" data-scan="pair" hidden><img data-scan="qr" alt="QR temporal para vincular el celular"><div><p>En el celular inicia sesión con la misma cuenta y elige <b>Vincular celular</b>. Escanea este QR con el lector existente.</p><input class="form-control" data-scan="link" readonly aria-label="Enlace temporal de vinculación"><button type="button" class="admin-btn secondary" data-scan="copy">Copiar enlace temporal</button></div></div><p data-scan="destination"></p><p data-scan="status" role="status" aria-live="polite">Solo se transfiere el código escaneado. Tú decides cuándo guardar.</p>';
-    form.before(panel);targetOptions();
-    $('create').onclick=create;$('disconnect').onclick=close;$('target').onchange=invalidate;
-    $('copy').onclick=()=>navigator.clipboard.writeText($('link').value).then(()=>message('Enlace copiado. Ábrelo en el celular con tu cuenta.')).catch(()=>{$('link').select();message('Selecciona y copia el enlace temporal.');});
-    $('join').onclick=()=>api.openScanner({preserveRawValue:true,scannerMode:'qr',onDetected:join});
-    $('scan').onclick=()=>api.openScanner({continuous:true,onDetected:send});
-    $('retry').onclick=()=>{if(pending)transmit(pending).catch(()=>{});};
-    form.addEventListener('reset',()=>{invalidate();setTimeout(invalidate,0);});
-    document.addEventListener('input',event=>{if(!applying&&['prod-id','prod-id-producto'].includes(event.target.id))invalidate();});
-    new MutationObserver(records=>{
-      const changed=records.some(r=>[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&(n.matches?.('.var-barcode,.ve-barcode')||n.querySelector?.('.var-barcode,.ve-barcode'))));
-      if(changed){targetOptions();if(pc&&target&&!document.getElementById(target.targetId))invalidate();}
-    }).observe(document.body,{childList:true,subtree:true});
-    document.addEventListener('focusin',event=>{if(event.target.matches('#prod-barcode,.var-barcode,.ve-barcode')&&$('target').value!==event.target.id){$('target').value=event.target.id;invalidate();}});
-    if(pairHash)join(pairHash);
-    window.addEventListener('pagehide',()=>{if(pc||phone){request(pc?'scanclose':'scanunlink').catch(()=>{});}stopLocal();});
+  function revealTarget(){const field=input();if(field?.matches('.var-barcode')){const mode=field.closest('.admin-panel')?.querySelector('.var-barcode-mode');if(mode&&!mode.checked){mode.checked=true;mode.dispatchEvent(new Event('change',{bubbles:true}));}}let node=field?.parentElement;while(node&&node!==form()){if(node.tagName==='DETAILS')node.open=true;node=node.parentElement;}}
+  async function publishTarget(){
+    if(!pc)return;if(publishing){targetDirty=true;return;}publishing=true;
+    const lease=pc,expectedEpoch=epoch;
+    try{
+      const next=currentContext();if(context!==next){context=next;formId=uuid();epoch=uuid();lastSequence=0;}
+      const field=input(),card=field?.closest('.variant-edit-card,.admin-panel');
+      const reference=field?.id==='prod-barcode'?document.getElementById('prod-id')?.value:card?.querySelector('.var-id,.ve-id')?.value;
+      const result=await request('scantarget',{...pcData(),form:formId,epoch,targetId,active:active(),reference,code:field?.value||'',mother:document.getElementById('prod-id-producto')?.value||'',label:[document.getElementById('prod-nombre')?.value||'Producto nuevo',reference,panel.querySelector('[data-share-target]').selectedOptions[0]?.textContent].filter(Boolean).join(' · ')});
+      if(pc!==lease)return;
+      if(!active())status('En pausa: abre el campo de código del formulario.','idle');
+      else status(result.phone?'Celular vinculado · listo para recibir códigos':'PC listo · vincula el celular con el QR','ok');
+      if(result.pending)receive(result.pending);
+    }catch(error){if(pc===lease)status(error.message,'error');}
+    finally{publishing=false;if(targetDirty||expectedEpoch!==epoch){targetDirty=false;if(pc)queueMicrotask(publishTarget);}}
   }
-  window.OriginalStoreSharedScan={initialize,invalidate,close};
+  function receive(event){
+    receiving=receiving.then(async()=>{
+      if(!pc||event.session!==pc.id||event.tab!==tab)return;
+      const accepted=seen.has(event.eventId)||!!(Date.now()<pc.expires&&currentContext()===context&&active()&&event.form===formId&&event.epoch===epoch&&event.targetId===targetId&&event.sequence>lastSequence&&Date.now()-event.created<45000&&typeof event.value==='string'&&event.value.length<=512);
+      if(accepted&&!seen.has(event.eventId)){
+        const field=input();
+        // Same barcode + child-reference behavior as the existing local scanner, without saving.
+        applyingRemote=true;
+        try{
+          if(field.id==='prod-barcode')window.BlyxuSharedScanBridge?.barcodeMode();
+          field.value=event.value;field.dataset.autoBarcode='0';
+          window.BlyxuSharedScanBridge?.syncReference(event.value,field);
+          field.dispatchEvent(new Event('input',{bubbles:true}));field.dispatchEvent(new Event('change',{bubbles:true}));
+          context=currentContext();
+          remember();
+        }finally{applyingRemote=false;}
+        seen.add(event.eventId);lastSequence=event.sequence;if(seen.size>256)seen.delete(seen.values().next().value);
+        field.classList.add('shared-scan-received');setTimeout(()=>field.classList.remove('shared-scan-received'),900);
+        status('Código recibido: '+event.value+' · guarda el producto cuando esté listo','ok');
+      }
+      try{await request('scanack',{...pcData(),eventId:event.eventId,accepted});if(accepted)publishTarget();}catch(error){status('Código recibido; confirmación pendiente. '+error.message,'error');}
+    }).catch(error=>status(error.message,'error'));
+  }
+  function updatePhone(value){
+    if(!phone||value.id!==phone.id||value.revision<phone.revision)return;Object.assign(phone,value);
+    panel.querySelector('[data-share-read]').disabled=!phone.target||!phone.pcOnline;
+    panel.querySelector('[data-share-phone-target]').textContent=phone.target&&phone.pcOnline?'Destino: '+phone.target.label:'PC en pausa. Abre el formulario y su campo de código.';
+    panel.querySelector('[data-share-phone-reference]').textContent=phone.target?'ID madre del PC: '+(phone.target.mother||'Sin ID')+'\nReferencia del PC: '+(phone.target.reference||'Sin referencia')+'\nCódigo: '+(phone.target.code||'Sin lectura'):'Esperando el formulario del PC';
+    if(value.lastAck)handleAck(value.lastAck);
+    remember();
+  }
+  function handleAck(ack){if(ackWait?.id===ack.eventId){const w=ackWait;ackWait=null;clearTimeout(w.timer);ack.accepted?w.resolve():w.reject(new Error('El formulario cambió. La lectura no se aplicó. Vuelve a escanear.'));}}
+  async function phoneStatus(){if(!phone)return;try{updatePhone(await request('scanstatus',phoneData()));}catch(error){status(error.message,'error');panel.querySelector('[data-share-read]').disabled=true;}}
+  async function sendScan(value){
+    if(!phone)throw new Error('Primero vincula el celular.');
+    await phoneStatus();
+    if(!phone.target||!phone.pcOnline)throw new Error('El PC no está listo para recibir códigos.');
+    const snapshot={...phone.target},eventId=uuid(),phoneLease=phone;
+    const acknowledgement=new Promise((resolve,reject)=>{ackWait={id:eventId,resolve,reject,timer:setTimeout(async()=>{
+      try{await phoneStatus();}catch{}if(ackWait?.id===eventId){ackWait=null;reject(new Error('Sin confirmación del PC. Revisa la conexión antes de continuar.'));}
+    },12000)};});acknowledgement.catch(()=>{});
+    try{
+      await request('scansend',{...phoneData(),form:phone.form,epoch:snapshot.epoch,targetId:snapshot.id,eventId,value});
+      await acknowledgement;
+      if(phone===phoneLease)status('Recibido en el PC: '+value+' · puedes escanear el siguiente','ok');
+    }catch(error){if(ackWait?.id===eventId){clearTimeout(ackWait.timer);ackWait=null;}throw error;}
+  }
+  async function join(text){
+    let raw=String(text).trim();if(raw.includes('#scanPair='))raw=raw.split('#scanPair=')[1].split('&')[0];raw=decodeURIComponent(raw);
+    const [id,pairCode]=raw.split('.');
+    if(!id||!pairCode)throw new Error('Escanea el QR de vinculación que aparece en el PC.');
+    if(pc)await disconnect();
+    const result=await request('scanjoin',{id,pairCode,device});phoneStream?.();phone={...result};
+    form().dataset.sharedRole='phone';
+    panel.querySelector('[data-share-phone]').hidden=false;panel.querySelector('[data-share-pc]').hidden=true;
+    updatePhone(result);status('Celular vinculado con el PC','ok');
+    remember();
+    phoneStream=stream(phoneData(),'phone',(event,payload)=>{
+      if(event==='ready')phoneStatus();if(event==='target')updatePhone(payload);if(event==='ack')handleAck(payload);
+      if(event==='closed'){disconnect();status('La sesión del PC terminó. Vincula de nuevo.','idle');}
+      if(event==='offline')status('Reconectando con el PC…','error');
+      if(event==='expired'){disconnect();status(payload.error,'error');}
+    });clearInterval(phoneHeartbeat);phoneHeartbeat=setInterval(phoneStatus,20000);
+  }
+  async function create(){
+    if(pc||phone)await disconnect();
+    window.BlyxuSharedScanBridge?.barcodeMode();
+    revealTarget();
+    pc=await request('scancreate',{tab});context=currentContext();options();
+    form().dataset.sharedRole='pc';
+    panel.querySelector('[data-share-pc]').hidden=false;panel.querySelector('[data-share-phone]').hidden=true;
+    const link=location.origin+location.pathname+'#scanPair='+pc.id+'.'+pc.pairCode;
+    const qr=window.qrcode(0,'M');qr.addData(link);qr.make();panel.querySelector('[data-share-qr]').src=qr.createDataURL(3,12);
+    panel.querySelector('[data-share-code]').value=pc.id+'.'+pc.pairCode;
+    pcStream=stream(pcData(),'pc',(event,payload)=>{if(event==='scan')receive(payload);if(event==='ready')publishTarget();if(event==='offline')status('Reconectando el PC…','error');if(event==='expired'){disconnect();status(payload.error,'error');}});
+    await publishTarget();heartbeat=setInterval(publishTarget,20000);
+    let wasActive=active();watchActive=setInterval(()=>{const next=active();if(next!==wasActive){wasActive=next;epoch=uuid();publishTarget();}},1000);
+    remember();
+  }
+  async function disconnect(){
+    saved=null;forget();
+    if(phone)window.BlyxuSharedScanBridge?.closeScanner();
+    if(form())delete form().dataset.sharedRole;
+    const previous=pc;pc=null;phone=null;pcStream?.();phoneStream?.();pcStream=null;phoneStream=null;clearInterval(heartbeat);clearInterval(phoneHeartbeat);clearInterval(watchActive);
+    if(ackWait){clearTimeout(ackWait.timer);ackWait.reject(new Error('Sesión desconectada.'));ackWait=null;}
+    seen.clear();lastSequence=0;formId=uuid();epoch=uuid();
+    if(panel){panel.querySelector('[data-share-pc]').hidden=true;panel.querySelector('[data-share-phone]').hidden=true;status('Sin vincular · el escáner habitual sigue disponible');}
+    if(previous)try{await request('scanclose',{id:previous.id,pcToken:previous.pcToken,tab});}catch{}
+  }
+  function invalidateForm(){formId=uuid();epoch=uuid();lastSequence=0;context='';if(pc)setTimeout(()=>{if(!pc)return;options();if(targetId==='prod-barcode')window.BlyxuSharedScanBridge?.barcodeMode();revealTarget();publishTarget();},0);}
+  async function initialize({getCredential,fetcher,openScanner}){
+    credential=getCredential;nativeFetch=fetcher;scanner=openScanner;if(panel)return;
+    await claimTab();
+    panel=document.createElement('details');panel.className='shared-scan-panel';
+    panel.innerHTML=`<summary>Escáner compartido · PC + celular</summary><div class="shared-scan-body"><p>Vincula ambos equipos con la misma cuenta. El celular envía códigos y tú guardas desde el PC.</p><div class="shared-scan-controls"><button type="button" data-share-create class="admin-btn secondary">Vincular celular a este PC</button><button type="button" data-share-join class="admin-btn secondary">Leer QR de vinculación</button><button type="button" data-share-disconnect class="admin-btn secondary">Desconectar</button></div><div data-share-status role="status" data-tone="idle">Sin vincular · el escáner habitual sigue disponible</div><div data-share-pc hidden class="shared-scan-pc"><img data-share-qr alt="QR temporal para vincular el celular"><div><label>Enviar lecturas a<select data-share-target class="form-control"></select></label><p>En el celular, abre este mismo administrador y pulsa «Leer QR de vinculación».</p><label>Código de vinculación<input data-share-code readonly class="form-control"></label><small>Vence en 30 minutos. Solo funciona con la misma cuenta administradora.</small></div></div><div data-share-phone hidden><p data-share-phone-target></p><p data-share-phone-reference role="status"></p><button type="button" data-share-read class="admin-btn">Escanear para el PC</button></div><details class="shared-scan-manual"><summary>Ingresar código de vinculación</summary><input data-share-pair class="form-control" placeholder="Pega el código o enlace del PC"><button type="button" data-share-pair-use class="admin-btn secondary">Vincular</button></details></div>`;
+    form().prepend(panel);
+    const run=fn=>Promise.resolve().then(fn).catch(error=>status(error.message,'error'));
+    panel.querySelector('[data-share-create]').onclick=()=>run(create);
+    panel.querySelector('[data-share-join]').onclick=()=>scanner({preserveRawValue:true,onDetected:value=>run(()=>join(value))});
+    panel.querySelector('[data-share-disconnect]').onclick=()=>run(disconnect);
+    panel.querySelector('[data-share-pair-use]').onclick=()=>run(()=>join(panel.querySelector('[data-share-pair]').value));
+    panel.querySelector('[data-share-read]').onclick=()=>scanner({continuous:true,onDetected:sendScan,getContext:()=>phone?.target?.epoch||''});
+    panel.querySelector('[data-share-target]').onchange=event=>{targetId=event.target.value;epoch=uuid();revealTarget();publishTarget();};
+    form().addEventListener('reset',invalidateForm);document.addEventListener('visibilitychange',()=>{epoch=uuid();publishTarget();});
+    document.addEventListener('focusin',event=>{if(pc&&event.target.matches('#prod-barcode,.var-barcode,.ve-barcode')&&event.target.id!==targetId){targetId=event.target.id;epoch=uuid();options();publishTarget();}});
+    form().addEventListener('input',event=>{if(pc&&!applyingRemote&&['prod-id','prod-id-producto'].includes(event.target.id))invalidateForm();});
+    form().addEventListener('input',()=>{if(!applyingRemote)remember();});form().addEventListener('change',remember);
+    new MutationObserver(records=>{if(!pc)return;const fieldsChanged=records.some(record=>!panel.contains(record.target)&&[...record.addedNodes,...record.removedNodes].some(node=>node.nodeType===1&&(node.matches?.('#prod-barcode,.var-barcode,.ve-barcode')||node.querySelector?.('#prod-barcode,.var-barcode,.ve-barcode'))));if(fieldsChanged){const removed=!input()?.isConnected;options();if(removed)invalidateForm();}}).observe(form(),{childList:true,subtree:true});
+    window.addEventListener('pagehide',()=>suspend(true));
+    const pair=new URLSearchParams(location.hash.slice(1)).get('scanPair');if(pair){saved=null;panel.open=true;history.replaceState(null,'',location.pathname+location.search);run(()=>join(pair));}
+  }
+  async function resume(){
+    await initialization;
+    if(!saved||pc||phone)return;
+    const previous=saved;saved=null;
+    if(previous.lease.expires<=Date.now()){forget();return;}
+    panel.open=true;
+    try{
+      if(previous.role==='phone'){
+        phone={...previous.lease};
+        // Reuse the lease only after the server revalidates the current authenticated administrator.
+        const result=await request('scanstatus',phoneData());form().dataset.sharedRole='phone';
+        panel.querySelector('[data-share-phone]').hidden=false;updatePhone(result);
+        phoneStream=stream(phoneData(),'phone',(event,payload)=>{if(event==='ready')phoneStatus();if(event==='target')updatePhone(payload);if(event==='ack')handleAck(payload);if(event==='expired'||event==='closed'){disconnect();status(payload.error||'La sesión terminó.','error');}});
+        phoneHeartbeat=setInterval(phoneStatus,20000);status('Celular reconectado al formulario del PC','ok');
+      }else{
+        const lease=previous.lease;
+        // Pause the old destination and validate the owner before restoring its local draft.
+        pc=lease;
+        await request('scantarget',{...pcData(),form:uuid(),epoch:uuid(),targetId:'prod-barcode',active:false});
+        pc=null;
+        const ids=await window.BlyxuSharedScanBridge?.restoreDraft(previous.draft);
+        pc=lease;targetId=ids?.[previous.targetId]||previous.targetId||'prod-barcode';context=currentContext();formId=uuid();epoch=uuid();options();
+        form().dataset.sharedRole='pc';panel.querySelector('[data-share-pc]').hidden=false;
+        const qr=window.qrcode(0,'M');qr.addData(location.origin+location.pathname+'#scanPair='+pc.id+'.'+pc.pairCode);qr.make();panel.querySelector('[data-share-qr]').src=qr.createDataURL(3,12);panel.querySelector('[data-share-code]').value=pc.id+'.'+pc.pairCode;
+        window.BlyxuSharedScanBridge?.barcodeMode();revealTarget();
+        pcStream=stream(pcData(),'pc',(event,payload)=>{if(event==='scan')receive(payload);if(event==='ready')publishTarget();if(event==='offline')status('Reconectando el PC…','error');if(event==='expired'){disconnect();status(payload.error,'error');}});
+        await publishTarget();heartbeat=setInterval(publishTarget,20000);
+        let wasActive=active();watchActive=setInterval(()=>{const next=active();if(next!==wasActive){wasActive=next;epoch=uuid();publishTarget();}},1000);
+        remember();
+      }
+      return true;
+    }catch(error){await disconnect();status('No se pudo retomar la sesión: '+error.message,'error');}
+  }
+  function suspend(release=false){
+    remember();try{saved=JSON.parse(sessionStorage.getItem(storageKey)||'null');}catch{}
+    pcStream?.();phoneStream?.();clearInterval(heartbeat);clearInterval(phoneHeartbeat);clearInterval(watchActive);pc=null;phone=null;
+    if(ackWait){clearTimeout(ackWait.timer);ackWait.reject(new Error('El acceso se está renovando. Vuelve a escanear al retomar.'));ackWait=null;}
+    if(release)releaseTab?.();
+  }
+  window.BlyxuSharedScan={initialize:options=>initialization=initialize(options),resume,invalidateForm,shutdown:disconnect,suspend,scannerOptions(options){
+    if(phone&&!options.preserveRawValue&&options.targetInputId&&document.getElementById(options.targetInputId)?.matches('#prod-barcode,.var-barcode,.ve-barcode'))return {...options,targetInputId:undefined,continuous:true,onDetected:sendScan,getContext:()=>phone?.target?.epoch||''};
+    return options;
+  }};
 })();

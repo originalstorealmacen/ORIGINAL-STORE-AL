@@ -1,3 +1,8 @@
-// Original Store server. Apps Script URL retained only for a deliberate rollback.
-window.ORIGINAL_STORE_BACKEND=Object.freeze({provider:'supabase',appsScript:'https://script.google.com/macros/s/AKfycbyJPGQXLqyFAlAtO7vEih7yZzRuevROj6dcb-AQF02PupM66BGeLbMULKV-bW5LrfoW/exec',supabase:'https://zhtrwvbmkxxfxvdhgngs.supabase.co/functions/v1/original-store-api'});
-window.ORIGINAL_STORE_API_URL=window.ORIGINAL_STORE_BACKEND.provider==='supabase'?window.ORIGINAL_STORE_BACKEND.supabase:window.ORIGINAL_STORE_BACKEND.appsScript;
+// Supabase is active. Apps Script remains available only as a rollback option.
+window.BLYXU_BACKEND = Object.freeze({
+  provider: 'supabase',
+  appsScript: 'https://script.google.com/macros/s/AKfycbyMytX5vDXXvNxywckgVmGObGfjLLJEo5iFkJdfqOoDdomVmJ--tnPsOPcmXVSyP9BzuQ/exec',
+  supabase: 'https://cufptttzflkdwizpqaot.supabase.co/functions/v1/blyxu-api'
+});
+window.BLYXU_API_URL = window.BLYXU_BACKEND.provider === 'supabase'
+  ? window.BLYXU_BACKEND.supabase : window.BLYXU_BACKEND.appsScript;

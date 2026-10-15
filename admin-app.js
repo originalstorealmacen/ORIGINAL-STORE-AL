@@ -1,11 +1,12 @@
-const GOOGLE_SHEET_API = window.ORIGINAL_STORE_API_URL;
+const GOOGLE_SHEET_API = window.BLYXU_API_URL || 'https://script.google.com/macros/s/AKfycbyMytX5vDXXvNxywckgVmGObGfjLLJEo5iFkJdfqOoDdomVmJ--tnPsOPcmXVSyP9BzuQ/exec';
 
-// Las credenciales administrativas se mantienen en memoria y se envían solo al servidor.
+// La credencial temporal se valida en el servidor; el borrador permanece en esta pestaña.
 const adminNativeFetch = window.fetch.bind(window);
 let secureAdminCredential = '';
 let secureAdminExpiryTimer;
-function revokeAdminSession() {
-    window.OriginalStoreSharedScan?.close();
+function revokeAdminSession({preserveWork=false}={}) {
+    if(preserveWork){window.BlyxuAdminWorkSession?.suspend();window.BlyxuSharedScan?.suspend();}
+    else{window.BlyxuAdminWorkSession?.clear();window.BlyxuSharedScan?.shutdown();}
     const token=secureAdminCredential;secureAdminCredential='';clearTimeout(secureAdminExpiryTimer);
     if(token.startsWith('BLYXU-A3-'))adminNativeFetch(GOOGLE_SHEET_API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'adminlogout',adminCredential:token}),keepalive:true}).catch(()=>{});
 }
@@ -90,17 +91,27 @@ const INVOICE_CONFIG_FIELDS = [
     ['Factura_Telefono', 'inv-config-telefono'],
     ['Factura_Email', 'inv-config-email']
 ];
-const INVENTORY_CACHE_KEY = `blyxu_admin_inventory_cache_v3:${GOOGLE_SHEET_API}`;
-const PUBLIC_PRODUCTS_CACHE_KEY = `original_store_products_drive_v4:${GOOGLE_SHEET_API}`;
-const SITE_CONFIG_CACHE_KEY = `blyxu_site_config_cache_v1:${GOOGLE_SHEET_API}`;
+const INVENTORY_CACHE_KEY = 'blyxu_admin_inventory_cache_v3';
+const PUBLIC_PRODUCTS_CACHE_KEY = 'blyxu_products_cache_v3';
+const SITE_CONFIG_CACHE_KEY = 'blyxu_site_config_cache_v1';
 const INVENTORY_BATCH_SIZE = 25;
 const MAX_CAROUSEL_IMAGE_SIZE = 5 * 1024 * 1024;
-const IMAGE_UPLOAD_MAX_EDGE = 1200;
-const IMAGE_UPLOAD_QUALITY = 0.76;
+const IMAGE_UPLOAD_MAX_EDGE = 1800;
+const IMAGE_UPLOAD_QUALITY = 0.82;
 const IMAGE_UPLOAD_FORMAT = 'image/webp';
 const IMAGE_UPLOAD_EXTENSION = 'webp';
 const JSPDF_CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
 
+function clearPublicProductsCache() {
+    try {
+        localStorage.removeItem(PUBLIC_PRODUCTS_CACHE_KEY);
+        localStorage.setItem('blyxu_catalog_revision_v1',Date.now()+'-'+Math.random());
+        localStorage.removeItem('blyxu_products_cache_v2');
+        localStorage.removeItem(SITE_CONFIG_CACHE_KEY);
+    } catch (e) {
+        console.warn('No se pudo limpiar caché pública:', e);
+    }
+}
 let siteConfigPromise = null;
 let inventoryRenderedRows = 0;
 let inventoryRenderToken = 0;
@@ -206,7 +217,7 @@ function updateLivePreview() {
     const precio = document.getElementById('prod-precio')?.value || '0';
     const precioMayorista = document.getElementById('prod-precio-mayorista')?.value || '';
     const galleryUrls = getAdminGalleryUrls();
-    const imagenUrl = document.getElementById('prod-imagen')?.value || galleryUrls[0] || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+    const imagenUrl = document.getElementById('prod-imagen')?.value || galleryUrls[0] || 'Logo2.png';
     const estado = document.getElementById('prod-estado')?.value || 'Activo';
     const catalogo = document.getElementById('prod-catalogo')?.value || 'Ambos';
     const stock = Number(document.getElementById('prod-stock-inicial')?.value || 0);
@@ -363,7 +374,7 @@ function updateLivePreview() {
                     imgEl.style.opacity = '0.85';
                     return;
                 }
-                imgEl.src = 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
+                imgEl.src = 'hero_necklace.png';
                 imgEl.style.opacity = '0.3';
             });
         }
@@ -586,7 +597,7 @@ function getInventoryProductImage(product, imageSize = 'inventory') {
         'Galer\u00eda'
     ], product?.Galeria || '');
     const galleryImage = parseAdminGalleryValue(galleryValue)[0] || '';
-    return normalizeImageUrl(directImage || galleryImage, imageSize) || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+    return normalizeImageUrl(directImage || galleryImage, imageSize) || 'Logo2.png';
 }
 
 function getInventoryImageFallbackUrl(source, imageSize = 'inventory') {
@@ -600,19 +611,19 @@ function getInventoryImageFallbackUrl(source, imageSize = 'inventory') {
         return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveMatch[1])}=w${getAdminImageTargetWidth(imageSize)}`;
     }
 
-    return 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+    return 'Logo2.png';
 }
 
 function handleInventoryImageError(img) {
     if (!img) return;
     const fallback = getInventoryImageFallbackUrl(img.currentSrc || img.src || img.dataset.src);
-    if (fallback && fallback !== 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180' && img.dataset.fallbackTried !== 'true') {
+    if (fallback && fallback !== 'Logo2.png' && img.dataset.fallbackTried !== 'true') {
         img.dataset.fallbackTried = 'true';
         img.src = fallback;
         return;
     }
     img.onerror = null;
-    img.src = 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+    img.src = 'Logo2.png';
 }
 
 function getAdminGalleryUrls() {
@@ -1455,29 +1466,62 @@ function setProductBarcodeScanMode(enabled) {
     updateProductQrPreview();
 }
 
+function syncProductHierarchyFromMother(value) {
+    const motherId = normalizeBarcodeValue(value);
+    if (!motherId) return '';
+    const previousMother = getInputValue('prod-id-producto');
+    setMotherProductId(motherId);
+    const fields = [document.getElementById('prod-id'), ...document.querySelectorAll('#variants-container .var-id, #variants-container .ve-id')].filter(Boolean);
+    const used = new Set();
+    // Reserve existing suffixes before assigning numbers to legacy/custom references.
+    const numbers = fields.map(field => Number(/-V(\d+)$/i.exec(field.value)?.[1]) || 0);
+    const reserved = new Set(numbers.filter(number => number > 0));
+    fields.forEach((field, index) => {
+        let number = numbers[index];
+        if (!number || used.has(number)) { number = 1; while (used.has(number) || reserved.has(number)) number++; }
+        used.add(number);
+        const previousReference = field.value;
+        field.value = motherId + '-V' + String(number).padStart(2, '0');
+        delete field.dataset.scannedReference;
+        field.dispatchEvent(new Event('input', {bubbles:true}));
+        field.dispatchEvent(new Event('change', {bubbles:true}));
+        const card = field.closest('.admin-panel, .variant-edit-card');
+        const barcode = card?.querySelector('.var-barcode, .ve-barcode');
+        if (barcode) {
+            const generated = makeProductBarcode(motherId, field.value);
+            if (barcode.dataset.autoBarcode === '1' || !barcode.value || barcode.value === barcode.dataset.generatedBarcode || barcode.value === makeProductBarcode(previousMother, previousReference)) {
+                barcode.value = generated; barcode.dataset.autoBarcode = '1';
+            }
+            barcode.dataset.generatedBarcode = generated;
+        }
+    });
+    updateProductBarcodeField();
+    updateLivePreview();
+    return motherId;
+}
+
 function syncScannedCodeToChildReference(code, sourceInput = null) {
     const cleanCode = normalizeBarcodeValue(code);
     if (!cleanCode) return '';
-
-    let childInput = null;
     if (!sourceInput || sourceInput.id === 'prod-barcode') {
-        childInput = document.getElementById('prod-id');
+        // A physical code identifies the family; its children retain V01, V02, etc.
+        const input = document.getElementById('prod-barcode');
+        if (input) { input.value = cleanCode; input.dataset.autoBarcode = '0'; }
+        syncProductHierarchyFromMother(cleanCode);
+        if (input) { input.value = cleanCode; input.dataset.autoBarcode = '0'; }
+        updateProductQrPreview();
     } else {
+        // Scanning one particular variant changes only that variant's own reference.
         const scope = sourceInput.closest('.admin-panel, .variant-edit-card, .var-edit-expanded');
-        childInput = scope?.querySelector('.var-id, .ve-id') || null;
+        const childInput = scope?.querySelector('.var-id, .ve-id');
+        if (childInput) {
+            childInput.value = cleanCode; childInput.dataset.scannedReference = '1';
+            childInput.dispatchEvent(new Event('input', {bubbles:true}));
+            childInput.dispatchEvent(new Event('change', {bubbles:true}));
+        }
     }
-
-    if (childInput) {
-        childInput.value = cleanCode;
-        childInput.dataset.scannedReference = '1';
-        childInput.dispatchEvent(new Event('input', { bubbles: true }));
-        childInput.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-
-    const hint = sourceInput?.id === 'prod-barcode'
-        ? document.getElementById('prod-barcode-hint')
-        : sourceInput?.closest('.admin-panel')?.querySelector('.var-barcode-hint');
-    if (hint) hint.textContent = 'Codigo detectado: la referencia hija se sincronizo automaticamente.';
+    const hint = sourceInput?.id === 'prod-barcode' ? document.getElementById('prod-barcode-hint') : sourceInput?.closest('.admin-panel')?.querySelector('.var-barcode-hint');
+    if (hint) hint.textContent = sourceInput?.id === 'prod-barcode' ? 'Código físico asignado al ID madre. Referencias y variantes sincronizadas.' : 'Código de esta variante sincronizado.';
     return cleanCode;
 }
 
@@ -1511,6 +1555,7 @@ function initProductBarcodeField() {
     barcodeInput?.addEventListener('input', () => {
         const scanModeEnabled = document.getElementById('prod-barcode-scan-mode')?.checked === true;
         barcodeInput.dataset.autoBarcode = scanModeEnabled && barcodeInput.value.trim() ? '0' : '1';
+        if (scanModeEnabled && barcodeInput.value.trim()) syncScannedCodeToChildReference(barcodeInput.value, barcodeInput);
         updateProductQrPreview();
     });
     document.getElementById('prod-barcode-scan-mode')?.addEventListener('change', event => {
@@ -1615,7 +1660,7 @@ function buildBarcodeScannerModal() {
                 <button type="button" class="admin-btn secondary barcode-camera-retry" id="barcode-camera-retry" hidden>Reintentar camara</button>
             </div>
             <label class="barcode-reader-mode">Tipo de lectura
-                <select id="barcode-reader-mode" class="form-control" aria-label="Tipo de lectura"><option value="qr">QR de tickets</option><option value="auto">Automática — QR y barras</option><option value="compatible">Compatible — QR y barras</option></select>
+                <select id="barcode-reader-mode" class="form-control" aria-label="Tipo de lectura"><option value="auto">Automática (compatible en PC)</option><option value="compatible">Compatible — si no reconoce el código</option></select>
             </label>
             <p class="barcode-phone-hint">Escanea desde el celular y pulsa Guardar como pendiente para completar el producto después en el PC. Mantén todas las barras visibles, el código enfocado y buena luz.</p>
             <button type="button" id="barcode-camera-refresh" class="admin-btn secondary">Actualizar cámaras</button>
@@ -1667,7 +1712,7 @@ function getBarcodeCameraErrorMessage(error) {
     const name = String(error?.name || '');
     const message = String(error?.message || error || '');
     if (!window.isSecureContext) {
-        return 'La camara esta autorizada, pero el navegador la bloquea porque esta pagina no usa HTTPS. Abre Original Store desde su direccion segura.';
+        return 'La camara esta autorizada, pero el navegador la bloquea porque esta pagina no usa HTTPS. Abre BLYXU desde su direccion segura.';
     }
     if (/NotAllowed|Permission|denied/i.test(`${name} ${message}`)) {
         if (isIosBarcodeDevice()) {
@@ -1688,7 +1733,7 @@ function getBarcodeCameraErrorMessage(error) {
         return 'La camara no acepta el modo solicitado. Pulsa Reintentar para abrirla en modo compatible.';
     }
     if (isIosBarcodeDevice()) {
-        return 'El iPhone no entrego imagen. Abre Original Store directamente en Safari, cierra otras apps con camara y pulsa Reintentar.';
+        return 'El iPhone no entrego imagen. Abre BLYXU directamente en Safari, cierra otras apps con camara y pulsa Reintentar.';
     }
     return 'No se pudo iniciar el video de la camara. Pulsa Reintentar camara o usa la referencia manual.';
 }
@@ -1716,9 +1761,10 @@ function isMobileBarcodeDevice() {
 }
 
 function getBarcodeVideoConstraints(deviceId = '') {
+    const portrait = isMobileBarcodeDevice() && window.matchMedia?.('(orientation: portrait)').matches;
     const constraints = {
-        width: { ideal: 1920 },
-        height: { ideal: 1080 }
+        width: { ideal: portrait ? 1080 : 1920 },
+        height: { ideal: portrait ? 1920 : 1080 }
     };
     if (deviceId) {
         constraints.deviceId = { exact: deviceId };
@@ -1789,6 +1835,19 @@ async function optimizeBarcodeCameraStream(stream) {
     } catch (error) {}
 }
 
+function syncBarcodeCameraViewport(video) {
+    const stage = video?.closest('.barcode-scanner-stage');
+    if (!stage) return;
+    const update = () => {
+        if (!stage.isConnected || !video.videoWidth || !video.videoHeight) return;
+        stage.style.setProperty('--barcode-camera-ratio', `${video.videoWidth} / ${video.videoHeight}`);
+    };
+    video.addEventListener('loadedmetadata', update);
+    // Video dimensions change when mobile browsers rotate the camera stream.
+    video.addEventListener('resize', update);
+    update();
+}
+
 function attachBarcodeCameraStream(video, stream, { status, retryButton, scannerSession } = {}) {
     if (!video) throw new DOMException('Vista de camara no disponible', 'NotReadableError');
     video.muted = true;
@@ -1797,6 +1856,7 @@ function attachBarcodeCameraStream(video, stream, { status, retryButton, scanner
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
     video.srcObject = stream;
+    syncBarcodeCameraViewport(video);
 
     const startPlayback = () => {
         if (!video.paused) return;
@@ -1816,18 +1876,15 @@ function attachBarcodeCameraStream(video, stream, { status, retryButton, scanner
     }, 4500);
 }
 
-function createStableBarcodeHandler({ status, readout, valueLabel, formatLabel, onConfirmed, stabilityWindowMs = 1600, confirmQrImmediately = false, normalizeValue = normalizeBarcodeValue, continuous = false }) {
+function createStableBarcodeHandler({ status, readout, valueLabel, formatLabel, onConfirmed, stabilityWindowMs = 1600, normalizeValue = normalizeBarcodeValue }) {
     let candidate = '';
     let candidateHits = 0;
     let lastSeenAt = 0;
-    let confirmed = false, previousCode = '', previousSeenAt = 0;
+    let confirmed = false;
 
     return (rawCode, format = '') => {
+        if (confirmed) return true;
         const cleanCode = normalizeValue(rawCode);
-        const lastGap = Date.now() - previousSeenAt;
-        if (cleanCode === previousCode) previousSeenAt = Date.now();
-        if (confirmed) return !continuous;
-        if (continuous && cleanCode === previousCode && lastGap < 1500) return false;
         if (!cleanCode) return false;
 
         const now = Date.now();
@@ -1845,8 +1902,10 @@ function createStableBarcodeHandler({ status, readout, valueLabel, formatLabel, 
         }
         readout?.classList.add('is-detected');
 
-        const validQr = confirmQrImmediately && getBarcodeFormatLabel(format) === 'QR';
-        if (candidateHits < 2 && !validQr) {
+        // QR decoding already validates its error-correction data. A single clear
+        // reading is enough; linear barcodes still require two matching frames.
+        const requiredHits = /qr/i.test(String(format)) ? 1 : 2;
+        if (candidateHits < requiredHits) {
             if (status) status.textContent = 'Codigo detectado. Mantenlo quieto un instante para confirmarlo.';
             return false;
         }
@@ -1855,54 +1914,34 @@ function createStableBarcodeHandler({ status, readout, valueLabel, formatLabel, 
         readout?.classList.add('is-confirmed');
         if (formatLabel) formatLabel.textContent = `${getBarcodeFormatLabel(format)} · Lectura confirmada`;
         if (status) status.textContent = 'Codigo confirmado. Generando su referencia QR...';
-        if (continuous) {
-            previousCode = cleanCode; previousSeenAt = Date.now();
-            Promise.resolve().then(() => onConfirmed(cleanCode)).catch(error => {
-                if (status) status.textContent = error.message || 'No se pudo enviar. Revisa la conexión.';
-            }).finally(() => { confirmed = false; candidate = ''; candidateHits = 0; });
-            return false;
-        }
-        if (validQr) onConfirmed(cleanCode);
+        if (requiredHits === 1) onConfirmed(cleanCode);
         else window.setTimeout(() => onConfirmed(cleanCode), 180);
         return true;
     };
 }
 
-async function startHtml5BarcodeCamera(reader, video, status, handleDetectedCode, { preferredDeviceId = '', onCameraReady, qrOnly = false } = {}) {
+async function startHtml5BarcodeCamera(reader, video, status, handleDetectedCode, { preferredDeviceId = '', onCameraReady } = {}) {
     await loadHtml5QrcodeLibrary();
     if (typeof window.Html5Qrcode !== 'function') return false;
     if (video) video.style.display = 'none';
     if (reader) reader.style.display = 'block';
-    const formatsToSupport = qrOnly ? [window.Html5QrcodeSupportedFormats.QR_CODE] : getHtml5BarcodeFormats();
+    const formatsToSupport = getHtml5BarcodeFormats();
     const scannerConfig = {
-        fps: qrOnly && isMobileBarcodeDevice() ? 20 : (isMobileBarcodeDevice() ? (isIosBarcodeDevice() ? 10 : 15) : 8),
-        // A smaller mobile QR region avoids decoding the entire camera image twice.
-        ...(qrOnly && isMobileBarcodeDevice() ? { qrbox: (width, height) => {
-            const side = Math.floor(Math.min(420, Math.min(width, height) * 0.85));
-            return { width: side, height: side };
-        }} : {}),
-        disableFlip: qrOnly,
-        videoConstraints: {
-            ...getBarcodeVideoConstraints(preferredDeviceId),
-            ...(qrOnly && isMobileBarcodeDevice() ? { width: { ideal: 1280 }, height: { ideal: 1280 }, aspectRatio: { ideal: 1 } } : {})
-        }
+        fps: isMobileBarcodeDevice() ? 20 : 8,
+        // Decode the full frame, including smaller or off-center QR codes.
+        disableFlip: false,
+        videoConstraints: getBarcodeVideoConstraints(preferredDeviceId)
     };
     const onScanSuccess = (decodedText, decodedResult) => {
         const detectedFormat = decodedResult?.result?.format?.formatName || decodedResult?.format?.formatName || '';
         handleDetectedCode(decodedText, detectedFormat);
     };
 
-    let nativeQr = false;
-    if (qrOnly && isMobileBarcodeDevice() && typeof window.BarcodeDetector?.getSupportedFormats === 'function') {
-        try { nativeQr = (await window.BarcodeDetector.getSupportedFormats()).includes('qr_code'); }
-        catch (_) { /* Keep the software reader when native support cannot be checked. */ }
-    }
-
     const createScanner = () => {
         const instance = new window.Html5Qrcode('barcode-scanner-reader', {
             formatsToSupport,
-            // QR supports hardware acceleration; the library falls back to its software reader.
-            useBarCodeDetectorIfSupported: nativeQr
+            // Always keep the software decoder: some desktop detectors only read QR.
+            useBarCodeDetectorIfSupported: false
         });
         activeHtml5BarcodeScanner = instance;
         return instance;
@@ -1948,6 +1987,7 @@ async function startHtml5BarcodeCamera(reader, video, status, handleDetectedCode
 
     const scannerVideo = reader.querySelector('video');
     if (scannerVideo) {
+        syncBarcodeCameraViewport(scannerVideo);
         scannerVideo.muted = true;
         scannerVideo.autoplay = true;
         scannerVideo.playsInline = true;
@@ -1971,9 +2011,9 @@ async function startHtml5BarcodeCamera(reader, video, status, handleDetectedCode
     return true;
 }
 
-async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId = '', scannerMode = 'auto', continuous = false, preserveRawValue = false } = {}) {
+async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId = '', scannerMode = 'auto', continuous = false, getContext = () => '', preserveRawValue = false } = {}) {
+    ({targetInputId,onDetected,preferredDeviceId,scannerMode,continuous,getContext,preserveRawValue}=window.BlyxuSharedScan?.scannerOptions({targetInputId,onDetected,preferredDeviceId,scannerMode,continuous,getContext,preserveRawValue})||{targetInputId,onDetected,preferredDeviceId,scannerMode,continuous,getContext,preserveRawValue});
     const modal = buildBarcodeScannerModal();
-    modal.classList.toggle('barcode-scanner-qr-mode', scannerMode === 'qr');
     const scannerSession = barcodeScannerSession;
     const video = modal.querySelector('#barcode-scanner-video');
     const status = modal.querySelector('#barcode-scanner-status');
@@ -1986,39 +2026,55 @@ async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId
     const readout = modal.querySelector('#barcode-live-readout');
     const valueLabel = modal.querySelector('#barcode-live-value');
     const formatLabel = modal.querySelector('#barcode-live-format');
+    let captureBusy=false,lastSharedCode='',lastSharedContext='';
+    let stableReader;
     const useCode = async code => {
+        if(scannerSession!==barcodeScannerSession)return;
         const cleanCode = preserveRawValue ? String(code || '').trim().slice(0, 2048) : normalizeBarcodeValue(code);
         if (!cleanCode) return;
+        window.BlyxuAdminWorkSession?.activity();
+        if(continuous){
+            if(captureBusy)return;captureBusy=true;
+            const capturedContext=getContext();
+            try{await onDetected?.(cleanCode);lastSharedCode=cleanCode;lastSharedContext=capturedContext;status.textContent='Recibido en el PC. Presenta el siguiente código.';}
+            catch(error){status.textContent=error.message||'No se pudo enviar al PC. Vuelve a intentar.';await new Promise(resolve=>setTimeout(resolve,1800));}
+            finally{captureBusy=false;stableReader=createReader();}
+            return;
+        }
         if (typeof onDetected === 'function') {
-            await onDetected(cleanCode);
+            onDetected(cleanCode);
         } else if (targetInputId) {
             const target = document.getElementById(targetInputId);
             if (target) target.value = cleanCode;
         }
-        if (!continuous) { showToast('Referencia capturada', 'success'); closeBarcodeScanner(); }
-        else if (status) status.textContent = 'Recibido en el computador. Escanea el siguiente código.';
+        showToast('Referencia capturada', 'success');
+        closeBarcodeScanner();
     };
-    const handleDetectedCode = createStableBarcodeHandler({
+    const createReader = () => createStableBarcodeHandler({
         status,
         readout,
         valueLabel,
         formatLabel,
         onConfirmed: useCode,
-        stabilityWindowMs: isMobileBarcodeDevice() ? 1600 : 4000,
-        confirmQrImmediately: scannerMode === 'qr',
-        continuous,
-        normalizeValue: preserveRawValue ? value => String(value || '').trim().slice(0, 2048) : normalizeBarcodeValue
+        normalizeValue: preserveRawValue ? value => String(value || '').trim().slice(0, 2048) : normalizeBarcodeValue,
+        stabilityWindowMs: isMobileBarcodeDevice() ? 1600 : 4000
     });
+    stableReader=createReader();
+    const handleDetectedCode=(code,format)=>{
+        if(continuous&&(captureBusy||(normalizeBarcodeValue(code)===lastSharedCode&&getContext()===lastSharedContext)))return false;
+        return stableReader(code,format);
+    };
+    if(continuous){const hint=modal.querySelector('.barcode-phone-hint');if(hint)hint.textContent='Las lecturas van al campo seleccionado en el PC. Espera su confirmación y presenta el siguiente código. No se guardan productos.';}
 
-    modal.querySelector('#barcode-scanner-use-manual')?.addEventListener('click', () => useCode(manualInput?.value || '').catch(error => { status.textContent = error.message; }));
+    modal.querySelector('#barcode-scanner-use-manual')?.addEventListener('click', () => useCode(manualInput?.value || ''));
     manualInput?.addEventListener('keydown', event => {
         if (event.key === 'Enter') {
             event.preventDefault();
-            useCode(manualInput.value).catch(error => { status.textContent = error.message; });
+            useCode(manualInput.value);
         }
     });
     const reopenWithCamera = deviceId => {
-        openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId: deviceId || '', scannerMode: modeSelect.value, continuous, preserveRawValue });
+        openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId: deviceId || '', scannerMode: modeSelect.value, continuous, getContext, preserveRawValue });
     };
     retryButton?.addEventListener('click', () => {
         reopenWithCamera(preferredDeviceId);
@@ -2036,12 +2092,13 @@ async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId
     try {
         await barcodeCameraStopPromise;
         if (scannerSession !== barcodeScannerSession || !modal.isConnected) { clearTimeout(permissionHintTimer); return; }
-        if (isMobileBarcodeDevice() && scannerMode !== 'compatible' && scannerMode !== 'qr' && 'BarcodeDetector' in window && navigator.mediaDevices?.getUserMedia) {
+        if (isMobileBarcodeDevice() && scannerMode !== 'compatible' && 'BarcodeDetector' in window && navigator.mediaDevices?.getUserMedia) {
             const requestedFormats = ['code_128', 'code_39', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'itf', 'qr_code'];
             const supportedFormats = typeof BarcodeDetector.getSupportedFormats === 'function'
                 ? await BarcodeDetector.getSupportedFormats()
                 : requestedFormats;
             const detectorFormats = requestedFormats.filter(format => supportedFormats.includes(format));
+            if (!detectorFormats.includes('qr_code')) throw new Error('Usar lector compatible para QR');
             const detector = detectorFormats.length
                 ? new BarcodeDetector({ formats: detectorFormats })
                 : new BarcodeDetector();
@@ -2063,10 +2120,10 @@ async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId
                 return;
             }
             activeBarcodeScannerStream = stream;
-            await optimizeBarcodeCameraStream(activeBarcodeScannerStream);
-            await window.BlyxuQrCamera?.stream(activeBarcodeScannerStream, modal.querySelector('.barcode-scanner-status-wrap'));
             attachBarcodeCameraStream(video, activeBarcodeScannerStream, { status, retryButton, scannerSession });
-            await populateBarcodeCameraPicker(modal, stream.getVideoTracks()[0]?.getSettings?.().deviceId || preferredDeviceId);
+            // Camera controls and device enumeration must not delay the first read.
+            Promise.resolve(window.BlyxuQrCamera?.stream(stream, modal.querySelector('.barcode-scanner-status-wrap'))).catch(() => {});
+            populateBarcodeCameraPicker(modal, stream.getVideoTracks()[0]?.getSettings?.().deviceId || preferredDeviceId).catch(() => {});
             clearTimeout(permissionHintTimer);
             if (status) status.textContent = isMobileBarcodeDevice()
                 ? 'Camara activa. La lectura es automatica: ubica el codigo en el area iluminada, sin pegarlo tanto a la camara.'
@@ -2074,15 +2131,16 @@ async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId
 
             let lastDetectionAt = 0;
             const scan = async () => {
-                if (!document.getElementById('barcode-scanner-modal')) return;
+                if (scannerSession !== barcodeScannerSession || !modal.isConnected) return;
                 const now = performance.now();
-                if (now - lastDetectionAt < 90) {
+                if (now - lastDetectionAt < 50 || video.readyState < 2) {
                     activeBarcodeScannerFrame = requestAnimationFrame(scan);
                     return;
                 }
                 lastDetectionAt = now;
                 try {
                     const codes = await detector.detect(video);
+                    if (scannerSession !== barcodeScannerSession || !modal.isConnected) return;
                     if (codes && codes.length) {
                         const detectedCode = codes[0];
                         if (handleDetectedCode(detectedCode.rawValue || detectedCode.rawText || '', detectedCode.format || '')) return;
@@ -2096,7 +2154,6 @@ async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId
 
         if (await startHtml5BarcodeCamera(reader, video, status, handleDetectedCode, {
             preferredDeviceId,
-            qrOnly: scannerMode === 'qr',
             onCameraReady: () => populateBarcodeCameraPicker(modal, activeHtml5BarcodeScanner?.getRunningTrackSettings?.().deviceId || preferredDeviceId)
         })) {
             clearTimeout(permissionHintTimer);
@@ -2153,6 +2210,38 @@ window.scanBarcodeToElement = function (elementId) {
         }
     });
 };
+
+window.BlyxuSharedScanBridge={barcodeMode:()=>{const field=document.getElementById('prod-barcode'),value=field?.value;setProductBarcodeScanMode(true);if(field)field.value=value||'';},syncReference:syncScannedCodeToChildReference,closeScanner:closeBarcodeScanner,captureDraft:captureSharedProductDraft,restoreDraft:restoreSharedProductDraft};
+
+function captureSharedProductDraft(){
+    const form=document.getElementById('product-form');if(!form)return null;
+    const value=field=>({value:field.value,checked:field.checked,auto:field.dataset.autoBarcode,scanned:field.dataset.scannedReference});
+    const fields=Array.from(form.querySelectorAll('input[id],select[id],textarea[id]')).filter(field=>field.id.startsWith('prod-')&&field.type!=='file'&&!field.closest('#variants-container')).map(field=>({id:field.id,...value(field)}));
+    const variants=Array.from(document.querySelectorAll('#variants-container .admin-panel,#variants-container .variant-edit-card')).map(card=>({
+        existing:card.classList.contains('variant-edit-card'),originalId:card.querySelector('[data-original-varid]')?.dataset.originalVarid||'',barcodeId:card.querySelector('.ve-barcode,.var-barcode')?.id,
+        fields:Array.from(card.querySelectorAll('input,select,textarea')).filter(field=>field.type!=='file').flatMap(field=>{const key=Array.from(field.classList).find(name=>/^(ve-|var-)/.test(name));return key?[{key,...value(field)}]:[];})
+    }));
+    return {fields,variants,originalId:form.dataset.originalVariationId||'',pendingKey:form.dataset.pendingKey||''};
+}
+async function restoreSharedProductDraft(draft){
+    if(!draft?.fields)return {};
+    if(draft.originalId){const index=inventario.findIndex(product=>getInventoryVariationId(product)===draft.originalId);if(index<0)throw new Error('Actualiza el inventario para retomar el producto en edición.');editarProducto(index);}
+    else{resetProductForm();switchDashboardView('products','Gestión de Productos');}
+    const apply=(field,data)=>{if(!field||field.type==='file')return;field.value=String(data.value??'');if(field.type==='checkbox'||field.type==='radio')field.checked=data.checked===true;if(data.auto!==undefined)field.dataset.autoBarcode=data.auto;if(data.scanned!==undefined)field.dataset.scannedReference=data.scanned;};
+    for(const data of draft.fields){if(/^prod-[a-z0-9-]+$/.test(data.id))apply(document.getElementById(data.id),data);}
+    const map={};
+    for(const variant of draft.variants||[]){
+        let card;
+        if(variant.existing)card=Array.from(document.querySelectorAll('#variants-container .variant-edit-card')).find(node=>node.querySelector('[data-original-varid]')?.dataset.originalVarid===variant.originalId);
+        else{document.getElementById('btn-add-manual-variant')?.click();card=document.querySelector('#variants-container .admin-panel:last-child');await new Promise(resolve=>setTimeout(resolve,2));}
+        if(!card)throw new Error('No se pudo retomar una variante. Revisa el formulario antes de guardar.');
+        for(const data of variant.fields||[]){if(/^(ve-|var-)[a-z0-9-]+$/.test(data.key))apply(card.querySelector('.'+data.key),data);}
+        const barcode=card.querySelector('.ve-barcode,.var-barcode');if(barcode&&variant.barcodeId)map[variant.barcodeId]=barcode.id;
+    }
+    const form=document.getElementById('product-form');if(draft.pendingKey)form.dataset.pendingKey=draft.pendingKey;
+    updateProductMeasurementFields();renderProductGalleryManager();updateLivePreview();updateProductQrPreview();
+    return map;
+}
 
 function getSubmittedStockValue(payload) {
     const candidates = [
@@ -2238,13 +2327,20 @@ function normalizeProductPayloadForSubmit(data) {
 }
 
 function setProductCategoryAliases(payload, categoria) {
-    const cleanCategory = String(categoria || '').trim();
+    const cleanCategory = resolveRegisteredProductCategory(categoria);
     payload.Categoria = cleanCategory;
     payload['Categor\u00eda'] = cleanCategory;
     payload['Categor\u00c3\u00ada'] = cleanCategory;
     payload['Categor\u00c3\u0192\u00c2\u00ada'] = cleanCategory;
     payload.categoria = cleanCategory;
     return payload;
+}
+
+function resolveRegisteredProductCategory(value) {
+    const raw = String(value || '').trim();
+    const group = getInventoryCategoryGroups({ includeDefaults: false })
+        .find(item => item.key === normalizeInventoryCategoryKey(raw));
+    return group?.label || formatInventoryCategoryLabel(raw);
 }
 
 function normalizePromotionValue(value) {
@@ -2432,7 +2528,7 @@ function getNextVariantId(idProducto) {
         collect(product.idVariacion || product.ID || product['ID Variacion'] || product['ID Variación']);
     });
 
-    document.querySelectorAll('#variants-container .var-id').forEach(function (input) {
+    document.querySelectorAll('#variants-container .var-id, #variants-container .ve-id').forEach(function (input) {
         collect(input.value);
     });
 
@@ -2503,10 +2599,26 @@ function buildVariantPayloadFromCard(card) {
 
 function collectVariantPayloads() {
     const cards = Array.from(document.querySelectorAll('#variants-container .admin-panel'));
-    return cards
+    const newVariants = cards
         .filter(card => card.dataset.saved !== '1')
         .map(buildVariantPayloadFromCard)
         .filter(Boolean);
+    const savedVariants = Array.from(document.querySelectorAll('#variants-container .variant-edit-card .var-edit-expanded'))
+        .map(row => buildRegisteredVariantEditPayload(row, getInputValue('prod-id-producto')));
+    return [...savedVariants, ...newVariants];
+}
+
+function validateProductEditReferences(items) {
+    const originals = new Set(items.map(item => String(item.__adminOriginalId || '').trim()).filter(Boolean));
+    const seen = new Set();
+    for (const item of items) {
+        const id = String(item['ID Variacion'] || item['ID Variación'] || item.idVariacion || '').trim();
+        if (!id || seen.has(id)) throw new Error('Revisa las referencias: hay un ID vacío o repetido (' + id + ').');
+        seen.add(id);
+        if (inventario.some(product => getInventoryVariationId(product) === id && !originals.has(id))) {
+            throw new Error('La referencia ' + id + ' ya pertenece a otro producto.');
+        }
+    }
 }
 
 function setProductFormMode(isEditing) {
@@ -2516,7 +2628,7 @@ function setProductFormMode(isEditing) {
     const btn = el('btn-save');
     if (title) title.textContent = isEditing ? 'Editar Producto' : 'Nuevo Producto';
     if (mode) mode.textContent = isEditing ? 'Editando' : 'Creando';
-    if (btn) btn.textContent = isEditing ? 'Guardar cambios' : 'Guardar producto y variantes';
+    if (btn) btn.textContent = isEditing ? 'Guardar toda la referencia' : 'Guardar producto y variantes';
 }
 
 function updateProductImagePreviewBox(url) {
@@ -2726,7 +2838,7 @@ function getActiveVariantPreviewCard() {
 
 function getVariantEditorCardPreviewRow(card, index = 0, activeImage = '') {
     if (!card) return null;
-    const baseImage = normalizeImageUrl(document.getElementById('prod-imagen')?.value || getAdminGalleryUrls()[0] || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180');
+    const baseImage = normalizeImageUrl(document.getElementById('prod-imagen')?.value || getAdminGalleryUrls()[0] || 'Logo2.png');
     const isSavedVariantCard = card.classList.contains('variant-edit-card');
     const key = getVariantPreviewCardKey(card);
     const activeKey = getActiveVariantPreviewKey();
@@ -2902,7 +3014,7 @@ function syncActivePreviewOptionCard(row) {
     if (row.key) card.dataset.previewKey = row.key;
 
     const img = card.querySelector('img');
-    if (img) img.src = row.image || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+    if (img) img.src = row.image || 'Logo2.png';
 
     const strong = card.querySelector('.preview-variant-copy strong');
     if (strong) strong.textContent = row.label || row.title || 'Variante';
@@ -2926,7 +3038,7 @@ function getPreviewColorDotsHtml(value) {
 }
 
 function getPreviewVariantRows(activeImage = '') {
-    const baseImage = normalizeImageUrl(document.getElementById('prod-imagen')?.value || getAdminGalleryUrls()[0] || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180');
+    const baseImage = normalizeImageUrl(document.getElementById('prod-imagen')?.value || getAdminGalleryUrls()[0] || 'Logo2.png');
     const baseColor = getInputValue('prod-color');
     const baseMeasure = typeof getProductSizeValue === 'function' ? getProductSizeValue() : getInputValue('prod-tamano');
     const baseStyle = getProductStyleValue();
@@ -2988,7 +3100,7 @@ function renderProductPreviewOptions(activeImage = '') {
         <div class="preview-variant-list">
             ${rows.map((row, index) => `
                 <button type="button" class="preview-variant-card ${(activeIndex === -1 ? index === 0 : row.active) ? 'active' : ''}" data-preview-index="${index}" data-preview-key="${escapeHtml(row.key || '')}" data-preview-url="${escapeHtml(row.image || '')}">
-                    <img src="${escapeHtml(row.image || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180')}" alt="" onerror="handleInventoryImageError(this)">
+                    <img src="${escapeHtml(row.image || 'Logo2.png')}" alt="" onerror="handleInventoryImageError(this)">
                     <span class="preview-variant-copy">
                         <strong>${escapeHtml(row.label || `Variante ${index + 1}`)}</strong>
                         <span>${escapeHtml(row.detail || 'Sin atributos')}</span>
@@ -3065,7 +3177,7 @@ function renderProductGalleryManager() {
 }
 
 function resetProductForm() {
-    window.OriginalStoreSharedScan?.invalidate();
+    window.BlyxuSharedScan?.invalidateForm();
     const pendingForm = document.getElementById('product-form');
     if (pendingForm) delete pendingForm.dataset.pendingKey;
     const form = el('product-form');
@@ -3129,7 +3241,8 @@ function updateCategoryOptions() {
     const list = el('admin-category-options');
     const select = el('prod-categoria');
     const inventorySelect = el('admin-inventory-category-filter');
-    const categoryGroups = getInventoryCategoryGroups();
+    const categoryGroups = getInventoryCategoryGroups({ includeDefaults: false });
+    window.BlyxuProductEditor?.updateCategories(categoryGroups);
 
     if (list) {
         list.innerHTML = categoryGroups
@@ -3292,8 +3405,7 @@ function initSettingsTabs() {
             id: 'storefront',
             label: 'Portada',
             items: [
-                { title: 'Banner Publicitario del Home', formId: 'home-ad-config-form' },
-                { title: 'Carrusel de Inicio', formId: 'carousel-image-form' }
+                { title: 'Banner Publicitario del Home', formId: 'home-ad-config-form' }
             ]
         },
         {
@@ -3559,8 +3671,8 @@ document.addEventListener('DOMContentLoaded', () => {
             close: window.closeInventoryQrTicket,
             copy: window.copyInventoryQrReference,
             image: window.openInventoryQrImage,
-            download: window.downloadInventoryQrLabel,
-            whatsapp: window.shareInventoryQrLabel,
+            download: window.downloadInventoryLabelImage,
+            share: window.shareInventoryLabelImage,
             print: window.printInventoryQrTicket
         };
         actions[control.dataset.inventoryQrAction]?.();
@@ -3569,9 +3681,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target.matches('[data-qr-option], [data-qr-size]')) window.updateInventoryQrPreviewOptions?.();
     });
     document.addEventListener('input', event => {
-        if (!event.target.matches('[data-qr-size]')) return;
-        const input = event.target;
-        if (input.value && input.checkValidity()) window.updateInventoryQrPreviewOptions?.();
+        if (event.target.matches('[data-qr-size]')) window.updateInventoryQrPreviewOptions?.();
     });
     // initAdminCustomCursor(); // Desactivado para evitar lag del cursor
     initLoginBokehBackgrounds();
@@ -3599,7 +3709,6 @@ document.addEventListener('DOMContentLoaded', () => {
             initInventorySearch,
             initInventoryActions,
             initInventoryPdfExport,
-            initCarouselImageAdmin,
             initProductImageUpload,
             initProductGalleryUpload,
             initColorPickers,
@@ -3696,16 +3805,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateLivePreview(); // Actualización inicial
 
-    document.getElementById('prod-id-producto')?.addEventListener('change', () => {
-        const motherId = getInputValue('prod-id-producto');
-        setMotherProductId(motherId);
-        const childIdInput = document.getElementById('prod-id');
-        const currentChildId = getInputValue('prod-id');
-        const hasScannedReference = childIdInput?.dataset.scannedReference === '1';
-        if (!hasScannedReference && motherId && (!currentChildId || /^VAR-/i.test(currentChildId) || /-V01$/i.test(currentChildId))) {
-            setInputValue('prod-id', `${motherId}-V01`);
-        }
-        updateLivePreview();
+    for (const event of ['input', 'change']) document.getElementById('prod-id-producto')?.addEventListener(event, () => {
+        syncProductHierarchyFromMother(getInputValue('prod-id-producto'));
     });
 
     // --- LOGIN LOGIC ---
@@ -3756,17 +3857,28 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAdminVaultState();
 
 
-    if (loginForm) initializeAdminPasswordAccess(GOOGLE_SHEET_API,adminNativeFetch,loginForm,credential=>{
+    function onAdminAccess(credential,identity={}){
         secureAdminCredential=credential;siteConfigPromise=null;
-        window.OriginalStoreSharedScan?.initialize({getCredential:()=>secureAdminCredential,fetcher:adminNativeFetch,openScanner:openBarcodeScanner,closeScanner:closeBarcodeScanner,barcodeMode:()=>setProductBarcodeScanMode(true)});
+        const activeSession=window.BlyxuAdminWorkSession?.start({credential,identity,api:GOOGLE_SHEET_API,onLock:message=>{
+            revokeAdminSession({preserveWork:true});
+            loginScreen.style.display='';mainContent.style.display='none';
+            showToast(message,'warning');
+            initializeAdminPasswordAccess(GOOGLE_SHEET_API,adminNativeFetch,loginForm,onAdminAccess);
+        }});
+        if(activeSession===false)return;
+        window.BlyxuSharedScan?.initialize({getCredential:()=>secureAdminCredential,fetcher:adminNativeFetch,openScanner:openBarcodeScanner});
+        window.initializeBlyxuDriveConnection?.(()=>secureAdminCredential);
         window.refreshOrderNotifications?.();
         initCustomerAccessNotifications();
-        clearTimeout(secureAdminExpiryTimer);secureAdminExpiryTimer=setTimeout(logoutAdminSecurely,30*60*1000);
-        playAdminVaultUnlock(()=>{
-            loginScreen.style.display='none';mainContent.style.display='';initAdminHeavyFeatures();renderAdminDashboard();
-            Promise.allSettled([cargarInventario(),cargarPedidos()]).then(()=>renderAdminDashboard());
-        });
-    });
+        loginScreen.style.display='none';mainContent.style.display='';initAdminHeavyFeatures();renderAdminDashboard();
+        Promise.allSettled([cargarInventario(),cargarPedidos()]).then(async()=>{
+            renderAdminDashboard();const resumed=await window.BlyxuSharedScan?.resume();
+            const draft=window.BlyxuAdminWorkSession?.draft(identity.email);
+            if(!resumed&&draft)await restoreSharedProductDraft(draft);
+            if(draft)window.BlyxuAdminWorkSession?.clearDraft();
+        }).catch(error=>showToast('Tu borrador se conservó. '+error.message,'warning'));
+    }
+    if(loginForm)initializeAdminPasswordAccess(GOOGLE_SHEET_API,adminNativeFetch,loginForm,onAdminAccess);
     // -------------------
 
     document.getElementById('product-form').addEventListener('submit', async (e) => {
@@ -3809,10 +3921,13 @@ document.addEventListener('DOMContentLoaded', () => {
         async function proceedSubmit(finalData) {
             try {
                 const variants = collectVariantPayloads();
+                const editedVariantIds = new Set(variants.map(item => String(item.__adminOriginalId || item['ID Variacion'] || '')));
                 const groupCategoryUpdates = isEditingProduct
                     ? buildGroupCategorySyncPayloads(motherProductId, finalData['ID Variacion'] || finalData['ID Variación'] || originalVariationId, finalData.Categoria, finalData.Promocion)
+                        .filter(item => !editedVariantIds.has(String(item.__adminOriginalId || item['ID Variacion'] || '')))
                     : [];
                 const itemsToSave = [finalData, ...groupCategoryUpdates, ...variants];
+                validateProductEditReferences(itemsToSave);
                 
                 const savedProducts = await saveProductListToGoogleSheets(itemsToSave, {
                     fallbackEditOverride: isEditingProduct ? true : false
@@ -4007,7 +4122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const variantBarcodeHint = card.querySelector('.var-barcode-hint');
         const syncVariantBarcode = (force = false) => {
             if (!variantBarcodeInput) return;
-            const generated = makeProductBarcode(ids.idProducto, variantIdInput?.value || autoVariantId);
+            const generated = makeProductBarcode(getInputValue('prod-id-producto') || ids.idProducto, variantIdInput?.value || autoVariantId);
             const current = normalizeBarcodeValue(variantBarcodeInput.value);
             const previousGenerated = normalizeBarcodeValue(variantBarcodeInput.dataset.generatedBarcode || '');
             variantBarcodeInput.dataset.generatedBarcode = generated;
@@ -4023,7 +4138,7 @@ document.addEventListener('DOMContentLoaded', () => {
             variantBarcodePanel?.classList.toggle('is-visible', scanModeEnabled);
             if (!variantBarcodeInput) return;
             if (scanModeEnabled) {
-                const generated = normalizeBarcodeValue(variantBarcodeInput.dataset.generatedBarcode || makeProductBarcode(ids.idProducto, variantIdInput?.value || autoVariantId));
+                const generated = normalizeBarcodeValue(variantBarcodeInput.dataset.generatedBarcode || makeProductBarcode(getInputValue('prod-id-producto') || ids.idProducto, variantIdInput?.value || autoVariantId));
                 const current = normalizeBarcodeValue(variantBarcodeInput.value);
                 if (!current || current === generated || variantBarcodeInput.dataset.autoBarcode === '1') {
                     variantBarcodeInput.value = '';
@@ -4210,7 +4325,7 @@ function initSettingsFolds() {
     }
     const titles = {
         'google-login-config-form': 'Registro e inicio de sesión con Google',
-        'home-ad-config-form': 'Banner de inicio', 'carousel-image-form': 'Carrusel de inicio',
+        'home-ad-config-form': 'Banner promocional',
         'contact-config-form': 'Horario y canales de contacto', 'whatsapp-config-form': 'WhatsApp comercial',
         'promo-config-form': 'Promoción minorista', 'wholesale-promo-config-form': 'Promoción mayorista',
         'customer-promo-form': 'Promoción de clientes registrados', 'invoice-config-form': 'Datos de facturación',
@@ -4592,7 +4707,7 @@ function fillPromoConfigForm(config) {
 function getPromoAdminValues() {
     return {
         enabled: document.getElementById('promo-config-enabled')?.checked === true,
-        title: document.getElementById('promo-config-title')?.value?.trim() || 'Oferta Original Store',
+        title: document.getElementById('promo-config-title')?.value?.trim() || 'Oferta BLYXU',
         discount: document.getElementById('promo-config-discount')?.value?.trim() || '',
         message: document.getElementById('promo-config-message')?.value?.trim() || 'Aprovecha nuestros descuentos especiales.',
         date: document.getElementById('promo-config-date')?.value?.trim() || ''
@@ -4838,7 +4953,7 @@ function initHomeAdConfigAdmin() {
             localPreviewUrl = URL.createObjectURL(file);
             updateHomeAdImagePreview(localPreviewUrl);
             if (imageInput) imageInput.placeholder = 'Optimizando imagen...';
-            const uploadedUrl = await uploadCarouselImage(file, 'banners');
+            const uploadedUrl = await uploadCarouselImage(file);
             if (imageInput) imageInput.value = uploadedUrl;
             updateHomeAdImagePreview(uploadedUrl);
             if (localPreviewUrl) {
@@ -5066,7 +5181,7 @@ function createPaymentMethodCard(data = { name: '', type: 'key', value: '', imag
             setQrUploadState(true);
             localUrl = URL.createObjectURL(file);
             renderQrPreview(localUrl, true);
-            const uploadedUrl = await uploadCarouselImage(file, 'logos');
+            const uploadedUrl = await uploadCarouselImage(file);
             urlInput.value = uploadedUrl;
             renderQrPreview(uploadedUrl);
             showToast('QR subido correctamente');
@@ -5275,13 +5390,13 @@ function canvasToBlob(canvas, type, quality) {
     });
 }
 
-async function prepareImageForUpload(file, assetType = 'imagenes') {
+async function prepareImageForUpload(file) {
     if (file.type === 'image/gif') {
         return file;
     }
 
     const img = await loadImageFile(file);
-    const scale = Math.min(1, (assetType === 'banners' ? 1600 : assetType === 'logos' ? 800 : IMAGE_UPLOAD_MAX_EDGE) / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+    const scale = Math.min(1, IMAGE_UPLOAD_MAX_EDGE / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
     const canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
     canvas.height = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
@@ -5307,13 +5422,13 @@ async function prepareImageForUpload(file, assetType = 'imagenes') {
     return new File([blob], `${cleanName}.${IMAGE_UPLOAD_EXTENSION}`, { type: IMAGE_UPLOAD_FORMAT });
 }
 
-async function uploadCarouselImage(file, assetType = 'imagenes') {
+async function uploadCarouselImage(file) {
     if (!file) return '';
     if (!file.type.startsWith('image/')) {
         throw new Error('Selecciona un archivo de imagen valido');
     }
 
-    const uploadFile = await prepareImageForUpload(file, assetType);
+    const uploadFile = await prepareImageForUpload(file);
     if (uploadFile.size > MAX_CAROUSEL_IMAGE_SIZE) {
         throw new Error('La imagen pesa mas de 5 MB');
     }
@@ -5325,7 +5440,6 @@ async function uploadCarouselImage(file, assetType = 'imagenes') {
             action: 'upload_image',
             fileName: uploadFile.name,
             mimeType: uploadFile.type,
-            assetType,
             base64Data
         })
     });
@@ -5643,593 +5757,6 @@ function initProductGalleryUpload() {
     renderProductGalleryManager();
 }
 
-function initCarouselImageAdmin() {
-    const form = document.getElementById('carousel-image-form');
-    const fileInput = document.getElementById('carousel-file');
-    const imageUrlInput = document.getElementById('carousel-image-url');
-    const preview = document.getElementById('carousel-preview');
-    const titleInput = document.getElementById('carousel-title');
-    const descriptionInput = document.getElementById('carousel-description');
-    const modeInput = document.getElementById('carousel-mode');
-    const btn = document.getElementById('btn-save-carousel');
-    if (!form || !fileInput || !imageUrlInput || !preview || !btn) return;
-    if (form.dataset.carouselAdminReady === 'true') return;
-    form.dataset.carouselAdminReady = 'true';
-
-    const fixedHomeBannerId = 'BANNER-HOME-01';
-    let pendingCarouselFiles = [];
-    if (modeInput) {
-        if (modeInput.tagName === 'SELECT' && !modeInput.options.length) {
-            modeInput.innerHTML = `
-                <option value="add">A&ntilde;adir al carrusel</option>
-                <option value="replace">Reemplazar portada principal</option>
-            `;
-        }
-        modeInput.value = 'add';
-    }
-    form.classList.add('carousel-admin-form');
-    preview.classList.add('carousel-upload-zone');
-    fileInput.style.display = 'none';
-    fileInput.closest('.form-group')?.classList.add('carousel-native-file-group');
-
-    if (!form.querySelector('.carousel-admin-intro')) {
-        const intro = document.createElement('div');
-        intro.className = 'carousel-admin-intro';
-        intro.innerHTML = `
-            <div>
-                <span>Carrusel principal</span>
-                <strong>Agrega imagenes para que el banner rote en el inicio</strong>
-                <p>Selecciona varias imagenes a la vez o arrastralas aqui. Cada imagen se guarda como un slide independiente.</p>
-            </div>
-            <button type="button" class="admin-btn carousel-pick-btn" id="carousel-pick-files-btn">A&ntilde;adir imagenes</button>
-        `;
-        form.insertBefore(intro, preview);
-    }
-
-    if (!form.querySelector('.carousel-selected-note')) {
-        const note = document.createElement('div');
-        note.className = 'carousel-selected-note';
-        note.id = 'carousel-selected-note';
-        note.textContent = 'Sin imagenes seleccionadas';
-        preview.insertAdjacentElement('afterend', note);
-    }
-
-    const pickFilesBtn = document.getElementById('carousel-pick-files-btn');
-    const selectedNote = document.getElementById('carousel-selected-note');
-    let bannerManager = document.getElementById('carousel-banner-manager');
-    if (!bannerManager) {
-        bannerManager = document.createElement('div');
-        bannerManager.id = 'carousel-banner-manager';
-        bannerManager.className = 'carousel-banner-manager';
-        bannerManager.innerHTML = `
-            <div class="carousel-admin-intro">
-                <div>
-                    <span>Banners subidos</span>
-                    <strong>Imagenes activas en el carrusel</strong>
-                    <p>Revisa lo que ya esta publicado y limpia el carrusel si quieres empezar de nuevo.</p>
-                </div>
-                <button type="button" class="admin-btn" id="btn-clear-carousel">Limpiar banners</button>
-            </div>
-            <div class="carousel-uploaded-list" id="carousel-uploaded-list"></div>
-        `;
-        preview.insertAdjacentElement('afterend', bannerManager);
-    }
-    const clearCarouselBtn = document.getElementById('btn-clear-carousel');
-    const uploadedBannersList = document.getElementById('carousel-uploaded-list');
-    let editingCarouselBannerId = '';
-
-    function getCarouselBannerRecordId(banner) {
-        return getInventoryVariationId(banner) || banner?.idVariacion || banner?.ID || banner?.['ID Variacion'] || '';
-    }
-
-    function getCarouselBannerImage(banner) {
-        return normalizeImageUrl(banner?.Imagen || banner?.['Imagen Principal'] || banner?.imagen || banner?.Foto || '');
-    }
-
-    function getCarouselBannerTitle(banner, fallback = 'Original Store') {
-        return banner?.Nombre || banner?.['Nombre del Producto'] || fallback;
-    }
-
-    function getCarouselBannerDescription(banner) {
-        return banner?.Descripcion || banner?.['Caracteristicas del producto'] || banner?.Color || '';
-    }
-
-    function getCarouselBannerById(id) {
-        const cleanId = String(id || '').trim();
-        return (Array.isArray(inventario) ? inventario : []).find(item => getCarouselBannerRecordId(item) === cleanId);
-    }
-
-    async function deactivateCarouselBanner(banner) {
-        const id = getCarouselBannerRecordId(banner);
-        if (!id) throw new Error('No se encontro el ID del banner');
-        const motherId = getInventoryMotherId(banner) || banner?.['ID Producto'] || id;
-        await postProductToGoogleSheets({
-            ...banner,
-            __adminOriginalId: id,
-            'ID Variacion': id,
-            'ID Variaci\u00f3n': id,
-            idVariacion: id,
-            'ID Producto': motherId,
-            ID_Producto: motherId,
-            idProducto: motherId,
-            Categoria: 'BANNER',
-            categoria: 'BANNER',
-            Estado: 'Inactivo'
-        }, true);
-    }
-
-    function getBannerRecordId(banner) {
-        return banner?.idVariacion || banner?.ID || banner?.['ID Variacion'] || banner?.['ID Variación'] || banner?.['ID Variación'] || '';
-    }
-
-    function getActiveCarouselBanners() {
-        return (Array.isArray(inventario) ? inventario : [])
-            .filter(item => String(item.Categoria || item.categoria || '').toUpperCase() === 'BANNER')
-            .filter(item => String(item.Estado || item.estado || 'Activo').toLowerCase() !== 'inactivo')
-            .filter(item => getCarouselBannerImage(item));
-    }
-
-    function renderUploadedBanners() {
-        if (!uploadedBannersList) return;
-        const banners = getActiveCarouselBanners();
-        clearCarouselBtn?.toggleAttribute('disabled', !banners.length);
-        if (!banners.length) {
-            uploadedBannersList.innerHTML = '<div class="carousel-uploaded-empty">No hay banners activos todavia.</div>';
-            return;
-        }
-
-        uploadedBannersList.innerHTML = banners.map((banner, index) => {
-            const image = getCarouselBannerImage(banner);
-            const name = getCarouselBannerTitle(banner, `Banner ${index + 1}`);
-            const id = getCarouselBannerRecordId(banner) || 'Sin ID';
-            return `
-                <article class="carousel-uploaded-item" data-banner-id="${escapeHtml(id)}">
-                    <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" onerror="this.style.opacity='.35'">
-                    <div>
-                        <strong>${escapeHtml(name)}</strong>
-                        <span>${escapeHtml(id)}</span>
-                    </div>
-                    <div class="carousel-uploaded-actions">
-                        <button type="button" class="admin-btn secondary" data-carousel-banner-action="edit" data-banner-id="${escapeHtml(id)}">Cambiar</button>
-                        <button type="button" class="admin-btn secondary" data-carousel-banner-action="delete" data-banner-id="${escapeHtml(id)}">Eliminar</button>
-                    </div>
-                </article>
-            `;
-        }).join('');
-    }
-    window.renderUploadedBanners = renderUploadedBanners;
-
-    uploadedBannersList?.addEventListener('click', async event => {
-        const actionBtn = event.target.closest('[data-carousel-banner-action]');
-        if (!actionBtn) return;
-        const id = actionBtn.dataset.bannerId || '';
-        const banner = getCarouselBannerById(id);
-        if (!banner) {
-            showToast('No se encontro ese banner en inventario', 'warning');
-            return;
-        }
-
-        if (actionBtn.dataset.carouselBannerAction === 'edit') {
-            editingCarouselBannerId = id;
-            form.dataset.editingBannerId = id;
-            imageUrlInput.value = getCarouselBannerImage(banner);
-            if (titleInput) titleInput.value = getCarouselBannerTitle(banner, '');
-            if (descriptionInput) descriptionInput.value = getCarouselBannerDescription(banner);
-            if (modeInput) modeInput.value = 'add';
-            pendingCarouselFiles = [];
-            renderCarouselPreview(imageUrlInput.value);
-            btn.textContent = 'Guardar cambios del banner';
-            form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            showToast('Banner cargado para cambiar', 'success');
-            return;
-        }
-
-        if (!confirm('Quieres eliminar este banner del carrusel?')) return;
-        const originalText = actionBtn.textContent;
-        actionBtn.disabled = true;
-        actionBtn.textContent = 'Eliminando...';
-        try {
-            await deactivateCarouselBanner(banner);
-            inventario = (Array.isArray(inventario) ? inventario : []).map(item => (
-                getCarouselBannerRecordId(item) === id ? { ...item, Estado: 'Inactivo' } : item
-            ));
-            renderUploadedBanners();
-            clearPublicProductsCache();
-            showToast('Banner eliminado del carrusel', 'success');
-        } catch (error) {
-            console.error(error);
-            showToast(error.message || 'No se pudo eliminar el banner', 'error');
-            actionBtn.disabled = false;
-            actionBtn.textContent = originalText;
-        }
-    });
-
-    clearCarouselBtn?.addEventListener('click', async () => {
-        const banners = getActiveCarouselBanners();
-        if (!banners.length) {
-            showToast('No hay banners activos para limpiar', 'warning');
-            return;
-        }
-        if (!confirm(`Quieres desactivar ${banners.length} banner${banners.length === 1 ? '' : 's'} del carrusel?`)) return;
-
-        const originalText = clearCarouselBtn.textContent;
-        clearCarouselBtn.disabled = true;
-        clearCarouselBtn.textContent = 'Limpiando...';
-        try {
-            for (const banner of banners) {
-                await deactivateCarouselBanner(banner);
-                continue;
-                const id = getBannerRecordId(banner);
-                await postProductToGoogleSheets({
-                    ...banner,
-                    'ID Variacion': id,
-                    'ID Variación': id,
-                    'ID Producto': banner.idProducto || banner['ID Producto'] || id,
-                    ID_Producto: banner.idProducto || banner['ID Producto'] || id,
-                    Estado: 'Inactivo'
-                }, true);
-            }
-            inventario = (Array.isArray(inventario) ? inventario : []).map(item => (
-                String(item.Categoria || item.categoria || '').toUpperCase() === 'BANNER'
-                    ? { ...item, Estado: 'Inactivo' }
-                    : item
-            ));
-            renderUploadedBanners();
-            clearPublicProductsCache();
-            showToast('Carrusel limpiado correctamente', 'success');
-            setTimeout(() => cargarInventario({ silent: true }).then(renderUploadedBanners), 1200);
-        } catch (error) {
-            console.error(error);
-            showToast(error.message || 'No se pudieron limpiar los banners', 'error');
-        } finally {
-            clearCarouselBtn.disabled = false;
-            clearCarouselBtn.textContent = originalText;
-        }
-    });
-
-    const openFilePicker = (event) => {
-        event?.preventDefault();
-        event?.stopPropagation();
-        fileInput.click();
-    };
-    pickFilesBtn?.addEventListener('click', openFilePicker);
-    preview.addEventListener('click', openFilePicker);
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        preview.addEventListener(eventName, (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            preview.classList.add('drag-over');
-        });
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        preview.addEventListener(eventName, (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            preview.classList.remove('drag-over');
-        });
-    });
-
-    function updateCarouselSelectedNote(count) {
-        if (!selectedNote) return;
-        selectedNote.textContent = count
-            ? `${count} imagen${count === 1 ? '' : 'es'} lista${count === 1 ? '' : 's'} para guardar`
-            : 'Sin imagenes seleccionadas';
-    }
-
-    function makeCarouselBannerId() {
-        return 'BANNER-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
-    }
-
-    function renderCarouselPreview(src) {
-        preview.innerHTML = `<img src="${src}" alt="Preview carrusel">`;
-        updateCarouselSelectedNote(src ? 1 : 0);
-    }
-
-    function renderCarouselPreviewList(files) {
-        const imageFiles = Array.from(files || []).filter(file => file && file.type?.startsWith('image/'));
-        if (!imageFiles.length) {
-            preview.innerHTML = '<div class="carousel-empty-preview"><strong>Arrastra tus banners aqui</strong><span>o usa el boton A&ntilde;adir imagenes</span></div>';
-            updateCarouselSelectedNote(0);
-            return;
-        }
-
-        const columns = Math.min(imageFiles.length, 4);
-        preview.innerHTML = `<div class="carousel-preview-grid" style="grid-template-columns:repeat(${columns}, minmax(0, 1fr));"></div>`;
-        const grid = preview.querySelector('div');
-        imageFiles.slice(0, 8).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const img = document.createElement('img');
-                img.src = reader.result;
-                img.alt = 'Preview carrusel';
-                grid?.appendChild(img);
-            };
-            reader.readAsDataURL(file);
-        });
-        updateCarouselSelectedNote(imageFiles.length);
-    }
-    renderCarouselPreviewList([]);
-    renderUploadedBanners();
-
-    function buildCarouselBannerPayload(imageUrl, options = {}) {
-        const index = options.index || 0;
-        const total = options.total || 1;
-        const bannerId = options.bannerId || makeCarouselBannerId();
-        const baseTitle = titleInput?.value?.trim() || 'Original Store';
-        const title = total > 1 ? `${baseTitle} ${index + 1}` : baseTitle;
-        const description = descriptionInput?.value?.trim() || '';
-
-        return {
-            'ID Variacion': bannerId,
-            'ID Variación': bannerId,
-            idVariacion: bannerId,
-            'ID Producto': bannerId,
-            ID_Producto: bannerId,
-            idProducto: bannerId,
-            'Nombre del Producto': title,
-            Nombre: title,
-            Categoria: 'BANNER',
-            categoria: 'BANNER',
-            Catalogo: 'Ambos',
-            'Categoría': 'BANNER',
-            Precio: 0,
-            'Precio Mayor': 0,
-            'Stock Inicial': 1,
-            Stock: 1,
-            Cantidad: 1,
-            'Imagen Principal': imageUrl,
-            Imagen_Principal: imageUrl,
-            Imagen: imageUrl,
-            imagen: imageUrl,
-            image: imageUrl,
-            url: imageUrl,
-            Color: description,
-            'Caracteristicas del producto': description,
-            Descripcion: description,
-            Estilo: 'Inicio',
-            Estado: 'Activo'
-        };
-    }
-
-    async function deactivateOtherHomeBanners(activeId) {
-        let source = Array.isArray(inventario) ? inventario : [];
-        if (!source.length) {
-            try {
-                const res = await fetch(GOOGLE_SHEET_PRODUCTS_URL + '&_=' + Date.now(), { cache: 'no-store' });
-                const data = await res.json();
-                source = normalizeInventoryList(Array.isArray(data) ? data : (data.data || data.productos || []));
-            } catch (error) {
-                console.warn('No se pudieron leer banners actuales antes de reemplazar:', error);
-                source = [];
-            }
-        }
-
-        const banners = source.filter(item => {
-            const category = String(item.Categoria || item.categoria || '').toUpperCase();
-            const id = item.idVariacion || item.ID || item['ID Variacion'] || item['ID Variación'] || '';
-            return category === 'BANNER' && id && id !== activeId;
-        });
-
-        for (const banner of banners) {
-            const id = banner.idVariacion || banner.ID || banner['ID Variacion'] || banner['ID Variación'];
-            try {
-                await postProductToGoogleSheets({
-                    ...banner,
-                    'ID Variacion': id,
-                    'ID Variación': id,
-                    'ID Producto': banner.idProducto || banner['ID Producto'] || id,
-                    ID_Producto: banner.idProducto || banner['ID Producto'] || id,
-                    Estado: 'Inactivo'
-                }, true);
-            } catch (error) {
-                console.warn('No se pudo desactivar banner anterior:', id, error);
-            }
-        }
-    }
-
-    fileInput.addEventListener('change', () => {
-        const files = Array.from(fileInput.files || []).filter(file => file && file.type.startsWith('image/'));
-        pendingCarouselFiles = files;
-        if (!files.length) {
-            renderCarouselPreviewList([]);
-            return;
-        }
-
-        renderCarouselPreviewList(files);
-    });
-
-    imageUrlInput.addEventListener('input', () => {
-        const url = imageUrlInput.value.trim();
-        if (url) {
-            preview.innerHTML = `<img src="${escapeHtml(url)}" alt="Preview carrusel" onerror="this.parentElement.innerHTML='<span>No se pudo cargar la URL</span>'">`;
-            pendingCarouselFiles = [];
-            updateCarouselSelectedNote(1);
-        }
-    });
-
-    preview.addEventListener('drop', (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        preview.classList.remove('drag-over');
-        const files = Array.from(event.dataTransfer?.files || []).filter(file => file && file.type.startsWith('image/'));
-        if (!files.length) {
-            showToast('Arrastra solo imagenes para el carrusel', 'warning');
-            return;
-        }
-        pendingCarouselFiles = files;
-        renderCarouselPreviewList(files);
-        showToast(`${files.length} imagen${files.length === 1 ? '' : 'es'} lista${files.length === 1 ? '' : 's'} para guardar`, 'success');
-    });
-
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        const originalText = btn.textContent;
-        let finalButtonText = originalText;
-        btn.disabled = true;
-        btn.textContent = 'Guardando banner...';
-
-        try {
-            const files = pendingCarouselFiles.length
-                ? pendingCarouselFiles
-                : Array.from(fileInput.files || []).filter(file => file && file.type.startsWith('image/'));
-            const mode = modeInput?.value || 'add';
-            const editingBannerId = form.dataset.editingBannerId || editingCarouselBannerId;
-            const imageUrls = [];
-
-            if (files.length) {
-                for (let index = 0; index < files.length; index += 1) {
-                    btn.textContent = `Optimizando imagen ${index + 1} de ${files.length}...`;
-                    const uploadedUrl = await uploadCarouselImage(files[index], 'banners');
-                    imageUrls.push(uploadedUrl);
-                }
-                imageUrlInput.value = imageUrls[0] || '';
-            } else {
-                const imageUrl = imageUrlInput.value.trim();
-                if (imageUrl) imageUrls.push(imageUrl);
-            }
-
-            if (!imageUrls.length) {
-                throw new Error('Sube una o varias imagenes, o pega una URL');
-            }
-
-            if (editingBannerId && imageUrls.length > 1) {
-                throw new Error('Para cambiar un banner existente, selecciona solo una imagen');
-            }
-
-            if (!editingBannerId && mode === 'replace') {
-                await deactivateOtherHomeBanners(fixedHomeBannerId);
-            }
-
-            const bannerPayloads = imageUrls.map((imageUrl, index) => buildCarouselBannerPayload(imageUrl, {
-                index,
-                total: imageUrls.length,
-                bannerId: editingBannerId || (mode === 'replace' && index === 0 ? fixedHomeBannerId : makeCarouselBannerId())
-            }));
-
-            btn.textContent = bannerPayloads.length > 1 ? 'Guardando banners...' : 'Guardando banner...';
-            if (editingBannerId) {
-                bannerPayloads[0].__adminOriginalId = editingBannerId;
-                await postProductToGoogleSheets(bannerPayloads[0], true);
-            } else if (bannerPayloads.length === 1) {
-                await postProductToGoogleSheets(bannerPayloads[0], false);
-            } else {
-                await saveProductListToGoogleSheets(bannerPayloads, { fallbackEditOverride: false });
-            }
-
-            const plural = bannerPayloads.length === 1 ? '' : 's';
-            showToast(editingBannerId ? 'Banner actualizado correctamente' : (mode === 'replace' ? 'Portada de inicio actualizada' : `${bannerPayloads.length} banner${plural} anadido${plural} al carrusel`), 'success');
-            form.reset();
-            editingCarouselBannerId = '';
-            delete form.dataset.editingBannerId;
-            finalButtonText = 'Guardar banner';
-            pendingCarouselFiles = [];
-            if (modeInput) modeInput.value = 'add';
-            renderCarouselPreviewList([]);
-            inventario = editingBannerId
-                ? (Array.isArray(inventario) ? inventario : []).map(item => getCarouselBannerRecordId(item) === editingBannerId ? normalizeGoogleProduct(bannerPayloads[0]) : item)
-                : bannerPayloads.concat(Array.isArray(inventario) ? inventario : []);
-            renderUploadedBanners();
-            clearPublicProductsCache();
-            setTimeout(() => cargarInventario({ silent: true }).then(renderUploadedBanners), 2000);
-        } catch (error) {
-            console.error(error);
-            showToast(error.message || 'No se pudo guardar el banner');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = finalButtonText;
-        }
-    });
-
-    form.addEventListener('submit-old-disabled', async (event) => {
-        event.preventDefault();
-        const originalText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = 'Guardando banner...';
-
-        try {
-            const file = fileInput.files?.[0];
-            let imageUrl = imageUrlInput.value.trim();
-            if (file) {
-                btn.textContent = 'Optimizando imagen...';
-                imageUrl = await uploadCarouselImage(file, 'banners');
-                imageUrlInput.value = imageUrl;
-            }
-
-            if (!imageUrl) {
-                throw new Error('Sube una imagen o pega una URL');
-            }
-
-            const title = titleInput.value.trim() || 'Original Store';
-            const description = descriptionInput.value.trim();
-            const mode = modeInput?.value || 'replace';
-            const bannerId = mode === 'replace' ? fixedHomeBannerId : makeCarouselBannerId();
-            const bannerPayload = {
-                'ID Variacion': bannerId,
-                'ID Variación': bannerId,
-                idVariacion: bannerId,
-                'ID Producto': bannerId,
-                ID_Producto: bannerId,
-                idProducto: bannerId,
-                'Nombre del Producto': title,
-                Nombre: title,
-                Categoria: 'BANNER',
-                categoria: 'BANNER',
-                Catalogo: 'Ambos',
-                'Categoría': 'BANNER',
-                Precio: 0,
-                'Precio Mayor': 0,
-                'Stock Inicial': 1,
-                Stock: 1,
-                Cantidad: 1,
-                'Imagen Principal': imageUrl,
-                Imagen_Principal: imageUrl,
-                Imagen: imageUrl,
-                imagen: imageUrl,
-                image: imageUrl,
-                url: imageUrl,
-                Color: description,
-                'Caracteristicas del producto': description,
-                Descripcion: description,
-                Estilo: 'Inicio',
-                Estado: 'Activo'
-            };
-
-            if (mode === 'replace') {
-                await deactivateOtherHomeBanners(bannerId);
-            }
-
-            await postProductToGoogleSheets(bannerPayload, false);
-
-            showToast(mode === 'replace' ? 'Imagen de inicio actualizada' : 'Banner añadido al carrusel de inicio', 'success');
-            form.reset();
-            if (modeInput) modeInput.value = 'replace';
-            preview.innerHTML = '<span>Selecciona una imagen para previsualizarla</span>';
-            // Borrar cache público para que el cambio se vea de inmediato
-            clearPublicProductsCache();
-            setTimeout(() => cargarInventario({ silent: true }), 2000);
-        } catch (error) {
-            console.error(error);
-            showToast(error.message || 'No se pudo guardar el banner');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = originalText;
-        }
-    });
-
-    // Configurar Drag & Drop para Banner
-    setupDragAndDrop('carousel-preview', (url, file) => {
-        imageUrlInput.value = url;
-        const reader = new FileReader();
-        reader.onload = () => {
-            renderCarouselPreview(reader.result);
-        };
-        reader.readAsDataURL(file);
-    });
-}
-
 function initInventorySearch() {
     const input = document.getElementById('admin-inventory-search');
     const categorySelect = document.getElementById('admin-inventory-category-filter');
@@ -6359,7 +5886,6 @@ function writeInventoryCache(list) {
 function clearPublicProductsCache() {
     try {
         localStorage.removeItem(PUBLIC_PRODUCTS_CACHE_KEY);
-        localStorage.setItem('original_store_catalog_revision:' + GOOGLE_SHEET_API, Date.now() + '-' + Math.random());
         localStorage.removeItem('blyxu_products_cache_v2');
         localStorage.removeItem(SITE_CONFIG_CACHE_KEY);
     } catch (e) {
@@ -6597,12 +6123,13 @@ function getInventoryQrReference(product) {
     );
 }
 
-function getInventoryQrImageUrl(reference, size = 440) {
+function getInventoryQrImageUrl(reference, size = 440, correction = 'H') {
     const cleanReference = String(reference || '').trim();
     const dimension = Math.max(180, Math.min(800, Number(size) || 440));
-    const localQr = qrcode(0, 'H');
+    const localQr = qrcode(0, correction === 'M' ? 'M' : 'H');
     localQr.addData(cleanReference); localQr.make();
-    return localQr.createDataURL(Math.max(2,Math.floor(dimension/(localQr.getModuleCount()+8))),16);
+    const moduleSize = Math.max(2,Math.floor(dimension/(localQr.getModuleCount()+8)));
+    return localQr.createDataURL(moduleSize, moduleSize * 4);
 }
 
 function encodeInventoryWholesalePrice(value) {
@@ -6629,7 +6156,7 @@ function getInventoryQrTicketData(product) {
     const wholesalePrice = parseAdminInvoiceMoney(product?.Precio_Mayorista || product?.['Precio Mayor'] || product?.['Precio Mayorista'] || 0);
     return {
         reference,
-        name: product?.Nombre || product?.Producto || 'Producto Original Store',
+        name: product?.Nombre || product?.Producto || 'Producto BLYXU',
         sku: String(product?.SKU || '').trim(),
         variationId: getInventoryVariationId(product),
         motherId: getInventoryMotherId(product),
@@ -6657,7 +6184,7 @@ function getProductFormQrTicketData(source = null) {
     const wholesalePrice = parseAdminInvoiceMoney(data['Precio Mayor'] || data['Precio Mayorista'] || getInputValue('prod-precio-mayorista') || 0);
     return {
         reference,
-        name: data.Nombre || data['Nombre del Producto'] || getInputValue('prod-nombre') || 'Producto Original Store',
+        name: data.Nombre || data['Nombre del Producto'] || getInputValue('prod-nombre') || 'Producto BLYXU',
         sku,
         variationId,
         motherId,
@@ -6706,164 +6233,14 @@ function setInventoryQrText(id, value) {
     if (el) el.textContent = value;
 }
 
-
-// One physical layout for preview and thermal printing; QR payload remains unchanged.
-const INVENTORY_LABEL_CSS = `
-.os-label{box-sizing:border-box;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;text-align:left;overflow:hidden;position:relative}
-.os-label *{box-sizing:border-box}
-.os-label-layout{position:absolute;inset:0;width:50mm;height:30mm;padding:1mm;display:grid;grid-template-columns:minmax(0,1fr) 23mm;gap:2mm;transform-origin:top left}
-.os-label-content{min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:.15mm}
-.os-label .os-label-logo{width:21mm;height:11.5mm;object-fit:contain;align-self:center;display:block;aspect-ratio:auto}
-.os-label .os-label-qr{width:23mm;height:23mm;align-self:center;object-fit:contain;display:block;image-rendering:pixelated;aspect-ratio:1}
-.os-label-id{font-size:6.5pt;line-height:1.05;font-weight:700;overflow-wrap:anywhere}
-.os-label-name{font-size:5pt;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.os-label-price{font-size:12pt;line-height:1;font-weight:800;white-space:nowrap}
-.os-label-pm{font-size:6pt;line-height:1;font-weight:400}
-.os-label-compact .os-label-layout{width:40mm;height:15mm;grid-template-columns:9mm 13mm minmax(0,1fr);gap:1mm;padding:1mm}
-.os-label-compact .os-label-logo{width:9mm;height:13mm;align-self:center}
-.os-label-compact .os-label-qr{width:13mm;height:13mm}
-.os-label-compact .os-label-content{justify-content:center;gap:1mm}
-.os-label-compact .os-label-id{font-size:4.8pt}
-.os-label-compact .os-label-price{font-size:8pt}
-.os-label-compact .os-label-pm{font-size:5.5pt}
-`;
-
-function getInventoryLabelSize(options = {}) {
-    const compact = ['40x15','30x15'].includes(options.format) || (!options.format && [30,40].includes(Number(options.width)) && Number(options.height) === 15);
-    return compact ? {width:40,height:15,compact:true,format:'40x15'} : {width:50,height:30,compact:false,format:'50x30'};
-}
-
-function getInventoryLabelQrImage(reference, size = 800) {
-    const qr = qrcode(0, 'M');
-    qr.addData(String(reference || '').trim()); qr.make();
-    const cell = Math.max(3,Math.floor(size / (qr.getModuleCount() + 8)));
-    return qr.createDataURL(cell, cell * 4);
-}
-
-function renderInventoryLabel(ticket, options = {}, preview = false) {
-    const id = ticket.variationId || ticket.sku || ticket.motherId || ticket.reference;
-    const {width,height,compact} = getInventoryLabelSize(options);
-    const fit = preview ? Math.min(1,230/(width*3.7795),160/(height*3.7795)) : 1;
-    const logo = '<img class="os-label-logo" src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store">';
-    const qr = `<img class="os-label-qr" src="${escapeHtml(getInventoryLabelQrImage(ticket.reference))}" alt="QR de la referencia">`;
-    const info = `<div class="os-label-content">
-        ${!compact ? logo : ''}
-        <div class="os-label-id">ID ${escapeHtml(id)}</div>
-        ${options.name && !compact ? `<div class="os-label-name">${escapeHtml(ticket.name)}</div>` : ''}
-        <div class="os-label-price">${escapeHtml(formatAdminMoney(ticket.price))}</div>
-        <div class="os-label-pm">PM: ${escapeHtml(ticket.wholesaleCode || '-')}</div>
-    </div>`;
-    return `<div class="os-label${compact ? ' os-label-compact' : ''}" style="width:${width*fit}mm;height:${height*fit}mm"><div class="os-label-layout" style="transform:scale(${fit})">${compact ? logo + qr + info : info + qr}</div></div>`;
-}
-
-let inventoryLabelImage = { key: '', promise: null, file: null };
-function prepareInventoryLabelImage(ticket, options) {
-    const key = JSON.stringify([ticket.reference, ticket.variationId, ticket.sku, ticket.name, ticket.price, ticket.wholesaleCode, options.name, options.format, options.width, options.height]);
-    if (inventoryLabelImage.key === key) return inventoryLabelImage.promise;
-    const state = inventoryLabelImage = { key, promise: null, file: null };
-    state.promise = (async () => {
-        const loadImage = (src, cors = false) => new Promise((resolve, reject) => {
-            const img = new Image();
-            if (cors) img.crossOrigin = 'anonymous';
-            img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error('No se pudo cargar el logo de la etiqueta. Intenta nuevamente.'));
-            img.src = src;
-        });
-        const [qr, logo] = await Promise.all([
-            loadImage(getInventoryLabelQrImage(ticket.reference)),
-            loadImage('https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180', true)
-        ]);
-        // Preserve QR proportions and fit all information within the chosen paper size.
-        const canvas = document.createElement('canvas');
-        const size = getInventoryLabelSize(options);
-        canvas.width = Math.round(size.width * 300 / 25.4); canvas.height = Math.round(size.height * 300 / 25.4);
-        const c = canvas.getContext('2d');
-        c.fillStyle = '#fff'; c.fillRect(0, 0, canvas.width, canvas.height);
-        // Work in millimetres so both presets retain square QR modules and readable type.
-        c.setTransform(canvas.width/size.width,0,0,canvas.height/size.height,0,0);
-        const leftWidth = size.compact ? 14 : 23;
-        const qrSize = size.compact ? 13 : 23;
-        const qrX = size.compact ? 11 : size.width - 1 - qrSize;
-        c.imageSmoothingEnabled = false;
-        c.drawImage(qr,qrX,(size.height-qrSize)/2,qrSize,qrSize);
-        c.imageSmoothingEnabled = true;
-        const logoHeight = size.compact ? 13 : 11.5;
-        const logoWidth = size.compact ? 9 : leftWidth;
-        const ratio = Math.min(logoWidth/logo.naturalWidth,logoHeight/logo.naturalHeight);
-        const lw=logo.naturalWidth*ratio,lh=logo.naturalHeight*ratio;
-        c.drawImage(logo,1+(logoWidth-lw)/2,1+(logoHeight-lh)/2,lw,lh);
-        c.fillStyle='#111';c.textBaseline='top';
-        const fontMm=(pt)=>pt*25.4/72;
-        const infoX = size.compact ? 25 : 1;
-        const id= 'ID '+String(ticket.variationId||ticket.sku||ticket.motherId||ticket.reference);
-        let font=fontMm(size.compact?4.8:6.5),lines=[];
-        const wrap=()=>{
-            c.font='bold '+font+'px Arial';lines=[];let line='';
-            for(const char of id){if(line&&c.measureText(line+char).width>leftWidth){lines.push(line);line='';}line+=char;}
-            if(line)lines.push(line);
-        };
-        wrap();while(lines.length>2&&font>fontMm(size.compact?3:4)){font-=.1;wrap();}
-        const idY=size.compact?2:13;
-        lines.forEach((text,i)=>c.fillText(text,infoX,idY+i*font*1.05,leftWidth));
-        if(options.name&&!size.compact){
-            c.font=fontMm(5)+'px Arial';let name=String(ticket.name||'');
-            if(c.measureText(name).width>leftWidth){while(name&&c.measureText(name+'…').width>leftWidth)name=name.slice(0,-1);name+='…';}
-            c.fillText(name,1,19.1);
-        }
-        c.font='bold '+fontMm(size.compact?8:12)+'px Arial';
-        c.fillText(formatAdminMoney(ticket.price),infoX,size.compact?7.7:22,leftWidth);
-        c.font=fontMm(size.compact?5.5:6)+'px Arial';
-        c.fillText('PM: '+(ticket.wholesaleCode||'-'),infoX,size.compact?11.2:27,leftWidth);
-        const blob = await new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('No se pudo crear la imagen.')), 'image/png'));
-        const filename = 'Original-Store-' + String(ticket.variationId || ticket.sku || ticket.reference).replace(/[^a-zA-Z0-9_-]/g, '-') + '-' + size.width + 'x' + size.height + '.png';
-        const file = new File([blob], filename, { type: 'image/png' });
-        state.file = file;
-        return file;
-    })();
-    // Prepares sharing while the panel is open, preserving the click's user activation.
-    state.promise.catch(() => {});
-    return state.promise;
-}
-
-function getCurrentInventoryLabelImage() {
-    const modal = document.getElementById('inventory-qr-modal');
-    if (!modal?.dataset.ticketJson) throw new Error('Abre primero la etiqueta de un producto.');
-    return prepareInventoryLabelImage(JSON.parse(modal.dataset.ticketJson), getInventoryQrTicketOptions());
-}
-
-function downloadInventoryLabelFile(file) {
-    const url = URL.createObjectURL(file);
-    const link = document.createElement('a');
-    link.href = url; link.download = file.name;
-    document.body.appendChild(link); link.click(); link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 30000);
-}
-
-window.downloadInventoryQrLabel = async function() {
-    try { downloadInventoryLabelFile(await getCurrentInventoryLabelImage()); }
-    catch (error) { inventoryLabelImage.key = ''; showToast(error.message || 'No se pudo descargar la etiqueta.', 'error'); }
-};
-
-window.shareInventoryQrLabel = async function() {
-    try {
-        const pending = getCurrentInventoryLabelImage();
-        window.open('https://wa.me/573222431225', '_blank', 'noopener');
-        downloadInventoryLabelFile(await pending);
-        showToast('Etiqueta descargada. Adjunta la imagen en el chat de 3222431225 y pulsa Enviar.', 'info');
-    } catch (error) {
-        inventoryLabelImage.key = '';
-        showToast('No se pudo preparar la imagen. Intenta Descargar imagen nuevamente.', 'warning');
-    }
-};
-
 function getInventoryQrTicketOptions() {
     const modal = document.getElementById('inventory-qr-modal');
     const defaults = {
-        name: true,
-        reference: true,
+        name: false,
+        reference: false,
         sku: true,
-        category: true,
-        stock: true,
+        category: false,
+        stock: false,
         price: true,
         pm: true
     };
@@ -6872,43 +6249,30 @@ function getInventoryQrTicketOptions() {
     modal.querySelectorAll('[data-qr-option]').forEach(input => {
         defaults[input.dataset.qrOption] = input.checked;
     });
-    defaults.format = document.getElementById('inventory-label-format')?.value || '50x30';
-    defaults.sku = defaults.price = defaults.pm = true;
+    const compact = modal.querySelector('#inventory-label-size')?.value === '40x15';
+    defaults.width = compact ? 40 : 50;
+    defaults.height = compact ? 15 : 30;
+    if (compact) { defaults.name = false; defaults.reference = false; }
     return defaults;
 }
 
 window.updateInventoryQrPreviewOptions = function() {
     const modal = document.getElementById('inventory-qr-modal');
     if (!modal) return;
-    if (!modal.dataset.sizeInitialized) {
-        try {
-            const saved = JSON.parse(localStorage.getItem('original-store-label-size') || '{}');
-            const size = getInventoryLabelSize(saved);
-            document.getElementById('inventory-label-format').value = size.format;
-        } catch (error) {}
-        modal.dataset.sizeInitialized = 'true';
-    }
     const options = getInventoryQrTicketOptions();
-    const size = getInventoryLabelSize(options);
-    options.width = size.width; options.height = size.height;
-    document.getElementById('inventory-label-format').value = size.format;
-    const nameOption = modal.querySelector('[data-qr-option="name"]');
-    if (nameOption) nameOption.disabled = size.compact;
-    try { localStorage.setItem('original-store-label-size', JSON.stringify({format:size.format})); } catch(error) {}
-    modal.querySelectorAll('[data-label-dimensions]').forEach(el => el.textContent = size.width + ' × ' + size.height + ' mm');
-    const preview = document.getElementById('inventory-label-preview');
-    if (preview && modal.dataset.ticketJson) {
-        try {
-            const ticket = JSON.parse(modal.dataset.ticketJson);
-            preview.innerHTML = renderInventoryLabel(ticket, options, true);
-            prepareInventoryLabelImage(ticket, options);
-        }
-        catch (error) { preview.textContent = 'No se pudo preparar la etiqueta.'; }
-    }
+    modal.querySelectorAll('[data-qr-option="name"], [data-qr-option="reference"]').forEach(input => { input.disabled = options.width === 40; });
     modal.querySelectorAll('[data-qr-element]').forEach(element => {
         const key = element.dataset.qrElement;
         element.hidden = options[key] === false;
     });
+    const preview = document.getElementById('inventory-label-preview');
+    if (preview && modal.dataset.ticketJson) {
+        try {
+            preview.innerHTML = buildInventoryQrLabel(JSON.parse(modal.dataset.ticketJson), options) + `<small>${options.width} × ${options.height} mm · tamaño de impresión</small>`;
+            requestAnimationFrame(() => window.prepareInventoryLabelImage?.().catch(() => {}));
+        }
+        catch (error) { console.warn('No se pudo mostrar la etiqueta', error); }
+    }
 };
 
 window.openInventoryQrTicket = function(key) {
@@ -6968,57 +6332,52 @@ window.copyInventoryQrReference = function() {
     showToast('Copia manualmente la referencia del ticket', 'info');
 };
 
+function buildInventoryQrLabel(ticket, options = {}) {
+    const brandLogo = document.querySelector('.sidebar-logo img');
+    const logo = brandLogo?.src || new URL('Logo2-nav.png', window.location.href).href;
+    const id = ticket.variationId || ticket.sku || ticket.motherId || ticket.reference;
+    const compact = Number(options.width) === 40 && Number(options.height) === 15;
+    const width = compact ? 40 : 50;
+    const height = compact ? 15 : 30;
+    const scale = Math.min(width/50,height/30);
+    const logoMarkup = `<img class="iq-logo" src="${escapeHtml(logo)}" alt="${escapeHtml(brandLogo?.alt || 'BLYXU')}">`;
+    return `<section class="iq-label${compact ? ' iq-compact' : ''}" data-width="${width}" data-height="${height}" style="--iq-width:${width}mm;--iq-height:${height}mm;--iq-scale:${scale}" aria-label="Etiqueta de producto ${width} por ${height} milímetros">
+        ${compact ? logoMarkup : ''}
+        <img class="iq-qr" src="${escapeHtml(getInventoryQrImageUrl(ticket.reference, 400, compact ? 'M' : 'H'))}" alt="QR ${escapeHtml(ticket.reference)}">
+        <div class="iq-copy">
+            ${compact ? '' : logoMarkup}
+            <b class="iq-id">ID: ${escapeHtml(id)}</b>
+            ${options.name && !compact ? `<span class="iq-name">${escapeHtml(ticket.name)}</span>` : ''}
+            <b class="iq-price">${escapeHtml(formatAdminMoney(ticket.price))}</b>
+            <span class="iq-pm">PM: ${escapeHtml(ticket.wholesaleCode || '-')}</span>
+            ${options.reference && !compact && ticket.reference !== id ? `<span class="iq-reference">${escapeHtml(ticket.reference)}</span>` : ''}
+        </div>
+    </section>`;
+}
+
 window.printInventoryQrTicket = function() {
     const modal = document.getElementById('inventory-qr-modal');
     const product = getInventoryProductByKey(modal?.dataset.productKey || '');
     let ticket = product ? getInventoryQrTicketData(product) : null;
     if (!ticket && modal?.dataset.ticketJson) {
-        try {
-            ticket = JSON.parse(modal.dataset.ticketJson);
-        } catch (error) {
-            ticket = null;
-        }
+        try { ticket = JSON.parse(modal.dataset.ticketJson); } catch (_) {}
     }
-    if (!ticket?.reference) {
-        showToast('No se encontro el producto para imprimir', 'error');
-        return;
-    }
-    const options = getInventoryQrTicketOptions();
-    const {width, height} = getInventoryLabelSize(options);
+    if (!ticket?.reference) { showToast('No se encontro el producto para imprimir', 'error'); return; }
     const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-        showToast('El navegador bloqueo la ventana de impresion', 'warning');
-        return;
-    }
-
+    if (!printWindow) { showToast('El navegador bloqueo la ventana de impresion', 'warning'); return; }
+    const cssUrl = new URL('inventory-qr-label.css?v=label-40x15-20261009', window.location.href).href;
+    const options = getInventoryQrTicketOptions();
     printWindow.document.open();
-    printWindow.document.write(`<!DOCTYPE html><html lang="es"><head>
-        <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Etiqueta Original Store — ${width} × ${height} mm</title>
-        <style>
-            ${INVENTORY_LABEL_CSS}
-            html,body{margin:0;background:#f4f4f5;color:#111}
-            body{padding:20px;font-family:Arial,sans-serif}
-            .os-label{margin:16px auto;box-shadow:0 0 0 1px #ddd}
-            .toolbar{text-align:center;font-size:13px}
-            .toolbar button{padding:12px 20px;border:0;border-radius:8px;background:#8a2846;color:white;cursor:pointer}
-            @media print{
-                @page{size:${width}mm ${height}mm;margin:0}
-                html,body{width:${width}mm;height:${height}mm;padding:0;background:#fff}
-                .toolbar{display:none}
-                .os-label{margin:0;box-shadow:none;break-inside:avoid}
-            }
-        </style></head><body>
-        <div class="toolbar"><p>${width} × ${height} mm · Escala 100 % · Sin márgenes ni encabezados</p><button onclick="window.print()">Imprimir etiqueta</button></div>
-        ${renderInventoryLabel(ticket, options)}
-        <script>
-        window.addEventListener('load', function () {
-            if (Array.from(document.images).every(function(img){return img.complete && img.naturalWidth > 0;})) window.print();
-        });
-        <\/script></body></html>`);
+    printWindow.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+        <title>Etiqueta ${options.width}x${options.height} ${escapeHtml(ticket.reference)}</title>
+        <link rel="stylesheet" href="${escapeHtml(cssUrl)}">
+        <style>body{margin:0;padding:24px;background:#eee;font-family:Arial,sans-serif}.toolbar{text-align:center;margin-bottom:20px}.toolbar button{padding:12px 18px;cursor:pointer}.iq-label{margin:0 auto}@media print{@page{size:${options.width}mm ${options.height}mm;margin:0}html,body{width:${options.width}mm !important;height:${options.height}mm !important}.toolbar{display:none}}</style>
+        </head><body><div class="toolbar"><button onclick="window.print()">Imprimir etiqueta ${options.width} × ${options.height} mm</button><p>Escala 100 % · sin márgenes ni encabezados.</p></div>
+        ${buildInventoryQrLabel(ticket, options)}
+        <script>window.addEventListener('load',function(){window.print();});<\/script>
+        </body></html>`);
     printWindow.document.close();
 };
-
 function getInventoryEditLabel(product, index) {
     const name = product?.Nombre || product?.Producto || 'Producto sin nombre';
     const variant = getInventoryVariationId(product);
@@ -7062,7 +6421,7 @@ function inventoryRowTemplate(p, index, itemMeta) {
         }
 
         return '<tr class="' + rowClass + '">'
-            + '<td><img src="' + (p.Imagen || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180') + '" width="46" height="46" loading="lazy" referrerpolicy="no-referrer" style="border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);vertical-align:middle;" onerror="handleInventoryImageError(this)"></td>'
+            + '<td><img src="' + (p.Imagen || 'Logo2.png') + '" width="46" height="46" loading="lazy" referrerpolicy="no-referrer" style="border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,0.1);vertical-align:middle;" onerror="handleInventoryImageError(this)"></td>'
             + '<td><div style="font-weight:800;font-size:14px;color:#fff;">' + (p.Nombre || p.Producto || 'Producto General') + '</div>'
             + '<div style="font-size:10px;margin-top:5px;">' + badgeHtml
             + (groupSize > 1 ? ' <span class="variant-count-badge" style="margin-left:4px;">' + groupSize + ' variantes</span>' : '')
@@ -7082,7 +6441,7 @@ function inventoryRowTemplate(p, index, itemMeta) {
         var stockColor = stockVal > 0 ? '#10B981' : '#EF4444';
 
         return '<tr class="' + rowClass + '" style="display:' + displayStyle + ';">'
-            + '<td><span class="tree-connector"></span><img src="' + (p.Imagen || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180') + '" width="30" height="30" loading="lazy" referrerpolicy="no-referrer" style="border-radius:4px;object-fit:cover;vertical-align:middle;" onerror="handleInventoryImageError(this)"></td>'
+            + '<td><span class="tree-connector"></span><img src="' + (p.Imagen || 'Logo2.png') + '" width="30" height="30" loading="lazy" referrerpolicy="no-referrer" style="border-radius:4px;object-fit:cover;vertical-align:middle;" onerror="handleInventoryImageError(this)"></td>'
             + '<td><div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);">' + (p.Nombre || p.Producto || '') + '</div>'
             + '<div style="font-size:10px;margin-top:3px;"><span class="mother-badge-id" style="font-size:9px;">' + motherId + '</span>'
             + ' <span class="variant-badge-id">' + (p.idVariacion || p.ID || '-') + '</span>'
@@ -7269,7 +6628,7 @@ function getInventoryProductsForCatalogPdf(selectedCategory) {
         // Si encontramos una variante con mejor imagen o datos más completos, actualizar el producto base
         const currentImg = normalizeImageUrl(group.product?.Imagen || group.product?.['Imagen Principal'] || '');
         const candidateImg = normalizeImageUrl(p?.Imagen || p?.['Imagen Principal'] || '');
-        if ((!currentImg || currentImg === 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180') && candidateImg && candidateImg !== 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180') {
+        if ((!currentImg || currentImg === 'Logo2.png') && candidateImg && candidateImg !== 'Logo2.png') {
             group.product = p;
         }
 
@@ -7351,9 +6710,9 @@ function buildInventoryCatalogPrintHtml(products, options = {}) {
         const isLastPage = pageIndex === totalPages - 1;
 
         const cardsHtml = pageItems.map(p => {
-            const name = p.Nombre || p.Producto || 'Producto Original Store';
+            const name = p.Nombre || p.Producto || 'Producto BLYXU';
             const rawImg = normalizeImageUrl(p.Imagen || p['Imagen Principal'] || '');
-            const imgSrc = rawImg || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+            const imgSrc = rawImg || 'Logo2.png';
             const ref = p._displayRef || p.idVariacion || p.ID || p.idProducto || p['ID Producto'] || p['ID Variacion'] || p.SKU || '';
             const price = Number(p.Precio || 0) || 0;
             const wholesalePrice = Number(p.Precio_Mayorista || p['Precio Mayor'] || p['Precio_Mayor'] || 0) || 0;
@@ -7386,7 +6745,7 @@ function buildInventoryCatalogPrintHtml(products, options = {}) {
             return `
                 <div class="catalog-card">
                     <div class="catalog-card-img-wrap">
-                        <img src="${escapeHtml(imgSrc)}" alt="" class="catalog-card-img" loading="eager" crossorigin="anonymous" onerror="this.onerror=null;this.src='https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'">
+                        <img src="${escapeHtml(imgSrc)}" alt="" class="catalog-card-img" loading="eager" crossorigin="anonymous" onerror="this.onerror=null;this.src='Logo2.png'">
                     </div>
                     <div class="catalog-card-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
                     ${metaLineHtml}
@@ -7400,7 +6759,7 @@ function buildInventoryCatalogPrintHtml(products, options = {}) {
                 <div class="catalog-print-page-content">
                     <div class="catalog-print-header">
                         <div class="catalog-print-brand">
-                            <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" class="catalog-print-logo-img" onerror="this.style.display='none'">
+                            <img src="Logo2.png" alt="BLYXU" class="catalog-print-logo-img" onerror="this.style.display='none'">
                             <div>
                                 <h1>Catálogo de Productos</h1>
                                 <p>Categoría: <strong>${escapeHtml(categoryTitle)}</strong></p>
@@ -7416,7 +6775,7 @@ function buildInventoryCatalogPrintHtml(products, options = {}) {
                     </div>
                 </div>
                 <div class="catalog-print-footer">
-                    <span>Original Store · Catálogo Oficial (${escapeHtml(categoryTitle)})</span>
+                    <span>BLYXU · Catálogo Oficial (${escapeHtml(categoryTitle)})</span>
                     <span>Expedido el ${escapeHtml(dateShort)}</span>
                     <span>Página ${pageIndex + 1} de ${totalPages}</span>
                 </div>
@@ -7450,14 +6809,14 @@ function loadJsPdfLibrary() {
 }
 
 function getPdfFriendlyImageUrl(url) {
-    const normalized = normalizeImageUrl(url || '', 'thumb') || '';
+    const normalized = normalizeImageUrl(url || '', 800) || '';
     const driveId = normalized.match(/[?&]id=([^&]+)/)?.[1]
         || normalized.match(/drive\.google\.com\/file\/d\/([^/?&#]+)/)?.[1]
         || normalized.match(/googleusercontent\.com\/d\/([^=?&#]+)/)?.[1];
     if (driveId) {
-        return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveId)}=w420`;
+        return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveId)}=w800`;
     }
-    return normalized || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+    return normalized || 'Logo2.png';
 }
 
 function getInventoryPdfProductImage(product) {
@@ -7502,7 +6861,8 @@ function resizeImageForPdf(src, maxEdge = 96) {
             try {
                 const width = img.naturalWidth || img.width || maxEdge;
                 const height = img.naturalHeight || img.height || maxEdge;
-                const scale = Math.min(1, maxEdge / Math.max(width, height));
+                // Fill the PDF photo area even when the original is a small thumbnail.
+                const scale = maxEdge / Math.max(width, height);
                 const drawWidth = Math.max(1, Math.round(width * scale));
                 const drawHeight = Math.max(1, Math.round(height * scale));
                 const canvas = document.createElement('canvas');
@@ -7524,7 +6884,7 @@ function resizeImageForPdf(src, maxEdge = 96) {
 }
 
 async function imageUrlToPdfDataUrl(url, maxEdge = 96) {
-    const cleanUrl = normalizeImageUrl(url || '', Math.max(96, maxEdge)) || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+    const cleanUrl = normalizeImageUrl(url || '', Math.max(800, maxEdge)) || 'Logo2.png';
     try {
         const response = await fetch(cleanUrl, { mode: 'cors', cache: 'force-cache' });
         if (!response.ok) throw new Error('Imagen no disponible');
@@ -7540,7 +6900,7 @@ async function imageUrlToPdfDataUrl(url, maxEdge = 96) {
             return await resizeImageForPdf(cleanUrl, maxEdge);
         } catch (directError) {
             try {
-                return await resizeImageForPdf('https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180', maxEdge);
+                return await resizeImageForPdf('Logo2.png', maxEdge);
             } catch (fallbackError) {
                 return '';
             }
@@ -7550,23 +6910,18 @@ async function imageUrlToPdfDataUrl(url, maxEdge = 96) {
 
 function drawInventoryPdfHeader(doc, meta) {
     const pageWidth = doc.internal.pageSize.getWidth();
-    doc.setDrawColor(234, 223, 229);
-    doc.line(10, 31, pageWidth - 10, 31);
+    doc.setFillColor(18, 18, 24);
+    doc.rect(0, 0, pageWidth, 27, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(135, 51, 79);
     doc.setFontSize(15);
-    doc.text('Original Store', 10, 12);
-    doc.setFontSize(8);
-    doc.text('CATALOGO DE PRODUCTOS', pageWidth - 10, 12, {align:'right'});
+    doc.text('BLYXU - Catálogo de productos', 10, 10.5);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(112, 100, 107);
-    doc.setFontSize(7);
-    doc.text(meta.fullDateString, 10, 18);
-    doc.text(meta.priceModeLabel, pageWidth - 10, 18, {align:'right'});
-    doc.setTextColor(53, 42, 50);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text(doc.splitTextToSize(meta.categoryTitle, pageWidth - 20).slice(0, 2), 10, 25);
+    doc.setFontSize(8.5);
+    doc.text(doc.splitTextToSize(`Categorías: ${meta.categoryTitle}`, 135).slice(0, 1), 10, 16.5);
+    doc.text(`Expedido: ${meta.fullDateString}`, 10, 22);
+    doc.text(`Productos: ${meta.totalProducts}`, pageWidth - 10, 16.5, { align: 'right' });
+    doc.text(meta.priceModeLabel, pageWidth - 10, 22, { align: 'right' });
 }
 
 function drawInventoryPdfFooter(doc, pageNumber) {
@@ -7577,7 +6932,7 @@ function drawInventoryPdfFooter(doc, pageNumber) {
     doc.setTextColor(120, 120, 120);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.text('Original Store - Catálogo de inventario', 10, pageHeight - 7);
+    doc.text('BLYXU - Catálogo de inventario', 10, pageHeight - 7);
     doc.text(`Página ${pageNumber}`, pageWidth - 10, pageHeight - 7, { align: 'right' });
 }
 
@@ -7592,123 +6947,24 @@ function drawInventoryPdfTableHeader(doc, columns, y) {
 }
 
 async function buildInventoryPdfRows(products) {
-    const rows = new Array(products.length);
-    const images = new Map();
-    let nextIndex = 0;
-    async function worker() {
-        while (nextIndex < products.length) {
-            const index = nextIndex++;
-            const product = products[index];
-            const priceDetal = Number(product.Precio || product.precio || 0) || 0;
-            const priceMayor = Number(product.Precio_Mayorista || product.precio_mayorista || product.Mayorista || product['Precio Mayor'] || product['Precio_Mayor'] || 0) || 0;
-            const imageUrl = getInventoryPdfProductImage(product);
-            if (!images.has(imageUrl)) images.set(imageUrl, imageUrlToPdfDataUrl(imageUrl, 600));
-            rows[index] = {
-                image: await images.get(imageUrl),
-                name: String(product.Nombre || product.Producto || 'Producto Original Store').trim(),
-                reference: String(getInventoryPdfReference(product) || '').trim(),
-                qrReference: getInventoryQrReference(product),
-                categoryKey: normalizeInventoryCategoryKey(product.Categoria || product.categoria || '-'),
-                categoryLabel: formatInventoryCategoryLabel(product.Categoria || product.categoria || '-'),
-                detal: priceDetal > 0 ? formatAdminMoney(priceDetal) : '-',
-                mayorista: priceMayor > 0 ? formatAdminMoney(priceMayor) : '-'
-            };
-        }
+    const rows = [];
+    for (const product of products) {
+        const priceDetal = Number(product.Precio || product.precio || 0) || 0;
+        const priceMayor = Number(product.Precio_Mayorista || product.precio_mayorista || product.Mayorista || product['Precio Mayor'] || product['Precio_Mayor'] || 0) || 0;
+        rows.push({
+            image: await imageUrlToPdfDataUrl(getInventoryPdfProductImage(product), 600),
+            qrReference: getInventoryQrReference(product),
+            name: String(product.Nombre || product.Producto || 'Producto BLYXU').trim(),
+            reference: String(getInventoryPdfReference(product) || '').trim(),
+            sizes: Array.isArray(product._availableSizes) ? product._availableSizes.filter(Boolean).join(', ') : '',
+            categoryKey: normalizeInventoryCategoryKey(product.Categoria || product.categoria || '-'),
+            categoryLabel: formatInventoryCategoryLabel(product.Categoria || product.categoria || '-'),
+            category: formatInventoryCategoryLabel(product.Categoria || product.categoria || '-'),
+            detal: priceDetal > 0 ? formatAdminMoney(priceDetal) : '-',
+            mayorista: priceMayor > 0 ? formatAdminMoney(priceMayor) : '-'
+        });
     }
-    await Promise.all(Array.from({length:Math.min(4, products.length)}, worker));
     return rows;
-}
-
-function drawInventoryCatalogQr(doc, reference, x, y, size = 20) {
-    if (!reference) return;
-    const qr = qrcode(0, 'M');
-    qr.addData(reference);
-    qr.make();
-    const count = qr.getModuleCount();
-    const quiet = 4;
-    const unit = size / (count + quiet * 2);
-    doc.setFillColor(255, 255, 255);
-    doc.rect(x, y, size, size, 'F');
-    doc.setFillColor(0, 0, 0);
-    for (let row = 0; row < count; row++) {
-        for (let col = 0; col < count;) {
-            if (!qr.isDark(row, col)) {col++;continue;}
-            const start = col;
-            while (col < count && qr.isDark(row, col)) col++;
-            doc.rect(x + (start + quiet) * unit, y + (row + quiet) * unit, (col - start) * unit, unit, 'F');
-        }
-    }
-}
-
-function drawInventoryCatalogCard(doc, row, x, y, options) {
-    const width = 92;
-    doc.setDrawColor(234, 223, 229);
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(x, y, width, 118, 3, 3, 'FD');
-    if (row.image) doc.addImage(row.image, 'JPEG', x + 6, y + 3, 80, 80);
-    else {
-        doc.setFillColor(250, 247, 249);
-        doc.roundedRect(x + 6, y + 3, 80, 80, 2, 2, 'F');
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(118, 103, 113);
-        doc.setFontSize(8);
-        doc.text('Imagen no disponible', x + width / 2, y + 44, {align:'center'});
-    }
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(53, 42, 50);
-    doc.setFontSize(8);
-    const nameLines = doc.splitTextToSize(row.name, 60);
-    if (nameLines.length > 2) nameLines[1] = nameLines[1].replace(/\s+\S*$/, '') + '...';
-    doc.text(nameLines.slice(0, 2), x + 4, y + 88);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.3);
-    doc.setTextColor(112, 100, 107);
-    doc.text(doc.splitTextToSize('Ref: ' + (row.reference || '-'), 60).slice(0, 2), x + 4, y + 98);
-    const prices = [
-        ...(options.showDetal ? [{label:'DETAL', value:row.detal}] : []),
-        ...(options.showMayorista ? [{label:'MAYORISTA', value:row.mayorista}] : [])
-    ];
-    prices.forEach((price, index) => {
-        const px = x + 4 + index * 31;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(6);
-        doc.setTextColor(112, 100, 107);
-        doc.text(price.label, px, y + 106);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(135, 51, 79);
-        const availableWidth = prices.length === 1 ? 60 : 29;
-        let fontSize = 12;
-        doc.setFontSize(fontSize);
-        while (fontSize > 8 && doc.getTextWidth(price.value) > availableWidth) doc.setFontSize(fontSize -= 0.5);
-        doc.text(price.value, px, y + 112);
-    });
-    drawInventoryCatalogQr(doc, row.qrReference, x + 68, y + 88, 20);
-    if (row.qrReference) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(5.5);
-        doc.setTextColor(112, 100, 107);
-        doc.text('QR pedido', x + 78, y + 112, {align:'center'});
-    }
-}
-
-function renderInventoryCatalogCards(doc, rows, meta, options) {
-    const categories = new Map();
-    rows.forEach(row => {
-        if (!categories.has(row.categoryKey)) categories.set(row.categoryKey, []);
-        categories.get(row.categoryKey).push(row);
-    });
-    let pageNumber = 0;
-    for (const categoryRows of categories.values()) {
-        for (let start = 0; start < categoryRows.length; start += 4) {
-            if (pageNumber) doc.addPage();
-            pageNumber++;
-            drawInventoryPdfHeader(doc, {...meta, categoryTitle:categoryRows[0].categoryLabel});
-            categoryRows.slice(start, start + 4).forEach((row, index) => {
-                drawInventoryCatalogCard(doc, row, 10 + (index % 2) * 98, 36 + Math.floor(index / 2) * 126, options);
-            });
-            drawInventoryPdfFooter(doc, pageNumber);
-        }
-    }
 }
 
 async function downloadInventoryCatalogPdf() {
@@ -7774,14 +7030,19 @@ async function downloadInventoryCatalogPdf() {
             priceModeLabel: `Precios: ${priceModeLabel}`
         };
 
-        renderInventoryCatalogCards(doc, rows, meta, {showDetal, showMayorista});
+        const pageNumber = window.BlyxuInventoryPdf.draw(doc, rows, {
+            showDetal, showMayorista, meta,
+            makeQr: qrcode,
+            header: drawInventoryPdfHeader,
+            footer: drawInventoryPdfFooter
+        });
         const cleanCategorySlug = String(categoryText || 'inventario')
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
             .replace(/[^a-zA-Z0-9_-]+/g, '-')
             .replace(/-+/g, '-')
             .replace(/^-|-$/g, '') || 'inventario';
-        const fileName = `Catalogo-Original-Store-${cleanCategorySlug}-${dateSlug}.pdf`;
+        const fileName = `Inventario-BLYXU-${cleanCategorySlug}-${dateSlug}.pdf`;
         const blobUrl = URL.createObjectURL(doc.output('blob'));
         const previewWindow = window.open(blobUrl, '_blank');
         if (!previewWindow) {
@@ -7812,6 +7073,46 @@ function initInventoryPdfExport() {
     btn.addEventListener('click', downloadInventoryCatalogPdf);
 }
 
+function buildRegisteredVariantEditPayload(row, idProducto) {
+    const originalId = row.dataset.originalVarid;
+    const originalMainId = document.getElementById('product-form')?.dataset.originalVariationId;
+    const originalMain = inventario.find(item => getInventoryVariationId(item) === originalMainId);
+    const originalMotherId = originalMain ? getInventoryMotherId(originalMain) : idProducto;
+    const original = inventario.find(item => getInventoryVariationId(item) === originalId && getInventoryMotherId(item) === originalMotherId);
+    if (!original) throw new Error('No se encontró la variante ' + originalId + '. Actualiza el inventario.');
+    const value = selector => row.querySelector(selector)?.value?.trim() ?? '';
+    const id = value('.ve-id');
+    if (!id) throw new Error('La variante necesita una referencia.');
+    const stock = Number(value('.ve-stock'));
+    if (!Number.isFinite(stock) || stock < 0) throw new Error('Revisa el stock de ' + id + '.');
+    if (/^-/.test(value('.ve-precio')) || /^-/.test(value('.ve-precio-mayorista'))) throw new Error('Los precios no pueden ser negativos: ' + id);
+    const price = parseAmount(value('.ve-precio'));
+    const wholesale = parseAmount(value('.ve-precio-mayorista'));
+    if (price < 0 || wholesale < 0) throw new Error('Los precios no pueden ser negativos: ' + id);
+    const image = value('.ve-imagen') || getInputValue('prod-imagen') || original.Imagen || '';
+    const size = value('.ve-tamano');
+    const data = {
+        ...original,
+        __adminOriginalId: originalId,
+        'ID Variacion': id, 'ID Variación': id, idVariacion: id, ID: id,
+        'ID Producto': idProducto, idProducto,
+        Nombre: getInputValue('prod-nombre'), 'Nombre del Producto': getInputValue('prod-nombre'),
+        Precio: price, precio: price,
+        'Precio Mayor': wholesale, Precio_Mayorista: wholesale, precio_mayorista: wholesale, Mayorista: wholesale,
+        Cantidad: stock, Stock: stock,
+        Descripcion: getInputValue('prod-descripcion'),
+        Tamano: size, Talla: size, 'Tamaño': size,
+        ...getVariantEditMeasurementPayload(row, size),
+        Color: value('.ve-color'), Estilo: cleanProductStyleValue(value('.ve-estilo')),
+        SKU: value('.ve-sku'), Imagen: image, 'Imagen Principal': image,
+        Catalogo: getInputValue('prod-catalogo') || original.Catalogo || 'Ambos'
+    };
+    setProductCategoryAliases(data, getInputValue('prod-categoria'));
+    setProductPromotionAliases(data, getInputValue('prod-promocion'));
+    setProductBarcodeAliases(data, value('.ve-barcode') || makeProductBarcode(idProducto, id));
+    return applyAutomaticStockStatus(data);
+}
+
 function buildVariantEditorCardHtml(v, idProducto) {
     var vid = getInventoryVariationId(v) || '-';
     var safeVid = escapeHtml(vid);
@@ -7826,15 +7127,15 @@ function buildVariantEditorCardHtml(v, idProducto) {
     var vCapacidad = v.Capacidad || (vUnidadMedida === 'ml' ? vAncho : '');
     var vTallaTextil = v.TallaTextil || v['Talla Textil'] || '';
     var vColor = v.Color || '-';
-    var vStock = v.Stock || v.Cantidad || 0;
+    var vStock = v.Stock ?? v.Cantidad ?? 0;
     var vPrecio = Number(v.Precio || 0).toLocaleString('es-CO');
     var vSku = v.SKU || '-';
     var vBarcode = getProductBarcode(v);
-    var vImage = normalizeImageUrl(v.Imagen || v['Imagen Principal'] || '') || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+    var vImage = normalizeImageUrl(v.Imagen || v['Imagen Principal'] || '') || 'Logo2.png';
     var barcodeInputId = 've-barcode-' + cleanInventoryId(vid);
     var html = '';
 
-    html += '<article class="variant-edit-card" data-varid="' + safeVid + '">';
+    html += '<article class="variant-edit-card is-editing" data-varid="' + safeVid + '">';
     html += '<div class="variant-edit-summary">';
     html += '<div class="variant-edit-thumb"><img src="' + escapeHtml(vImage) + '" alt="" onerror="handleInventoryImageError(this)"></div>';
     html += '<div><span>ID variante</span><strong>' + escapeHtml(vid) + '</strong></div>';
@@ -7842,16 +7143,16 @@ function buildVariantEditorCardHtml(v, idProducto) {
     html += '<div><span>Stock</span><b style="color:' + (Number(vStock) > 0 ? '#10B981' : '#EF4444') + ';">' + escapeHtml(vStock) + '</b></div>';
     html += '<div><span>Precio</span><b>$' + escapeHtml(vPrecio) + '</b></div>';
     html += '<div><span>SKU</span><b>' + escapeHtml(vSku) + '</b></div>';
-    html += '<button type="button" class="admin-btn secondary variant-edit-toggle" aria-expanded="false" onclick="expandirVarianteEdicion(\'' + vid + '\')">Editar</button>';
+    html += '<button type="button" class="admin-btn secondary variant-edit-toggle" aria-expanded="true" onclick="expandirVarianteEdicion(\'' + vid + '\')">Ocultar</button>';
     html += '</div>';
 
-    html += '<div class="variant-edit-panel var-edit-expanded" id="var-expand-' + safeVid + '" data-original-varid="' + safeVid + '">';
-    html += '<section class="variant-edit-section"><h5><span>01</span> Identidad e imagen</h5><div class="variant-edit-grid">';
+    html += '<div class="variant-edit-panel var-edit-expanded is-open" id="var-expand-' + safeVid + '" data-original-varid="' + safeVid + '">';
+    html += '<details class="variant-edit-section"><summary>Referencia, código e imagen</summary><div class="variant-edit-grid">';
     html += '<div><label>ID</label><input class="form-control ve-id" value="' + escapeHtml(vid) + '"></div>';
     html += '<div><label>SKU</label><input class="form-control ve-sku" value="' + escapeHtml(v.SKU || '') + '"></div>';
     html += '<div><label>Codigo barras</label><div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;"><input class="form-control ve-barcode" id="' + barcodeInputId + '" value="' + escapeHtml(vBarcode) + '"><button type="button" class="admin-btn secondary" onclick="scanBarcodeToElement(\'' + barcodeInputId + '\')" style="width:auto;min-height:40px;padding:8px 12px;font-size:10px;">Scan</button></div></div>';
     html += '<div style="grid-column:1/-1;"><label>Imagen URL</label><input class="form-control ve-imagen" value="' + escapeHtml(v.Imagen || '') + '" placeholder="https://..."></div>';
-    html += '</div></section>';
+    html += '</div></details>';
 
     html += '<section class="variant-edit-section"><h5><span>02</span> Atributos visibles</h5><div class="variant-edit-grid">';
     html += '<div><label>Estilo</label><input class="form-control ve-estilo" value="' + escapeHtml(vEstilo) + '"></div>';
@@ -7861,11 +7162,11 @@ function buildVariantEditorCardHtml(v, idProducto) {
 
     html += '<section class="variant-edit-section"><h5><span>03</span> Precios e inventario</h5><div class="variant-edit-grid">';
     html += '<div><label>Stock</label><input type="number" class="form-control ve-stock" value="' + escapeHtml(vStock) + '"></div>';
-    html += '<div><label>Precio detal</label><input class="form-control ve-precio" value="' + escapeHtml(v.Precio || '') + '"></div>';
-    html += '<div><label>Precio mayorista</label><input class="form-control ve-precio-mayorista" value="' + escapeHtml(v.Precio_Mayorista || v.precio_mayorista || v.Mayorista || v['Precio Mayor'] || '') + '"></div>';
+    html += '<div><label>Precio detal</label><input class="form-control ve-precio" value="' + escapeHtml(v.Precio ?? '') + '"></div>';
+    html += '<div><label>Precio mayorista</label><input class="form-control ve-precio-mayorista" value="' + escapeHtml(v.Precio_Mayorista ?? v.precio_mayorista ?? v.Mayorista ?? v['Precio Mayor'] ?? '') + '"></div>';
     html += '</div></section>';
 
-    html += '<section class="variant-edit-section"><h5><span>04</span> Medidas opcionales</h5><div class="variant-edit-grid four">';
+    html += '<details class="variant-edit-section"><summary>Medidas opcionales</summary><div class="variant-edit-grid four">';
     html += '<div><label>Tipo tamano</label><select class="form-control ve-size-kind"><option value=""' + (!vTipoMedida ? ' selected' : '') + '>Normal</option><option value="textil"' + (vTipoMedida === 'textil' ? ' selected' : '') + '>Textil</option><option value="medidas"' + (vTipoMedida === 'medidas' ? ' selected' : '') + '>Medidas</option><option value="liquido"' + (vTipoMedida === 'liquido' ? ' selected' : '') + '>Liquidos / ml</option></select></div>';
     html += '<div><label>Unidad</label><select class="form-control ve-measure-unit"><option value="cm"' + (vUnidadMedida === 'cm' ? ' selected' : '') + '>cm</option><option value="m"' + (vUnidadMedida === 'm' ? ' selected' : '') + '>m</option><option value="m3"' + (vUnidadMedida === 'm3' ? ' selected' : '') + '>m3</option><option value="ml"' + (vUnidadMedida === 'ml' ? ' selected' : '') + '>ml</option></select></div>';
     html += '<div><label>Capacidad ml</label><input class="form-control ve-measure-capacity" value="' + escapeHtml(vCapacidad) + '" placeholder="500"></div>';
@@ -7874,7 +7175,7 @@ function buildVariantEditorCardHtml(v, idProducto) {
     html += '<div><label>Largo</label><input class="form-control ve-measure-length" value="' + escapeHtml(vLargo) + '"></div>';
     html += '<div><label>Fondo</label><input class="form-control ve-measure-depth" value="' + escapeHtml(vFondo) + '"></div>';
     html += '<div><label>Radio</label><input class="form-control ve-measure-radius" value="' + escapeHtml(vRadio) + '"></div>';
-    html += '</div></section>';
+    html += '</div></details>';
 
     html += '<div class="variant-edit-actions">';
     html += '<button type="button" class="admin-btn secondary" onclick="cerrarVarianteEdicion(\'' + vid + '\')" style="width:auto;padding:9px 16px;font-size:11px;">Cerrar editor</button>';
@@ -7884,7 +7185,7 @@ function buildVariantEditorCardHtml(v, idProducto) {
 }
 
 function buildVariantEditorCardsHtml(variantes, idProducto) {
-    return '<div class="variant-editor-shell"><div class="variant-editor-head"><div><h4>Variantes de este ID (' + variantes.length + ')</h4><span>Ordenadas igual que el alta de producto: identidad, atributos, precios y medidas.</span></div></div>'
+    return '<div class="variant-editor-shell"><div class="variant-editor-head"><div><h4>Variantes de esta referencia (' + variantes.length + ')</h4><span>El producto seleccionado se edita arriba. Ajusta aquí las demás variantes y pulsa Guardar toda la referencia.</span></div></div>'
         + variantes.map(function (variant) { return buildVariantEditorCardHtml(variant, idProducto); }).join('')
         + '</div>';
 }
@@ -8086,34 +7387,8 @@ function getVariantEditMeasurementPayload(row, tamano = '') {
 window.guardarVarianteEditada = async function (vid, idProducto) {
     var row = document.getElementById('var-expand-' + vid);
     if (!row) return;
-    var editedTamano = row.querySelector('.ve-tamano')?.value || '';
-    var data = {
-        __adminOriginalId: vid,
-        'ID Variacion': row.querySelector('.ve-id').value,
-        'ID Producto': idProducto,
-        'Nombre del Producto': getInputValue('prod-nombre'),
-        Nombre: getInputValue('prod-nombre'),
-        Categoria: getInputValue('prod-categoria'),
-        'Categoría': getInputValue('prod-categoria'),
-        Precio: parseAmount(row.querySelector('.ve-precio').value || getInputValue('prod-precio')),
-        'Precio Mayor': parseAmount(row.querySelector('.ve-precio-mayorista')?.value || getInputValue('prod-precio-mayorista')),
-        Cantidad: Number(row.querySelector('.ve-stock').value || 0),
-        'Stock Inicial': Number(row.querySelector('.ve-stock').value || 0),
-        Descripcion: getInputValue('prod-descripcion'),
-        Tamano: editedTamano,
-        Talla: editedTamano,
-        'Tamaño': row.querySelector('.ve-tamano')?.value || '',
-        ...getVariantEditMeasurementPayload(row, editedTamano),
-        Color: row.querySelector('.ve-color').value,
-        Estilo: cleanProductStyleValue(row.querySelector('.ve-estilo')?.value || ''),
-        'Codigo Barras': row.querySelector('.ve-barcode')?.value || makeProductBarcode(idProducto, row.querySelector('.ve-id').value),
-        SKU: row.querySelector('.ve-sku').value,
-        Imagen: row.querySelector('.ve-imagen').value || getInputValue('prod-imagen'),
-        'Imagen Principal': row.querySelector('.ve-imagen').value || getInputValue('prod-imagen'),
-        Catalogo: getInputValue('prod-catalogo') || 'Ambos',
-        Estado: getInputValue('prod-estado') || 'Activo'
-    };
     try {
+        const data = buildRegisteredVariantEditPayload(row, idProducto);
         await postProductToGoogleSheets(data, true);
         clearPublicProductsCache();
         showToast('Variante actualizada', 'success');
@@ -8135,42 +7410,11 @@ window.guardarGrupoCompleto = async function (idProducto) {
     if (isEditingProduct && originalVariationId) motherData.__adminOriginalId = originalVariationId;
     itemsToSave.push(motherData);
 
-    // 2. Save all variants in the group, including collapsed edit rows.
-    var expandedRows = document.querySelectorAll('.var-edit-expanded');
-    for (var i = 0; i < expandedRows.length; i++) {
-        var row = expandedRows[i];
-        var vid = row.querySelector('.ve-id')?.value || '';
-        var editedTamano = row.querySelector('.ve-tamano')?.value || '';
-        var vdata = {
-            __adminOriginalId: row.getAttribute('id')?.replace('var-expand-', '') || vid,
-            'ID Variacion': vid,
-            'ID Producto': idProducto,
-            'Nombre del Producto': getInputValue('prod-nombre'),
-            Nombre: getInputValue('prod-nombre'),
-            Categoria: getInputValue('prod-categoria'),
-            'Categoría': getInputValue('prod-categoria'),
-            Precio: parseAmount(row.querySelector('.ve-precio')?.value || getInputValue('prod-precio')),
-            'Precio Mayor': parseAmount(row.querySelector('.ve-precio-mayorista')?.value || getInputValue('prod-precio-mayorista')),
-            Cantidad: Number(row.querySelector('.ve-stock')?.value || 0),
-            'Stock Inicial': Number(row.querySelector('.ve-stock')?.value || 0),
-            Descripcion: getInputValue('prod-descripcion'),
-            Tamano: editedTamano,
-            Talla: editedTamano,
-            'Tamaño': row.querySelector('.ve-tamano')?.value || '',
-            ...getVariantEditMeasurementPayload(row, editedTamano),
-            Color: row.querySelector('.ve-color')?.value || '',
-            Estilo: cleanProductStyleValue(row.querySelector('.ve-estilo')?.value || ''),
-            'Codigo Barras': row.querySelector('.ve-barcode')?.value || makeProductBarcode(idProducto, vid),
-            SKU: row.querySelector('.ve-sku')?.value || '',
-            Imagen: row.querySelector('.ve-imagen')?.value || getInputValue('prod-imagen'),
-            'Imagen Principal': row.querySelector('.ve-imagen')?.value || getInputValue('prod-imagen'),
-            Catalogo: getInputValue('prod-catalogo') || 'Ambos',
-            Estado: getInputValue('prod-estado') || 'Activo'
-        };
-        itemsToSave.push(vdata);
-    }
-
+    // Registered variant editors are included even when a card is collapsed.
     try {
+        itemsToSave.push(...Array.from(document.querySelectorAll('#variants-container .var-edit-expanded')).map(row => buildRegisteredVariantEditPayload(row, idProducto)));
+        validateProductEditReferences(itemsToSave);
+
         const savedList = await saveProductListToGoogleSheets(itemsToSave, {
             fallbackEditOverride: true
         });
@@ -8188,7 +7432,7 @@ window.guardarGrupoCompleto = async function (idProducto) {
 };
 
 function editarProducto(index) {
-    window.OriginalStoreSharedScan?.invalidate();
+    window.BlyxuSharedScan?.invalidateForm();
     var p = inventario[index];
     var idVar = p.idVariacion || p.ID || p['ID Variacion'] || p['ID Variación'] || '';
     var idProd = getInventoryMotherId(p);
@@ -8271,6 +7515,7 @@ function editarProducto(index) {
     }
     setInputValue('prod-estado', p.Estado || 'Activo');
     setInputValue('prod-fecha-creacion', p.Fecha_Creacion || p['Fecha de Creacion'] || '');
+    document.querySelector('#product-form .main-product-fold')?.setAttribute('open', '');
     setProductFormMode(true);
     updateLivePreview();
 
@@ -8457,6 +7702,7 @@ async function delFromSheet(id, idProd, rowMeta) {
             });
             var result = await res.json();
             if (result && (result.deleted > 0 || result.status === 'success' || result.ok === true)) {
+                clearPublicProductsCache();
                 console.log('Producto eliminado fisicamente de Google Sheets');
                 return true;
             }
@@ -8982,7 +8228,7 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
     ctx.clearRect(0, 0, w, h);
 
     if (!entries.length) {
-        ctx.fillStyle = '#766771';
+        ctx.fillStyle = 'rgba(248,244,255,.3)';
         ctx.font = '600 13px Inter, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('Sin datos de ventas', w / 2, h / 2);
@@ -8999,9 +8245,9 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
 
     // Grid lines + Y-axis labels
     const gridSteps = 4;
-    ctx.strokeStyle = '#eadfe5';
+    ctx.strokeStyle = 'rgba(255,255,255,.06)';
     ctx.lineWidth = 1;
-    ctx.fillStyle = '#766771';
+    ctx.fillStyle = 'rgba(248,244,255,.36)';
     ctx.font = '700 10px Inter, sans-serif';
     ctx.textAlign = 'right';
     for (let i = 0; i <= gridSteps; i++) {
@@ -9016,7 +8262,7 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
 
     // X-axis labels
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#766771';
+    ctx.fillStyle = 'rgba(248,244,255,.4)';
     ctx.font = '700 9px Inter, sans-serif';
     const step = entries.length > 1 ? chartW / (entries.length - 1) : 0;
     const points = values.map((v, i) => ({
@@ -9029,8 +8275,8 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
 
     // Area gradient
     const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
-    grad.addColorStop(0, 'rgba(138,40,70,.18)');
-    grad.addColorStop(1, 'rgba(138,40,70,.01)');
+    grad.addColorStop(0, 'rgba(244,196,65,.28)');
+    grad.addColorStop(1, 'rgba(244,196,65,.01)');
     ctx.beginPath();
     ctx.moveTo(points[0].x, padT + chartH);
     points.forEach(p => ctx.lineTo(p.x, p.y));
@@ -9041,8 +8287,8 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
 
     // Line
     const lineGrad = ctx.createLinearGradient(padL, 0, w - padR, 0);
-    lineGrad.addColorStop(0, '#8a2846');
-    lineGrad.addColorStop(1, '#087e80');
+    lineGrad.addColorStop(0, '#f4c441');
+    lineGrad.addColorStop(1, '#22d3ee');
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     for (let i = 1; i < points.length; i++) {
@@ -9059,16 +8305,16 @@ function drawDashboardAreaChart(canvasId, legendId, entries, total) {
     points.forEach((p, i) => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = i === points.length - 1 ? '#087e80' : '#8a2846';
+        ctx.fillStyle = i === points.length - 1 ? '#22d3ee' : '#f4c441';
         ctx.fill();
-        ctx.strokeStyle = '#fff';
+        ctx.strokeStyle = 'rgba(0,0,0,.5)';
         ctx.lineWidth = 1.5;
         ctx.stroke();
     });
 
     if (legendBox) {
         const totalFormatted = getDashboardMoney(total);
-        legendBox.innerHTML = `<div class="dashboard-chart-legend-item"><div class="dashboard-chart-legend-dot" style="background:linear-gradient(135deg,#8a2846,#087e80)"></div>Total: ${totalFormatted}</div><div class="dashboard-chart-legend-item"><div class="dashboard-chart-legend-dot" style="background:#087e80"></div>${entries.length} dias con ventas</div>`;
+        legendBox.innerHTML = `<div class="dashboard-chart-legend-item"><div class="dashboard-chart-legend-dot" style="background:linear-gradient(135deg,#f4c441,#22d3ee)"></div>Total: ${totalFormatted}</div><div class="dashboard-chart-legend-item"><div class="dashboard-chart-legend-dot" style="background:#22d3ee"></div>${entries.length} dias con ventas</div>`;
     }
 }
 
@@ -9090,7 +8336,7 @@ function drawDashboardDonutChart(canvasId, legendId, entries, total) {
     ctx.clearRect(0, 0, w, h);
 
     if (!entries.length) {
-        ctx.fillStyle = '#766771';
+        ctx.fillStyle = 'rgba(248,244,255,.3)';
         ctx.font = '600 13px Inter, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('Sin datos de categorias', w / 2, h / 2);
@@ -9099,8 +8345,8 @@ function drawDashboardDonutChart(canvasId, legendId, entries, total) {
     }
 
     const donutColors = [
-        '#8a2846', '#a55273', '#087e80', '#43aaa1',
-        '#b9375e', '#ac7c55', '#746179', '#b52c46'
+        '#f4c441', '#a855f7', '#22d3ee', '#10b981',
+        '#ec4899', '#f59e0b', '#6366f1', '#ef4444'
     ];
 
     const cx = w / 2;
@@ -9126,7 +8372,7 @@ function drawDashboardDonutChart(canvasId, legendId, entries, total) {
         ctx.arc(cx, cy, outerR, startAngle, startAngle + sliceAngle);
         ctx.arc(cx, cy, innerR, startAngle + sliceAngle, startAngle, true);
         ctx.closePath();
-        ctx.strokeStyle = '#fff';
+        ctx.strokeStyle = 'rgba(7,3,15,.6)';
         ctx.lineWidth = 2;
         ctx.stroke();
 
@@ -9134,12 +8380,12 @@ function drawDashboardDonutChart(canvasId, legendId, entries, total) {
     });
 
     // Center text
-    ctx.fillStyle = '#352a32';
+    ctx.fillStyle = '#fff';
     ctx.font = '950 22px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(String(total), cx, cy - 8);
-    ctx.fillStyle = '#766771';
+    ctx.fillStyle = 'rgba(248,244,255,.5)';
     ctx.font = '800 10px Inter, sans-serif';
     ctx.fillText('PRODUCTOS', cx, cy + 12);
 
@@ -9508,7 +8754,7 @@ function calculateAdminCostCalculator(options = {}) {
 function copyAdminCostCalculatorResult() {
     const result = calculateAdminCostCalculator({ save: true });
     const lines = [
-        'Calculadora Original Store',
+        'Calculadora BLYXU',
         `Cantidad: ${result.state.quantity || 1}`,
         `Costo unitario origen: ${result.state.unitCost || 0} ${result.state.currency}`,
         `Tasa USD: ${formatChinaCop(result.rates.usdRate)} | Tasa Yuan: ${formatChinaCop(result.rates.cnyRate)}`,
@@ -10680,8 +9926,8 @@ function buildChinaOrderPrintHtml(order) {
             <div class="china-print-header">
                 <div class="china-print-brand">
                     <div class="china-print-logo-box">
-                        <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" class="china-print-logo-img" onerror="this.style.display='none';">
-                        <h1 class="china-print-logo-title">Original Store</h1>
+                        <img src="blyxu-invoice-logo.png" alt="BLYXU" class="china-print-logo-img" onerror="this.style.display='none';">
+                        <h1 class="china-print-logo-title">BLYXU</h1>
                     </div>
                     <div class="china-print-title-group">
                         <h2>Pedido a China</h2>
@@ -10698,7 +9944,7 @@ function buildChinaOrderPrintHtml(order) {
         ` : `
             <div class="china-print-header compact">
                 <div class="china-print-brand">
-                    <h2>Original Store <span>| Pedido a China</span></h2>
+                    <h2>BLYXU <span>| Pedido a China</span></h2>
                     ${order.factory ? `<span class="china-print-factory-compact">Fábrica: <strong>${escapeHtml(order.factory)}</strong></span>` : ''}
                 </div>
                 <div class="china-print-meta compact">
@@ -10725,7 +9971,7 @@ function buildChinaOrderPrintHtml(order) {
                     ` : ''}
                 </div>
                 <div class="china-print-footer">
-                    <span>Original Store Promociones · Pedido a China ${escapeHtml(order.id || '')}</span>
+                    <span>BLYXU Promociones · Pedido a China ${escapeHtml(order.id || '')}</span>
                     <span>Página ${pageIndex + 1} de ${totalPages}</span>
                 </div>
             </div>
@@ -10787,7 +10033,7 @@ function openChinaOrderPrintWindow(order) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="${escapeHtml(baseUrl)}">
-    <title>Pedido-China-${escapeHtml(order.id || 'Original Store')}</title>
+    <title>Pedido-China-${escapeHtml(order.id || 'BLYXU')}</title>
     <style>${getChinaOrderPrintStyles()}</style>
 </head>
 <body>
@@ -10866,7 +10112,7 @@ async function printChinaOrderPdf(order) {
     }
 
     const previousTitle = document.title;
-    document.title = 'Pedido-China-' + String(order.id || 'Original Store').replace(/[^a-z0-9_-]/gi, '');
+    document.title = 'Pedido-China-' + String(order.id || 'BLYXU').replace(/[^a-z0-9_-]/gi, '');
     document.body.classList.add('printing-china-order');
 
     let cleanedUp = false;
@@ -11170,7 +10416,7 @@ function buildChinaOrderSummary() {
     });
 
     return [
-        'Pedido a China - Original Store',
+        'Pedido a China - BLYXU',
         draft.factory ? `Fábrica: ${draft.factory}` : '',
         `TRM: ${formatChinaCop(rate)} por USD`,
         '',
@@ -11304,13 +10550,14 @@ window.activeOrdersAdminTab = 'quick-sale';
 const ADMIN_ORDERS_CACHE_KEY = 'blyxu_admin_orders_invoices_cache_v2';
 try { localStorage.removeItem(ADMIN_ORDERS_CACHE_KEY); } catch (_) {}
 window.addEventListener('pagehide', () => {
-    revokeAdminSession();
+    revokeAdminSession({preserveWork:true});
     sessionStorage.removeItem(ADMIN_ORDERS_CACHE_KEY);
     const screen = document.getElementById('admin-login-screen');
     const main = document.getElementById('admin-main-content');
     if (screen) screen.style.display = '';
     if (main) main.style.display = 'none';
 });
+window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});
 const ADMIN_ORDERS_CACHE_TTL = 45 * 1000;
 let adminOrdersLoadPromise = null;
 
@@ -11972,7 +11219,7 @@ function getQuickSaleProductMeta(product) {
     const key = getInventoryProductKey(product);
     const name = getInvoiceProductName(product);
     const sku = getInvoiceProductSku(product) || getInvoiceProductId(product);
-    const image = getInventoryProductImage(product, 'inventory') || normalizeImageUrl(product?.Imagen || product?.['Imagen Principal'] || '', 'inventory') || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+    const image = getInventoryProductImage(product, 'inventory') || normalizeImageUrl(product?.Imagen || product?.['Imagen Principal'] || '', 'inventory') || 'Logo2.png';
     const category = getProductField(product, PRODUCT_CATEGORY_FIELD_KEYS, '');
     const color = getProductField(product, ['Color', 'color'], '');
     const size = getProductField(product, ['Tamano', 'Tamaño', 'Talla', 'Talla Textil'], '');
@@ -12032,17 +11279,23 @@ function groupQuickSaleProducts(products) {
 function findQuickSaleProductByReference(rawCode) {
     const code = normalizeBarcodeValue(rawCode);
     if (!code || !Array.isArray(inventario)) return null;
-    return inventario.find(product => {
+    const matches = inventario.filter(product => {
         if (isBannerInventoryProduct(product)) return false;
         const references = [
             getProductBarcode(product),
             getInvoiceProductSku(product),
             getInvoiceProductId(product),
             getInventoryVariationId(product),
-            getInventoryMotherId(product)
+            getInventoryMotherId(product),
+            makeProductBarcode('', getInventoryVariationId(product)),
+            makeProductBarcode(getInventoryMotherId(product), '')
         ].map(normalizeBarcodeValue).filter(Boolean);
         return references.includes(code);
-    }) || null;
+    });
+    // Prefer the exact variant over a shared mother ID, regardless of row order.
+    return matches.find(product => [getInventoryVariationId(product),
+        makeProductBarcode('', getInventoryVariationId(product)), getProductBarcode(product),
+        getInvoiceProductSku(product)].map(normalizeBarcodeValue).includes(code)) || matches[0] || null;
 }
 
 async function handleQuickSaleScannedCode(rawCode, addToSale = true) {
@@ -12052,15 +11305,12 @@ async function handleQuickSaleScannedCode(rawCode, addToSale = true) {
 
     input.value = code;
     if (!Array.isArray(inventario) || !inventario.length) {
-        await cargarInventario({ silent: true });
+        await (window.quickSaleScanInventoryPromise || cargarInventario({ silent: true }));
     }
-    renderQuickSaleResults();
-
     let product = findQuickSaleProductByReference(code);
     if (!product) {
         await cargarInventario({ silent: true });
         product = findQuickSaleProductByReference(code);
-        renderQuickSaleResults();
     }
     if (!product) {
         showToast('No se encontro un producto con esa referencia', 'warning');
@@ -12070,6 +11320,9 @@ async function handleQuickSaleScannedCode(rawCode, addToSale = true) {
     }
 
     const key = getInventoryProductKey(product);
+    window.quickSaleCategory = 'all';
+    input.value = getInventoryVariationId(product) || getInvoiceProductSku(product) || code;
+    renderQuickSaleResults();
     selectQuickSaleProduct(key);
     if (addToSale && getQuickSaleStock(product) > 0) {
         addQuickSaleProduct(key, 1);
@@ -12085,9 +11338,15 @@ async function handleQuickSaleScannedCode(rawCode, addToSale = true) {
 window.handleQuickSaleScannedCode = handleQuickSaleScannedCode;
 
 function openQuickSaleScanner() {
+    if (!Array.isArray(inventario) || !inventario.length) {
+        if (!window.quickSaleScanInventoryPromise) {
+            window.quickSaleScanInventoryPromise = cargarInventario({ silent: true })
+                .finally(() => { window.quickSaleScanInventoryPromise = null; });
+            window.quickSaleScanInventoryPromise.catch(() => {});
+        }
+    }
     openBarcodeScanner({
         targetInputId: 'quick-sale-search',
-        scannerMode: 'qr',
         onDetected: code => {
             handleQuickSaleScannedCode(code, true).catch(error => {
                 console.error('No se pudo procesar el codigo escaneado:', error);
@@ -12220,7 +11479,7 @@ function renderQuickSaleResults() {
         return `
             <article class="quick-sale-product-tile${hasVariants ? ' has-variants' : ''}${active}" data-quick-sale-group="${escapeHtml(group.key)}" data-quick-sale-key="${escapeHtml(meta.key)}" tabindex="0">
                 <div class="quick-sale-tile-image">
-                    <img src="${escapeHtml(meta.image)}" alt="${escapeHtml(meta.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.src='https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'">
+                    <img src="${escapeHtml(meta.image)}" alt="${escapeHtml(meta.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.src='Logo2.png'">
                     <span class="quick-sale-stock-pill ${stockClass}">${meta.stock > 0 ? meta.stock + ' und.' : 'Agotado'}</span>
                 </div>
                 <div class="quick-sale-tile-copy">
@@ -12313,7 +11572,7 @@ function renderQuickSaleDetail(product) {
     detail.innerHTML = `
         <div class="quick-sale-product-card">
             <div class="quick-sale-detail-top">
-                <div class="quick-sale-detail-image"><img src="${escapeHtml(meta.image)}" alt="${escapeHtml(meta.name)}" decoding="async" referrerpolicy="no-referrer" onerror="this.src='https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'"></div>
+                <div class="quick-sale-detail-image"><img src="${escapeHtml(meta.image)}" alt="${escapeHtml(meta.name)}" decoding="async" referrerpolicy="no-referrer" onerror="this.src='Logo2.png'"></div>
                 <div>
                 <span class="quick-sale-stock-pill ${stockClass}">${meta.stock > 0 ? meta.stock + ' unidades disponibles' : 'Agotado'}</span>
                 <h3 class="quick-sale-detail-title">${escapeHtml(meta.name)}</h3>
@@ -12555,7 +11814,7 @@ function renderQuickSaleCart() {
         const subtotal = (Number(item.precio) || 0) * (Number(item.cantidad) || 1);
         return `
             <div class="quick-sale-cart-item">
-                <button type="button" class="quick-sale-cart-thumb" onclick="openQuickSaleImage(this)" aria-label="Ampliar imagen de ${escapeHtml(item.nombre)}"><img src="${escapeHtml(item.image || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180')}" alt="${escapeHtml(item.nombre)}" onerror="this.src='https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'"></button>
+                <button type="button" class="quick-sale-cart-thumb" onclick="openQuickSaleImage(this)" aria-label="Ampliar imagen de ${escapeHtml(item.nombre)}"><img src="${escapeHtml(item.image || 'Logo2.png')}" alt="${escapeHtml(item.nombre)}" onerror="this.src='Logo2.png'"></button>
                 <div class="quick-sale-cart-copy">
                     <strong>${escapeHtml(item.nombre)}</strong>
                     <span>${escapeHtml(item.sku || item.idVariacion || 'S/N')} · ${formatAdminInvoiceMoney(item.precio)} · Subtotal ${formatAdminInvoiceMoney(subtotal)}</span>
@@ -13004,7 +12263,7 @@ function renderInvoiceProductSearch(query) {
             const stock = readInvoiceField(p, ['Cantidad', 'Stock', 'Stock Inicial'], '');
             return `
                 <button type="button" class="inv-search-item" data-invoice-product-result="${index}" style="width:100%; border:0; text-align:left; background:transparent;">
-                    <img src="${escapeHtml(img || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180')}" alt="">
+                    <img src="${escapeHtml(img || 'Logo2.png')}" alt="">
                     <div class="inv-search-item-info">
                         <div class="inv-search-item-title">${escapeHtml(getInvoiceProductName(p))}</div>
                         <div class="inv-search-item-sub">
@@ -13079,7 +12338,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const safeName = (p.Nombre || '').replace(/'/g, "\\'");
                 return `
                     <div class="inv-search-item" onclick="agregarItemBusqueda('${idVar}', '${safeName}', '${p.SKU || ''}', ${price})">
-                        <img src="${img || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180'}" alt="">
+                        <img src="${img || 'Logo2.png'}" alt="">
                         <div class="inv-search-item-info">
                             <div class="inv-search-item-title">${p.Nombre}</div>
                             <div class="inv-search-item-sub">
@@ -13658,7 +12917,7 @@ function openAdminInvoicePrintWindow(title) {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <base href="${escapeHtml(baseUrl)}">
-            <title>${escapeHtml(title || 'Factura Original Store')}</title>
+            <title>${escapeHtml(title || 'Factura BLYXU')}</title>
             <style>${getAdminInvoicePrintWindowStyles()}</style>
         </head>
         <body>
@@ -13675,7 +12934,7 @@ function openAdminInvoicePrintWindow(title) {
 window.imprimirFacturaEditor = function() {
     const origTitle = document.title;
     const pId = document.getElementById('inv-edit-id').value || `PED-${Date.now().toString().slice(-6)}`;
-    const nombre = document.getElementById('inv-edit-nombre').value || 'Cliente Original Store';
+    const nombre = document.getElementById('inv-edit-nombre').value || 'Cliente BLYXU';
     const tel = document.getElementById('inv-edit-tel').value || '-';
     const dir = document.getElementById('inv-edit-dir').value || '-';
     const ciudad = document.getElementById('inv-edit-ciudad').value || '-';
@@ -13717,16 +12976,16 @@ window.imprimirFacturaEditor = function() {
         document.getElementById('inv-print-metodo').textContent = metodo || 'Digital / Directo';
     }
 
-    // Configuración dinámicas de empresa Original Store
+    // Configuración dinámicas de empresa BLYXU
     const cfg = window.storeConfig || {};
     const logoImg = document.getElementById('inv-company-logo');
-    if (logoImg) logoImg.src = 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+    if (logoImg) logoImg.src = 'blyxu-invoice-logo.png';
 
     if (document.getElementById('inv-company-name')) {
-        document.getElementById('inv-company-name').textContent = cfg['Factura_Empresa'] || 'Original Store Joyería & Accesorios';
+        document.getElementById('inv-company-name').textContent = cfg['Factura_Empresa'] || 'BLYXU Joyería & Accesorios';
     }
     if (document.getElementById('inv-emisor-nombre')) {
-        document.getElementById('inv-emisor-nombre').textContent = cfg['Factura_Empresa'] || 'Original Store Joyería & Accesorios';
+        document.getElementById('inv-emisor-nombre').textContent = cfg['Factura_Empresa'] || 'BLYXU Joyería & Accesorios';
     }
     if (document.getElementById('inv-company-nit')) {
         document.getElementById('inv-company-nit').textContent = cfg['Factura_NIT'] || '000.000.000-0';
@@ -13735,7 +12994,7 @@ window.imprimirFacturaEditor = function() {
         document.getElementById('inv-company-contact').textContent = 'WhatsApp: ' + (cfg['Factura_Telefono'] || '+57 311 2368622');
     }
     if (document.getElementById('inv-company-email')) {
-        document.getElementById('inv-company-email').textContent = 'Email: ' + (cfg['Factura_Email'] || 'originalstorealmacen@gmail.com');
+        document.getElementById('inv-company-email').textContent = 'Email: ' + (cfg['Factura_Email'] || 'contacto@blyxu.online');
     }
 
     // Sección de observaciones y notas
@@ -13827,7 +13086,7 @@ window.sendInvoiceWhatsAppEditor = function () {
     }
 
     const id = document.getElementById('inv-edit-id').value || `FAC-${Date.now().toString().slice(-6)}`;
-    const nombre = document.getElementById('inv-edit-nombre').value || 'Cliente Original Store';
+    const nombre = document.getElementById('inv-edit-nombre').value || 'Cliente BLYXU';
     const fecha = document.getElementById('inv-edit-fecha').value || new Date().toISOString().slice(0, 10);
     const dir = document.getElementById('inv-edit-dir').value || '';
     const ciudad = document.getElementById('inv-edit-ciudad').value || '';
@@ -13840,7 +13099,7 @@ window.sendInvoiceWhatsAppEditor = function () {
     }).join('\n') : '• Detalle de compra adjunto en la factura';
 
     const msg = `¡Hola, *${nombre}*!
-¡Muchas gracias por tu preferencia y por elegir *Original Store Joyería & Accesorios*!
+¡Muchas gracias por tu preferencia y por elegir *BLYXU Joyería & Accesorios*!
 
 Aquí tienes el comprobante digital oficial de tu compra *#${id}*:
 
@@ -13859,8 +13118,8 @@ ${itemsText}
 *Adjunto encontrarás el documento PDF de tu factura listo para ver y guardar.*
 
 ¡Esperamos que disfrutes muchísimo tus accesorios! Cualquier duda estamos para ayudarte.
-*Tienda web:* aloriginalstore.online
-*Soporte Original Store:* +57 311 2368622`;
+*Tienda web:* www.blyxu.online
+*Soporte BLYXU:* +57 311 2368622`;
 
     // 1. Disparar el generador / diálogo de impresión PDF para que el usuario guarde o imprima el archivo PDF
     if (typeof window.imprimirFacturaEditor === 'function') {
@@ -14245,8 +13504,8 @@ function syncDesktopSidebarToggle(compact) {
     button.textContent = compact ? '☰' : '‹';
 }
 function initDesktopSidebar() {
-    let compact = false;
-    try { compact = localStorage.getItem('blyxu-admin-sidebar-compact') === 'true'; } catch (_) {}
+    let compact = true;
+    try { compact = localStorage.getItem('blyxu-admin-sidebar-compact') !== 'false'; } catch (_) {}
     document.getElementById('admin-main-content')?.classList.toggle('sidebar-compact', compact);
     syncDesktopSidebarToggle(compact);
 }

@@ -1,20 +1,20 @@
 /* Contacto radial: visual authority loaded after the shared legacy theme. */
 :root {
-    --contact-ink: #3e2332;
-    --contact-muted: #6e5261;
-    --contact-line: rgba(218,183,202,0.12);
-    --contact-line-strong: rgba(218,183,202,0.22);
-    --contact-yellow: #792452;
-    --contact-coral: #953368;
-    --contact-green: #691d46;
-    --contact-surface: #ffffff;
+    --contact-ink: #f8f6f2;
+    --contact-muted: #aaa5af;
+    --contact-line: rgba(255, 255, 255, .12);
+    --contact-line-strong: rgba(255, 255, 255, .22);
+    --contact-yellow: #f4c441;
+    --contact-coral: #ff755f;
+    --contact-green: #35d47c;
+    --contact-surface: #0d0c11;
 }
 
 html,
 body.contact-v2[data-page="contact"] {
     min-width: 0 !important;
     overflow-x: hidden !important;
-    background: #ffffff !important;
+    background: #07070a !important;
 }
 
 body.contact-v2[data-page="contact"] {
@@ -43,10 +43,10 @@ body.contact-v2[data-page="contact"] .contact-page::before {
     inset: 0 !important;
     z-index: -1 !important;
     pointer-events: none !important;
-    background-color: #ffffff !important;
+    background-color: #07070a !important;
     background-image:
-        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px) !important;
+        linear-gradient(rgba(255, 255, 255, .018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .018) 1px, transparent 1px) !important;
     background-size: 58px 58px !important;
 }
 
@@ -168,8 +168,8 @@ body.contact-v2[data-page="contact"] .contact-hero-btn {
     border: 1px solid var(--contact-yellow) !important;
     border-radius: 4px !important;
     background: var(--contact-yellow) !important;
-    color: #792452 !important;
-    box-shadow: 8px 8px 0 rgba(90,36,65,0.15) !important;
+    color: #17130a !important;
+    box-shadow: 8px 8px 0 rgba(255, 117, 95, .2) !important;
 }
 
 body.contact-v2[data-page="contact"] .contact-hero-btn svg {
@@ -193,7 +193,7 @@ body.contact-v2[data-page="contact"] .contact-secondary-btn {
 
 body.contact-v2[data-page="contact"] .contact-hero-btn:hover {
     transform: translate(-2px, -2px) !important;
-    box-shadow: 10px 10px 0 rgba(90,36,65,0.15) !important;
+    box-shadow: 10px 10px 0 rgba(255, 117, 95, .3) !important;
 }
 
 body.contact-v2[data-page="contact"] .contact-secondary-btn:hover {
@@ -211,7 +211,7 @@ body.contact-v2[data-page="contact"] .contact-service-note {
 body.contact-v2[data-page="contact"] .contact-service-note span {
     position: relative !important;
     padding-left: 14px !important;
-    color: #6e5261 !important;
+    color: #817d86 !important;
     font-size: 11px !important;
     font-weight: 700 !important;
     letter-spacing: .03em !important;
@@ -287,15 +287,15 @@ body.contact-v2[data-page="contact"] .contact-hours-timeline::before {
     inset: 16% !important;
     border: 1px solid var(--contact-line) !important;
     border-radius: 50% !important;
-    background: #ffffff !important;
-    box-shadow: inset 0 0 60px rgba(90,36,65,0.15), 0 0 0 12px rgba(90,36,65,0.012) !important;
+    background: #09090c !important;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, .65), 0 0 0 12px rgba(255, 255, 255, .012) !important;
 }
 
 body.contact-v2[data-page="contact"] .contact-hours-timeline::after {
     content: "" !important;
     position: absolute !important;
     inset: 7% !important;
-    border: 1px dashed rgba(218,183,202,0.08) !important;
+    border: 1px dashed rgba(255, 255, 255, .08) !important;
     border-radius: 50% !important;
     animation: contact-ring-rotate 28s linear infinite !important;
 }
@@ -313,7 +313,7 @@ body.contact-v2[data-page="contact"] .contact-clock-tick {
     width: 4px !important;
     height: clamp(15px, 1.7vw, 22px) !important;
     border-radius: 2px !important;
-    background: #f9eff4 !important;
+    background: #55545a !important;
     opacity: .72 !important;
     transform: translate(-50%, -50%) rotate(calc(var(--tick) * 6deg)) translateY(calc(var(--clock-radius) * -1)) !important;
     transition: background-color .35s ease, opacity .35s ease, box-shadow .35s ease !important;
@@ -322,13 +322,13 @@ body.contact-v2[data-page="contact"] .contact-clock-tick {
 body.contact-v2[data-page="contact"] .contact-clock-tick.is-active {
     background: var(--contact-coral) !important;
     opacity: 1 !important;
-    box-shadow: 0 0 10px rgba(90,36,65,0.15) !important;
+    box-shadow: 0 0 10px rgba(255, 117, 95, .42) !important;
 }
 
 body.contact-v2[data-page="contact"] .contact-clock-tick.is-sweep {
     background: var(--contact-yellow) !important;
     opacity: 1 !important;
-    box-shadow: 0 0 14px rgba(90,36,65,0.15) !important;
+    box-shadow: 0 0 14px rgba(244, 196, 65, .72) !important;
     animation: contact-tick-pulse 1s ease-in-out infinite !important;
 }
 
@@ -398,7 +398,7 @@ body.contact-v2[data-page="contact"] .contact-clock-char.is-changing {
 
 body.contact-v2[data-page="contact"] #contact-clock-city {
     margin-top: 10px !important;
-    color: #6e5261 !important;
+    color: #77737c !important;
     font-size: 10px !important;
     font-weight: 700 !important;
     letter-spacing: .11em !important;
@@ -422,7 +422,7 @@ body.contact-v2[data-page="contact"] .contact-schedule-summary > div {
 
 body.contact-v2[data-page="contact"] .contact-schedule-summary span,
 body.contact-v2[data-page="contact"] .contact-week-copy span {
-    color: #6e5261 !important;
+    color: #77737c !important;
     font-size: 10px !important;
     font-weight: 800 !important;
     letter-spacing: .1em !important;
@@ -467,7 +467,7 @@ body.contact-v2[data-page="contact"] .contact-day {
     display: grid !important;
     place-items: center !important;
     border-right: 1px solid var(--contact-line) !important;
-    color: #6e5261 !important;
+    color: #656269 !important;
     font-size: 10px !important;
     font-weight: 850 !important;
     letter-spacing: .08em !important;
@@ -479,7 +479,7 @@ body.contact-v2[data-page="contact"] .contact-day:last-child {
 }
 
 body.contact-v2[data-page="contact"] .contact-day.is-service-day {
-    color: #3e2332 !important;
+    color: #c6c1c9 !important;
 }
 
 body.contact-v2[data-page="contact"] .contact-day.is-service-day::after {
@@ -494,7 +494,7 @@ body.contact-v2[data-page="contact"] .contact-day.is-service-day::after {
 
 body.contact-v2[data-page="contact"] .contact-day.is-today {
     background: var(--contact-ink) !important;
-    color: #3e2332 !important;
+    color: #111015 !important;
 }
 
 body.contact-v2[data-page="contact"] .contact-day.is-today::before {
@@ -633,7 +633,7 @@ body.contact-v2[data-page="contact"] .contact-social-link:last-child {
 
 body.contact-v2[data-page="contact"] .contact-social-link:hover {
     background: var(--contact-ink) !important;
-    color: #3e2332 !important;
+    color: #111015 !important;
 }
 
 body.contact-v2[data-page="contact"] .contact-social-icon {
@@ -656,7 +656,7 @@ body.contact-v2[data-page="contact"] .contact-social-icon svg {
 }
 
 body.contact-v2[data-page="contact"] .contact-social-link:hover .contact-social-icon {
-    border-color: #dab7ca !important;
+    border-color: #111015 !important;
     color: var(--contact-coral) !important;
 }
 
@@ -833,29 +833,29 @@ body.contact-v2[data-page="contact"] .contact-social-link:hover .contact-social-
 }
 
 /* -----------------------------------------------------------
-   Original Store CONTACT â€” PURPLE VISUAL UPGRADE
+   BLYXU CONTACT — PURPLE VISUAL UPGRADE
    Overrides applied after base styles for a richer look.
 ----------------------------------------------------------- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 /* -- Custom purple tokens ----------------------------------- */
 body.contact-v2[data-page="contact"] {
-    --cp: #953368;
-    --cp-soft: rgba(149,51,104,0.18);
-    --cp-glow: rgba(149,51,104,0.35);
-    --cm: #953368;
-    --cg: #691d46;
+    --cp: #a855f7;
+    --cp-soft: rgba(168,85,247,.18);
+    --cp-glow: rgba(168,85,247,.35);
+    --cm: #7c3aed;
+    --cg: #34d399;
     font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
 }
 
 /* -- Animated background orb -------------------------------- */
 body.contact-v2[data-page="contact"] .contact-page::before {
-    background-color: #ffffff !important;
+    background-color: #07070a !important;
     background-image:
-        radial-gradient(ellipse 60% 50% at 72% 18%, rgba(251,230,242,0.09) 0%, transparent 65%),
-        radial-gradient(ellipse 40% 35% at 20% 80%, rgba(251,230,242,0.07) 0%, transparent 60%),
-        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px) !important;
+        radial-gradient(ellipse 60% 50% at 72% 18%, rgba(168,85,247,.09) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 35% at 20% 80%, rgba(124,58,237,.07) 0%, transparent 60%),
+        linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px) !important;
     background-size: auto, auto, 58px 58px, 58px 58px !important;
 }
 
@@ -870,47 +870,47 @@ body.contact-v2[data-page="contact"] .contact-hero-btn {
     padding: 0 28px !important;
     border: 1.5px solid var(--cp) !important;
     border-radius: 12px !important;
-    background: linear-gradient(135deg, #fbe6f2, #fbe6f2) !important;
-    color: #3e2332 !important;
+    background: linear-gradient(135deg, #a855f7, #7c3aed) !important;
+    color: #fff !important;
     font-weight: 700 !important;
     font-size: 13px !important;
     letter-spacing: .04em !important;
-    box-shadow: 0 8px 32px rgba(90,36,65,0.15) !important;
+    box-shadow: 0 8px 32px rgba(168,85,247,.28) !important;
     transition: transform .2s ease, box-shadow .2s ease !important;
 }
 body.contact-v2[data-page="contact"] .contact-hero-btn:hover {
     transform: translateY(-3px) !important;
-    box-shadow: 0 0 0 6px rgba(90,36,65,0.15), 0 16px 48px rgba(90,36,65,0.15) !important;
+    box-shadow: 0 0 0 6px rgba(168,85,247,.15), 0 16px 48px rgba(168,85,247,.35) !important;
 }
 
 body.contact-v2[data-page="contact"] .contact-secondary-btn {
     padding: 0 6px !important;
     border: 0 !important;
-    border-bottom: 1.5px solid rgba(230,185,211,0.4) !important;
+    border-bottom: 1.5px solid rgba(168,85,247,.4) !important;
     border-radius: 0 !important;
     background: transparent !important;
-    color: rgba(62,35,50,0.75) !important;
+    color: rgba(255,255,255,.75) !important;
     font-size: 13px !important;
     font-weight: 600 !important;
     transition: color .2s, border-color .2s !important;
 }
 body.contact-v2[data-page="contact"] .contact-secondary-btn:hover {
-    color: #953368 !important;
-    border-color: #e6b9d3 !important;
+    color: #a855f7 !important;
+    border-color: #a855f7 !important;
 }
 
 /* -- Service note dots -------------------------------------- */
 body.contact-v2[data-page="contact"] .contact-service-note span::before {
     background: var(--cp) !important;
-    box-shadow: 0 0 6px rgba(90,36,65,0.15) !important;
+    box-shadow: 0 0 6px rgba(168,85,247,.5) !important;
 }
 
 /* -- CLOCK PURPLE REDESIGN -------------------------------- */
 body.contact-v2[data-page="contact"] .contact-hours-timeline::before {
     inset: 14% !important;
-    border: 1.5px solid rgba(230,185,211,0.25) !important;
-    background: #ffffff !important;
-    box-shadow: inset 0 0 60px rgba(90,36,65,0.15), 0 0 40px rgba(90,36,65,0.08) !important;
+    border: 1.5px solid rgba(168,85,247,.25) !important;
+    background: #09090c !important;
+    box-shadow: inset 0 0 60px rgba(0,0,0,.7), 0 0 40px rgba(168,85,247,.08) !important;
 }
 
 /* Spinning arc */
@@ -921,10 +921,10 @@ body.contact-v2[data-page="contact"] .contact-hours-timeline::after {
     background: conic-gradient(
         from var(--cr,0deg),
         transparent 0deg,
-        rgba(251,230,242,0) 50deg,
-        rgba(251,230,242,0.85) 80deg,
-        rgba(251,230,242,0.95) 95deg,
-        rgba(251,230,242,0) 130deg,
+        rgba(168,85,247,.0) 50deg,
+        rgba(168,85,247,.85) 80deg,
+        rgba(210,150,255,.95) 95deg,
+        rgba(168,85,247,.0) 130deg,
         transparent 360deg
     ) !important;
     -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #fff calc(100% - 2px)) !important;
@@ -936,16 +936,16 @@ body.contact-v2[data-page="contact"] .contact-hours-timeline::after {
 @keyframes cpArcSpin { from { --cr: 0deg; } to { --cr: 360deg; } }
 
 /* Ticks */
-body.contact-v2[data-page="contact"] .contact-clock-tick { background: rgba(255,255,255,0.12) !important; opacity: 1 !important; }
-body.contact-v2[data-page="contact"] .contact-clock-tick.is-active { background: #fbe6f2 !important; box-shadow: 0 0 10px rgba(90,36,65,0.15) !important; }
+body.contact-v2[data-page="contact"] .contact-clock-tick { background: rgba(255,255,255,.12) !important; opacity: 1 !important; }
+body.contact-v2[data-page="contact"] .contact-clock-tick.is-active { background: #a855f7 !important; box-shadow: 0 0 10px rgba(168,85,247,.6) !important; }
 body.contact-v2[data-page="contact"] .contact-clock-tick.is-sweep {
-    background: #fbe6f2 !important;
-    box-shadow: 0 0 18px rgba(90,36,65,0.15) !important;
+    background: #c084fc !important;
+    box-shadow: 0 0 18px rgba(192,132,252,.85) !important;
     animation: cpTickPulse .9s ease-in-out infinite !important;
 }
 @keyframes cpTickPulse {
-    0%,100% { opacity: 1; box-shadow: 0 0 14px rgba(90,36,65,0.15); }
-    50%      { opacity: .5; box-shadow: 0 0 5px rgba(90,36,65,0.15); }
+    0%,100% { opacity: 1; box-shadow: 0 0 14px rgba(192,132,252,.7); }
+    50%      { opacity: .5; box-shadow: 0 0 5px rgba(192,132,252,.3); }
 }
 
 /* Clock digits */
@@ -953,13 +953,13 @@ body.contact-v2[data-page="contact"] .contact-digital-clock,
 #contact-page #contact-live-clock {
     font-size: clamp(52px, 5.5vw, 76px) !important;
     font-weight: 600 !important;
-    color: #3e2332 !important;
-    text-shadow: 0 0 40px rgba(90,36,65,0.15) !important;
+    color: #fff !important;
+    text-shadow: 0 0 40px rgba(168,85,247,.2) !important;
     letter-spacing: -.02em !important;
 }
 body.contact-v2[data-page="contact"] .contact-clock-separator {
-    color: #953368 !important;
-    text-shadow: 0 0 20px rgba(90,36,65,0.15) !important;
+    color: #a855f7 !important;
+    text-shadow: 0 0 20px rgba(168,85,247,.6) !important;
     animation: cpColonBlink 1s step-end infinite !important;
 }
 @keyframes cpColonBlink { 0%,100% { opacity: 1; } 50% { opacity: .2; } }
@@ -971,37 +971,37 @@ body.contact-v2[data-page="contact"] .contact-status-pill {
     gap: 6px !important;
     padding: 4px 12px !important;
     border-radius: 99px !important;
-    background: rgba(255,255,255,0.05) !important;
-    border: 1px solid rgba(218,183,202,0.1) !important;
-    color: rgba(62,35,50,0.5) !important;
+    background: rgba(255,255,255,.05) !important;
+    border: 1px solid rgba(255,255,255,.1) !important;
+    color: rgba(255,255,255,.5) !important;
     font-size: 9.5px !important;
     margin-bottom: 12px !important;
 }
 body.contact-v2[data-page="contact"] .contact-status-pill::before {
     content: '' !important;
     display: block !important; width: 6px !important; height: 6px !important;
-    border-radius: 50% !important; background: rgba(255,255,255,0.3) !important; flex-shrink: 0 !important;
+    border-radius: 50% !important; background: rgba(255,255,255,.3) !important; flex-shrink: 0 !important;
 }
 body.contact-v2[data-page="contact"] .contact-status-pill.is-open {
-    background: rgba(243,223,234,0.1) !important;
-    border-color: rgba(218,183,202,0.3) !important;
-    color: #691d46 !important;
+    background: rgba(52,211,153,.1) !important;
+    border-color: rgba(52,211,153,.3) !important;
+    color: #34d399 !important;
 }
 body.contact-v2[data-page="contact"] .contact-status-pill.is-open::before {
-    background: #f3dfea !important;
-    box-shadow: 0 0 8px rgba(90,36,65,0.15) !important;
+    background: #34d399 !important;
+    box-shadow: 0 0 8px rgba(52,211,153,.8) !important;
     animation: cpDotPulse 1.6s ease-in-out infinite !important;
 }
 @keyframes cpDotPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.7); opacity: .4; } }
 
 body.contact-v2[data-page="contact"] #contact-clock-city {
-    color: rgba(149,51,104,0.55) !important;
+    color: rgba(168,85,247,.55) !important;
     font-size: 9px !important; font-weight: 600 !important; margin-top: 12px !important;
 }
 
 /* -- Phone number gradient ---------------------------------- */
 body.contact-v2[data-page="contact"] .contact-connect-main h2 {
-    background: linear-gradient(135deg, #ffffff 0%, rgba(251,230,242,0.85) 100%) !important;
+    background: linear-gradient(135deg, #fff 0%, rgba(168,85,247,.85) 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
 }
@@ -1009,29 +1009,29 @@ body.contact-v2[data-page="contact"] .contact-connect-main h2 {
 /* -- Action links ------------------------------------------- */
 body.contact-v2[data-page="contact"] .contact-action {
     padding: 18px 4px !important;
-    border-color: rgba(230,185,211,0.14) !important;
-    color: rgba(62,35,50,0.8) !important;
+    border-color: rgba(168,85,247,.14) !important;
+    color: rgba(255,255,255,.8) !important;
     font-size: 13px !important; font-weight: 600 !important;
     transition: color .2s, padding-left .2s, border-color .2s !important;
 }
 body.contact-v2[data-page="contact"] .contact-action:hover {
-    padding-left: 14px !important; color: #953368 !important; border-color: rgba(230,185,211,0.35) !important;
+    padding-left: 14px !important; color: #a855f7 !important; border-color: rgba(168,85,247,.35) !important;
 }
 
 /* -- Social links ------------------------------------------- */
-body.contact-v2[data-page="contact"] .contact-social-links { border-top-color: rgba(230,185,211,0.15) !important; }
+body.contact-v2[data-page="contact"] .contact-social-links { border-top-color: rgba(168,85,247,.15) !important; }
 body.contact-v2[data-page="contact"] .contact-social-link {
-    border-right-color: rgba(230,185,211,0.12) !important;
-    border-bottom-color: rgba(230,185,211,0.12) !important;
+    border-right-color: rgba(168,85,247,.12) !important;
+    border-bottom-color: rgba(168,85,247,.12) !important;
     transition: background .25s, color .25s !important;
 }
 body.contact-v2[data-page="contact"] .contact-social-link:hover {
-    background: rgba(251,230,242,0.08) !important;
-    color: #953368 !important;
+    background: rgba(168,85,247,.08) !important;
+    color: #a855f7 !important;
 }
-body.contact-v2[data-page="contact"] .contact-social-icon { border-color: rgba(230,185,211,0.3) !important; color: #953368 !important; }
+body.contact-v2[data-page="contact"] .contact-social-icon { border-color: rgba(168,85,247,.3) !important; color: #a855f7 !important; }
 body.contact-v2[data-page="contact"] .contact-social-link:hover .contact-social-icon {
-    background: rgba(251,230,242,0.18) !important; border-color: #e6b9d3 !important; color: #3e2332 !important;
+    background: rgba(168,85,247,.18) !important; border-color: #a855f7 !important; color: #fff !important;
 }
 
 /* -- Scroll reveal ------------------------------------------ */
