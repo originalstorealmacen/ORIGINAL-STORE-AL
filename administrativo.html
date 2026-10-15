@@ -7448,6 +7448,7 @@
 }
 </style><link rel="stylesheet" href="inventory-tools.css?v=20261013-1">
     <link rel="stylesheet" href="admin-category-picker.css?v=20261014-1">
+<link rel="stylesheet" href="admin-retail-pricing.css?v=20261015">
 </head>
 <body class="admin-graphite">
     <div class="bg-animation"></div>
@@ -7681,7 +7682,7 @@
                                         <div class="form-group"><label for="prod-categoria">Categoría</label><div class="admin-category-combobox"><input type="text" class="form-control" id="prod-categoria" name="Categoria" placeholder="Elige una categoría o escribe una nueva" required autocomplete="off" autocapitalize="words" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="admin-category-picker-list" aria-describedby="admin-category-picker-hint"><button type="button" class="admin-category-picker-toggle" id="admin-category-picker-toggle" aria-label="Ver categorías registradas" aria-expanded="false" aria-controls="admin-category-picker-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button></div><small class="field-hint" id="admin-category-picker-hint">Elige una categoría registrada o escribe una nueva. Se unifican mayúsculas y minúsculas.</small></div>
                                         <div class="form-group"><label>Catálogo</label><select class="form-control" id="prod-catalogo" name="Catálogo"><option value="Ambos">Minorista y Mayorista</option><option value="Minorista">Solo Minorista</option><option value="Mayorista">Solo Mayorista</option></select><small class="field-hint">Define en que catalogo se publica.</small></div>
                                         <div class="product-subdivider">Precios y descripción</div>
-                                        <div class="form-group price-field"><label>Precio minorista</label><input type="text" class="form-control" id="prod-precio" name="Precio" placeholder="Ej: 25000" required><small class="field-hint">Precio para compra normal.</small></div>
+                                        <div class="form-group price-field"><label for="prod-retail-mode">Precio minorista</label><select id="prod-retail-mode" class="form-control"><option value="porcentaje">Aplicar porcentaje general</option><option value="manual">Precio manual</option></select><input type="text" class="form-control" id="prod-precio" name="Precio" placeholder="Ej: 25000" required><small class="field-hint"><span id="prod-retail-hint">Calculado sobre el mayorista con el porcentaje de Inventario.</span></small></div>
                                         <div class="form-group price-field"><label>Precio mayorista</label><input type="text" class="form-control" id="prod-precio-mayorista" name="Precio_Mayorista" placeholder="Ej: 18000"><small class="field-hint">Opcional para clientes por mayor.</small></div>
                                         <div class="form-group"><label>Promoción / descuento</label><select class="form-control highlight-select" id="prod-promoción" name="Promoción"><option value="FALSO">No aplica promoción</option><option value="Ambos">Aplica a ambos</option><option value="Minorista">Solo minorista</option><option value="Mayorista">Solo mayorista</option></select><small class="field-hint">La vista previa calcula el descuento.</small></div>
                                         <div class="form-group admin-form-wide"><label>Características / descripción</label><textarea class="form-control" id="prod-descripcion" placeholder="Materiales, medidas, cuidados o notas importantes..."></textarea><small class="field-hint">Escribe datos útiles para evitar dudas.</small></div>
@@ -7772,6 +7773,11 @@
 
                 <div id="view-inventory" class="dashboard-section"><button type="button" class="admin-btn secondary" onclick="switchDashboardView('products','Gestión de Productos');BlyxuPendingProducts.showPending()">Abrir pendientes del escáner</button>
                     <div class="admin-panel gradient-bg">
+                        <section class="retail-pricing-settings" aria-label="Ganancia minorista">
+                            <label for="retail-global-percent">Porcentaje de ganancia · producto a minorista</label>
+                            <div><input class="form-control" id="retail-global-percent" type="number" min="0" max="1000" step="0.01" inputmode="decimal" placeholder="Ej: 30"><span>% sobre el mayorista</span><button type="button" class="admin-btn" id="retail-save-percent">Aplicar porcentaje</button></div>
+                            <p id="retail-global-status" role="status">Los precios manuales se conservan. Ejemplo: $10.000 + 30 % = $13.000.</p>
+                        </section>
                         <div class="inventory-search-panel" role="search" aria-label="Buscar en el inventario">
                             <label for="admin-inventory-search">Buscar productos en el inventario</label>
                             <div class="inventory-search-box">
@@ -8346,7 +8352,8 @@
 <script src="admin-product-identity.js?v=20261014-local-ids" defer></script>
 <script src="admin-session-draft.js?v=20261014-local-session" defer></script>
 <script src="admin-shared-scan.js?v=20261014-local-scanner-mode" defer></script>
-<script src="admin-app.js?v=original-store-quick-sale-section-20261015" defer></script>
+<script type="module" src="admin-retail-pricing.js?v=20261015"></script>
+<script src="admin-app.js?v=original-store-retail-pricing-20261015" defer></script>
 <script src="inventory-tools.js?v=20261013-1"></script>
     <script src="inventory-category-manager.js?v=category-dialog-20261013" defer></script>
 <script src="order-summary.js?v=pdf-fast-20261007" defer></script>

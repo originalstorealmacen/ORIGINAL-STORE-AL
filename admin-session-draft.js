@@ -42,7 +42,7 @@
         if(draft.pendingKey)form.dataset.pendingKey=draft.pendingKey;api.setEditing(!!draft.originalVariationId);
         const container=document.getElementById('variants-container');container.replaceChildren();
         for(const variant of draft.variants||[]){
-          const root=api.addDraftVariant(variant);if(root){applyFields(root,variant.fields);api.finishDraftVariant?.(root,variant);}
+          const root=api.addDraftVariant(variant);if(root){window.OriginalStoreRetailPricing?.sync();applyFields(root,variant.fields);api.finishDraftVariant?.(root,variant);}
         }
         api.refreshDraft?.(draft);api.message?.('Borrador recuperado. Revisa los datos antes de guardar.');
       }

@@ -2217,7 +2217,7 @@ function normalizeProductPayloadForSubmit(data) {
     if (cantidad !== '') payload.Stock = cantidad;
     applyAutomaticStockStatus(payload);
 
-    return payload;
+    return window.OriginalStoreRetailPricing?.decorate(payload) || payload;
 }
 
 function setProductCategoryAliases(payload, categoria) {
@@ -3054,6 +3054,7 @@ function resetProductForm() {
     if (pendingForm) delete pendingForm.dataset.pendingKey;
     const form = el('product-form');
     if (form) form.reset();
+    window.OriginalStoreRetailPricing?.reset();
     if (form) delete form.dataset.originalVariationId;
     const variantsContainer = document.getElementById('variants-container');
     if (variantsContainer) delete variantsContainer.dataset.activePreviewVariantKey;
@@ -7049,7 +7050,7 @@ function inventoryRowTemplate(p, index, itemMeta) {
             + (groupSize > 1 ? ' <span class="variant-count-badge" style="margin-left:4px;">' + groupSize + ' variantes</span>' : '')
             + '</div></td>'
             + '<td><span style="' + catStyle + '">' + (p.Categoria || '-') + '</span></td>'
-            + '<td style="font-weight:800;color:#fff;font-size:14px;">' + priceStr + '</td>'
+            + '<td style="font-weight:800;color:#fff;font-size:14px;">' + priceStr + (window.OriginalStoreRetailPricing?.inventoryControl(p) || '') + '</td>'
             + '<td><div class="' + stockClass + '">' + stockTotal + '</div><div style="font-size:9px;color:rgba(255,255,255,0.35);font-weight:700;text-transform:uppercase;letter-spacing:1px;">en stock</div></td>'
             + '<td>' + toggleBtnHtml + '</td>'
             + '<td style="white-space:nowrap;"><button class="action-btn-edit" onclick="editarProducto(' + index + ')">Editar</button>'
@@ -7130,7 +7131,7 @@ function inventoryRowTemplate(p, index, itemMeta) {
             + (groupSize > 1 ? ' <span class="variant-count-badge" style="margin-left:4px;">' + groupSize + ' variantes</span>' : '')
             + '</div></td>'
             + '<td><span style="' + catStyle + '">' + category + '</span></td>'
-            + '<td style="font-weight:800;color:#fff;font-size:14px;">' + priceStr + '</td>'
+            + '<td style="font-weight:800;color:#fff;font-size:14px;">' + priceStr + (window.OriginalStoreRetailPricing?.inventoryControl(p) || '') + '</td>'
             + '<td style="font-weight:800;color:#fbbf24;font-size:13px;">' + wholesalePriceStr + '</td>'
             + '<td><div class="' + stockClass + '">' + stockTotal + '</div><div style="font-size:9px;color:rgba(255,255,255,0.35);font-weight:700;text-transform:uppercase;letter-spacing:1px;">en stock</div></td>'
             + '<td>' + toggleBtnHtml + '</td>'
@@ -7149,7 +7150,7 @@ function inventoryRowTemplate(p, index, itemMeta) {
         + (barcode ? ' <span class="variant-badge-id" title="Codigo de barras">Cod: ' + escapeHtml(barcode) + '</span>' : '')
         + '</div></td>'
         + '<td><span style="font-size:11px;color:#9B2CFA;font-weight:600;">' + category + '</span></td>'
-        + '<td style="font-size:13px;color:rgba(255,255,255,0.85);font-weight:700;">$' + price.toLocaleString('es-CO') + '</td>'
+        + '<td style="font-size:13px;color:rgba(255,255,255,0.85);font-weight:700;">$' + price.toLocaleString('es-CO') + (window.OriginalStoreRetailPricing?.inventoryControl(p) || '') + '</td>'
         + '<td style="font-size:13px;color:#fbbf24;font-weight:700;">' + (wholesalePrice ? '$' + wholesalePrice.toLocaleString('es-CO') : '-') + '</td>'
         + '<td><span style="font-size:12px;font-weight:700;color:' + (stockVal > 0 ? '#10B981' : '#EF4444') + ';">' + stockVal + ' und.</span></td>'
         + '<td><span style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:600;">' + escapeHtml(getVariantAttributesLabel(p)) + getColorSwatchesHtml(p.Color || p.color) + '</span></td>'
@@ -8187,7 +8188,8 @@ function editarProducto(index) {
     document.getElementById('prod-nombre').value = p.Nombre || p.Producto || '';
     document.getElementById('prod-categoria').value = p.Categoria || '';
     document.getElementById('prod-precio').value = p.Precio || '';
-    document.getElementById('prod-precio-mayorista').value = p.Precio_Mayorista || p.precio_mayorista || p.Mayorista || '';
+    document.getElementById('prod-precio-mayorista').value = p.Precio_Mayorista || p.precio_mayorista || p.Mayorista || p['Precio Mayor'] || '';
+    window.OriginalStoreRetailPricing?.edit(p);
     document.getElementById('prod-catalogo').value = p.Catalogo || p.catalogo || 'Ambos';
     var stockVal = [p.Stock, p.Cantidad, ''].find(v => v !== undefined && String(v).trim() !== '');
     if (stockVal === undefined) stockVal = '';
@@ -9141,6 +9143,7 @@ function drawDashboardDonutChart(canvasId, legendId, entries, total) {
 
 
 function switchDashboardView(viewId, title) {
+    if (viewId === 'inventory' || viewId === 'products') window.OriginalStoreRetailPricing?.load().catch(() => {});
     document.querySelectorAll('.dashboard-section').forEach(function (el) { el.classList.remove('active'); });
     document.querySelectorAll('.sidebar-btn').forEach(function (el) { el.classList.remove('active'); });
     var target = document.getElementById('view-' + viewId);

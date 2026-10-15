@@ -1,0 +1,16 @@
+.retail-pricing-settings {padding:18px;margin:0 0 18px;border:1px solid #e9dce4;border-radius:16px;background:#fcf8fa;color:#432b39;}
+.retail-pricing-settings>label {display:block;font-weight:700;font-size:14px;margin-bottom:12px;}
+.retail-pricing-settings>div {display:flex;align-items:center;flex-wrap:wrap;gap:10px;}
+.retail-pricing-settings input {max-width:120px;}
+.retail-pricing-settings .admin-btn {width:auto;min-height:42px;}
+.retail-pricing-settings p,.retail-pricing-settings span {font-size:12px;line-height:1.5;}
+.retail-pricing-settings p {margin:12px 0 0;color:#735965;}
+.retail-product-choice {min-width:160px;max-width:250px;margin-top:8px;white-space:normal;font-size:11px;font-weight:400;color:#5f4252;}
+.retail-product-choice summary {cursor:pointer;color:#983858;font-size:11px;}
+.retail-product-choice[open] {padding:10px;border:1px solid #e9dce4;border-radius:10px;background:#fff;}
+.retail-product-choice label {display:block;margin:9px 0;font-size:11px;}
+.retail-product-choice small,.retail-product-status {display:block;line-height:1.5;margin:8px 0;}
+.retail-product-choice .form-control {width:100%;min-width:0;font-size:12px;}
+#prod-retail-mode,.var-retail-mode,.ve-retail-mode {margin-bottom:8px;font-size:12px;}
+#product-form input[readonly] {background:#f8f3f6;color:#785264;}
+@media(max-width:600px){.retail-pricing-settings{padding:14px;}.retail-pricing-settings .admin-btn {flex-basis:100%;}.retail-product-choice{min-width:150px;}}
