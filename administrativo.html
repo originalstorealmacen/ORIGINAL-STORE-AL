@@ -7574,6 +7574,8 @@
                     <button class="sidebar-btn" data-view="products" onclick="switchDashboardView('products','Gestión de Productos')"><span>PR</span> Añadir Producto</button>
                     <button class="sidebar-btn" data-view="inventory" onclick="switchDashboardView('inventory','Inventario Actual')"><span>IN</span> Ver Inventario</button>
                     <button class="sidebar-btn" data-view="china-orders" onclick="switchDashboardView('china-orders','Pedidos a China')"><span>CN</span> Pedidos China</button>
+                    <button class="sidebar-btn" data-view="quick-sale" onclick="switchDashboardView('quick-sale','Caja rápida')" aria-label="Caja rápida" data-section-label="Caja rápida"><span>CJ</span><span class="sidebar-label">Caja rápida</span></button>
+
                     <button class="sidebar-btn" data-view="orders" onclick="switchDashboardView('orders','Pedidos y Facturación')"><span>PF</span> Pedidos y Fact.</button>
                     <button class="sidebar-btn" data-view="settings" onclick="switchDashboardView('settings','Configuración del Sitio')"><span>AJ</span> Ajustes y Banner</button>
                     <button class="sidebar-btn logout" onclick="logoutAdminSecurely()"><span>SA</span> Cerrar Sesión</button>
@@ -7590,6 +7592,8 @@
                     <button class="sidebar-btn" data-view="products" onclick="switchDashboardView('products','Gestión de Productos')" aria-label="Añadir Producto" data-section-label="Añadir Producto"><span>PR</span><span class="sidebar-label">Añadir Producto</span></button>
                     <button class="sidebar-btn" data-view="inventory" onclick="switchDashboardView('inventory','Inventario Actual')" aria-label="Ver Inventario" data-section-label="Ver Inventario"><span>IN</span><span class="sidebar-label">Ver Inventario</span></button>
                     <button class="sidebar-btn" data-view="china-orders" onclick="switchDashboardView('china-orders','Pedidos a China')" aria-label="Pedidos China" data-section-label="Pedidos China"><span>CN</span><span class="sidebar-label">Pedidos China</span></button>
+                    <button class="sidebar-btn" data-view="quick-sale" onclick="switchDashboardView('quick-sale','Caja rápida')" aria-label="Caja rápida" data-section-label="Caja rápida"><span>CJ</span><span class="sidebar-label">Caja rápida</span></button>
+
                     <button class="sidebar-btn" data-view="orders" onclick="switchDashboardView('orders','Pedidos y Facturación')" aria-label="Pedidos y Fact." data-section-label="Pedidos y Fact."><span>PF</span><span class="sidebar-label">Pedidos y Fact.</span></button>
                 </div>
                 <div class="sidebar-section">
@@ -7608,6 +7612,7 @@
                     <option value="products">Añadir Producto</option>
                     <option value="inventory">Ver Inventario</option>
                     <option value="china-orders">Pedidos China</option>
+                    <option value="quick-sale">Caja rápida</option>
                     <option value="orders">Pedidos y Fact.</option>
                     <option value="settings">Ajustes y Banner</option>
                     <option value="logout">Cerrar Sesión</option>
@@ -7627,7 +7632,7 @@
                             </div>
                         </div>
                         <nav class="dashboard-quick-actions" aria-label="Accesos rápidos del dashboard">
-                            <button type="button" onclick="openQuickSaleInOrders()"><b>+</b><span>Caja rápida<small>Registrar una venta</small></span></button>
+                            <button type="button" onclick="switchDashboardView('quick-sale','Caja rápida')"><b>+</b><span>Caja rápida<small>Registrar una venta</small></span></button>
                             <button type="button" onclick="switchDashboardView('products','Gestión de Productos')"><b>PR</b><span>Nuevo producto<small>Añadir al catálogo</small></span></button>
                             <button type="button" onclick="switchDashboardView('orders','Pedidos y Facturación')"><b>PF</b><span>Pedidos y facturas<small>Revisar y gestionar</small></span></button>
                             <button type="button" onclick="switchDashboardView('inventory','Inventario Actual')"><b>IN</b><span>Inventario<small>Consultar existencias</small></span></button>
@@ -7801,25 +7806,8 @@
                     </div>
                 </div>
 
-                <div id="view-orders" class="dashboard-section">
-                    <div class="admin-panel orders-admin-shell">
-                        <div class="orders-admin-header">
-                            <div><span class="admin-kicker">Ventas</span><h2>Ventas y facturación</h2><p style="margin:6px 0 0;color:var(--muted);">Caja de mostrador, pedidos web y facturas en un solo flujo.</p></div>
-                            <button class="admin-btn" type="button" onclick="openManualInvoiceEditor()">Nueva factura manual</button>
-                        </div>
-                        <details class="admin-fold orders-navigation-fold" open><summary>Secciones de ventas · Caja, pedidos y facturas</summary>
-                        <div class="orders-search-row">
-                            <input class="form-control" id="admin-orders-search" placeholder="Buscar cliente, pedido o factura...">
-                            <div class="orders-tabs">
-                                <button class="orders-tab-btn active" data-orders-tab-target="quick-sale">Caja rápida</button>
-                                <button class="orders-tab-btn" data-orders-tab-target="orders-mayor">Pedidos <span id="orders-count-badge">0</span></button>
-                                <button class="orders-tab-btn" data-orders-tab-target="invoices-mayor">Facturas <span id="invoices-count-badge">0</span></button>
-                            </div>
-                        </div>
-                        </details>
-                        <div class="orders-admin-body">
-                            <div class="orders-tab-panel active" data-orders-tab="quick-sale" id="orders-tab-quick-sale">
-                                <div class="quick-sale-shell enterprise-pos-shell">
+                <div id="view-quick-sale" class="dashboard-section" aria-label="Caja rápida">
+                    <div class="quick-sale-shell enterprise-pos-shell">
                                     <header class="enterprise-pos-bar">
                                         <div class="enterprise-pos-brand">
                                             <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store">
@@ -7893,7 +7881,24 @@
                                         </aside>
                                     </div>
                                 </div>
+                </div>
+
+                <div id="view-orders" class="dashboard-section">
+                    <div class="admin-panel orders-admin-shell">
+                        <div class="orders-admin-header">
+                            <div><span class="admin-kicker">Ventas</span><h2>Ventas y facturación</h2><p style="margin:6px 0 0;color:var(--muted);">Consulta y administra tus pedidos web y facturas.</p></div>
+                            <button class="admin-btn" type="button" onclick="openManualInvoiceEditor()">Nueva factura manual</button>
+                        </div>
+                        <details class="admin-fold orders-navigation-fold" open><summary>Pedidos y facturas</summary>
+                        <div class="orders-search-row">
+                            <input class="form-control" id="admin-orders-search" placeholder="Buscar cliente, pedido o factura...">
+                            <div class="orders-tabs">
+                                <button class="orders-tab-btn active" data-orders-tab-target="orders-mayor">Pedidos <span id="orders-count-badge">0</span></button>
+                                <button class="orders-tab-btn" data-orders-tab-target="invoices-mayor">Facturas <span id="invoices-count-badge">0</span></button>
                             </div>
+                        </div>
+                        </details>
+                        <div class="orders-admin-body">
                             <div class="orders-tab-panel" data-orders-tab="orders-mayor" id="orders-tab-orders"><div class="table-wrapper"><table><thead><tr><th>Pedido</th><th>Fecha</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Accion</th></tr></thead><tbody id="orders-tbody"></tbody></table></div></div>
                             <div class="orders-tab-panel" data-orders-tab="invoices-mayor" id="orders-tab-invoices"><div class="table-wrapper"><table><thead><tr><th>Factura</th><th>Pedido</th><th>Fecha</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Accion</th></tr></thead><tbody id="invoices-tbody"></tbody></table></div></div>
                         </div>
@@ -8341,7 +8346,7 @@
 <script src="admin-product-identity.js?v=20261014-local-ids" defer></script>
 <script src="admin-session-draft.js?v=20261014-local-session" defer></script>
 <script src="admin-shared-scan.js?v=20261014-local-scanner-mode" defer></script>
-<script src="admin-app.js?v=original-store-local-scanner-mode-20261014" defer></script>
+<script src="admin-app.js?v=original-store-quick-sale-section-20261015" defer></script>
 <script src="inventory-tools.js?v=20261013-1"></script>
     <script src="inventory-category-manager.js?v=category-dialog-20261013" defer></script>
 <script src="order-summary.js?v=pdf-fast-20261007" defer></script>

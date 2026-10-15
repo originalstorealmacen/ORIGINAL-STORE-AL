@@ -259,6 +259,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            function lookupReference(value) {
+                let raw=String(value||'').trim();
+                if(/^https?:\/\//i.test(raw)){
+                    try{
+                        const url=new URL(raw),origins=new Set([location.origin,'https://aloriginalstore.online','https://www.aloriginalstore.online']);
+                        if(!origins.has(url.origin)||url.pathname!=='/facturas-pedidos.html')return '';
+                        raw=url.searchParams.get('buscar')||'';
+                    }catch{return '';}
+                }
+                const reference=String(raw||'').trim().replace(/[\u200B-\u200D\uFEFF]/g,'').replace(/\s*[-\u2010-\u2015\u2212]\s*/g,'-').toUpperCase();
+                return reference.length<=120&&/^(PED|DET|FAC)-[A-Z0-9]+(?:-[A-Z0-9]+)*$/.test(reference)?reference:'';
+            }
+
             let referenceOnly = false;
             async function fetchPublicReference(reference) {
                 const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);
@@ -1198,13 +1211,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
-                const lookup = input.value.trim();
-                if (!/^(PED|DET|FAC)-[0-9]{14}-[0-9]{4}$/i.test(lookup)) {
+                const lookup = lookupReference(input.value);
+                if (!lookup) {
                     status.textContent = 'Escribe el ID completo del pedido o factura, o escanea su QR. No se consulta por celular.';
                     panel.classList.remove('open');
                     return;
                 }
 
+                input.value=lookup;
                 status.textContent = '';
                 btn.disabled = true;
                 btn.textContent = 'Buscando...';
@@ -1271,19 +1285,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     invoiceScanner ||= new Html5Qrcode('orders-qr-reader');
                     await invoiceScanner.start({ facingMode: 'environment' }, { fps: 12, videoConstraints: window.BlyxuQrCamera.constraints() }, async decoded => {
                         if (scannerHandled || !scannerDialog.open) return;
-                        let reference = String(decoded || '').trim();
-                        try {
-                            const url = new URL(reference);
-                            if (url.origin !== window.location.origin || !url.pathname.endsWith('/facturas-pedidos.html')) {
-                                scannerError.textContent = 'Este QR no corresponde a un pedido o factura Original Store.';
-                                return;
-                            }
-                            reference = url.searchParams.get('buscar') || '';
-                        } catch (_) {}
-                        if (!reference || reference.length > 200 || /^https?:/i.test(reference)) {
-                            scannerError.textContent = 'No se encontró una referencia válida en el QR.';
-                            return;
-                        }
+                        const reference=lookupReference(decoded);
+                        if(!reference){scannerError.textContent='Este QR no contiene un ID completo de pedido o factura de Original Store.';return;}
                         scannerHandled = true;
                         await stopInvoiceScanner();
                         scannerDialog.close();

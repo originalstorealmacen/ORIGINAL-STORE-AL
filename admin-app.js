@@ -9141,16 +9141,12 @@ function drawDashboardDonutChart(canvasId, legendId, entries, total) {
 
 
 function switchDashboardView(viewId, title) {
-    if (viewId === 'quick-sale') {
-        openQuickSaleInOrders();
-        return;
-    }
     document.querySelectorAll('.dashboard-section').forEach(function (el) { el.classList.remove('active'); });
     document.querySelectorAll('.sidebar-btn').forEach(function (el) { el.classList.remove('active'); });
     var target = document.getElementById('view-' + viewId);
     if (target) target.classList.add('active');
     var btn = document.querySelector('.sidebar-btn[data-view="' + viewId + '"]') || document.querySelector('.sidebar-btn[onclick*="' + viewId + '"]');
-    if (btn) btn.classList.add('active');
+    document.querySelectorAll('.sidebar-btn[data-view="' + viewId + '"]').forEach(el => el.classList.add('active'));
     var titleEl = document.getElementById('current-section-title');
     if (titleEl) titleEl.textContent = title || 'Panel';
     var mobileSelect = document.getElementById('admin-mobile-view-select');
@@ -9167,6 +9163,14 @@ function switchDashboardView(viewId, title) {
     }
 
     if (viewId === 'users' && typeof loadCustomerUsers === 'function')loadCustomerUsers();
+    if (viewId === 'quick-sale') {
+        syncQuickSaleMobilePane();
+        if (!Array.isArray(inventario) || !inventario.length) {
+            cargarInventario({ silent: true }).then(renderQuickSaleResults).catch(() => {});
+        } else {
+            renderQuickSaleResults();
+        }
+    }
     if (viewId === 'orders') {
         cargarPedidos();
     }
@@ -9183,19 +9187,9 @@ function switchDashboardView(viewId, title) {
 
 window.switchDashboardView = switchDashboardView;
 
+// Compatibility for existing shortcuts: the ticket now has its own section.
 function openQuickSaleInOrders() {
-    switchDashboardView('orders', 'Ventas y Facturación');
-    if (typeof window.switchOrdersAdminTab === 'function') {
-        window.switchOrdersAdminTab('quick-sale');
-    } else {
-        window.activeOrdersAdminTab = 'quick-sale';
-    }
-    if (!Array.isArray(inventario) || !inventario.length) {
-        cargarInventario({ silent: true }).then(renderQuickSaleResults).catch(() => {});
-    } else {
-        renderQuickSaleResults();
-    }
-    setTimeout(() => document.getElementById('quick-sale-search')?.focus(), 80);
+    switchDashboardView('quick-sale', 'Caja rápida');
 }
 
 // === LÃ“GICA DE PEDIDOS Y FACTURACIÃ“N DIGITAL ===
@@ -11287,7 +11281,7 @@ async function initChinaOrdersBuilder() {
 
 window.pedidosList = [];
 window.facturasList = [];
-window.activeOrdersAdminTab = 'quick-sale';
+window.activeOrdersAdminTab = 'orders-mayor';
 const ADMIN_ORDERS_CACHE_KEY = 'blyxu_admin_orders_invoices_cache_v2';
 try { localStorage.removeItem(ADMIN_ORDERS_CACHE_KEY); } catch (_) {}
 window.addEventListener('pagehide', () => {
@@ -11838,6 +11832,11 @@ function initOrdersAdminTabs() {
     const searchInput = document.getElementById('admin-orders-search');
 
     function activate(tabId) {
+        if (tabId === 'quick-sale') {
+            switchDashboardView('quick-sale', 'Caja rápida');
+            return;
+        }
+        if (!tabs.some(btn => btn.dataset.ordersTabTarget === tabId)) tabId = 'orders-mayor';
         window.activeOrdersAdminTab = tabId;
         tabs.forEach(btn => {
             const active = btn.dataset.ordersTabTarget === tabId;
@@ -11853,16 +11852,9 @@ function initOrdersAdminTabs() {
         if (ordersShell) ordersShell.scrollLeft = 0;
         container.scrollLeft = 0;
         if (searchInput) {
-            searchInput.style.display = tabId === 'quick-sale' ? 'none' : '';
+            searchInput.style.display = '';
         }
-        if (tabId === 'quick-sale') {
-            if (!Array.isArray(inventario) || !inventario.length) {
-                cargarInventario({ silent: true }).then(renderQuickSaleResults).catch(() => {});
-            } else {
-                renderQuickSaleResults();
-            }
-            setTimeout(() => document.getElementById('quick-sale-search')?.focus(), 60);
-        }
+
     }
 
     window.switchOrdersAdminTab = activate;
@@ -11874,7 +11866,7 @@ function initOrdersAdminTabs() {
         });
     }
 
-    activate(window.activeOrdersAdminTab || 'quick-sale');
+    activate(window.activeOrdersAdminTab || 'orders-mayor');
 }
 
 // === CREADOR Y EDITOR DE FACTURAS ===
