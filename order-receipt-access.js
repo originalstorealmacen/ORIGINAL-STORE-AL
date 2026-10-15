@@ -52,7 +52,7 @@
         if(button)button.dataset.receiptBusy='true';
         let viewer;
         try{
-            const token=session()?.token;if(!token)throw new Error('Inicia sesión en Mi cuenta con tu celular y contraseña. BLYXU debe validar tu cuenta y su relación con este pedido.');
+            const token=session()?.token;if(!token)throw new Error('Inicia sesión en Mi cuenta con tu celular y contraseña. Original Store debe validar tu cuenta y su relación con este pedido.');
             viewer=BlyxuOrderSummary.prepareViewer();
             const payload={action:'ordercustomerreceipt',orderId,token};
             const result=await request(payload);

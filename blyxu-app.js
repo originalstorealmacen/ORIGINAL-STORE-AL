@@ -1,4 +1,4 @@
-// ========== BLYXU E-COMMERCE ENGINE ==========
+// ========== Original Store E-COMMERCE ENGINE ==========
 // Google Sheets integration + Cart + Particles + UI
 
 // -- CONFIG: Google Sheets --
@@ -8,7 +8,7 @@
 // 3. Pega el codigo del archivo google-apps-script.gs
 // 4. Despliega como aplicacion web
 // 5. Pega la URL aqui abajo:
-const GOOGLE_SHEET_API = window.BLYXU_API_URL || 'https://script.google.com/macros/s/AKfycbyMytX5vDXXvNxywckgVmGObGfjLLJEo5iFkJdfqOoDdomVmJ--tnPsOPcmXVSyP9BzuQ/exec';
+const GOOGLE_SHEET_API = window.ORIGINAL_STORE_API_URL;
 const GOOGLE_SHEET_PRODUCTS_URL = `${GOOGLE_SHEET_API}?resource=productos`;
 const BLYXU_WHATSAPP_PHONE = '573112368622';
 const MERCADO_PAGO_PUBLIC_KEY = 'APP_USR-72ab41d6-5fc7-4867-8e02-564ab0ae9f99';
@@ -27,10 +27,10 @@ let productsLoadError = '';
 const RETAIL_PRICE_VISIBILITY_KEY = 'blyxu_show_retail_prices';
 const RETAIL_PRICE_CONFIG_KEY = 'Mostrar_Precios_Minorista';
 const MERCADO_PAGO_ENABLED_CONFIG_KEY = 'Mercado_Pago_Publico_Activo';
-const PRODUCTS_CACHE_KEY = 'blyxu_products_cache_v3';
-const SITE_CONFIG_CACHE_KEY = 'blyxu_site_config_cache_v1';
+const PRODUCTS_CACHE_KEY = `original_store_products_drive_v4:${GOOGLE_SHEET_API}`;
+const SITE_CONFIG_CACHE_KEY = `blyxu_site_config_cache_v1:${GOOGLE_SHEET_API}`;
 const CUSTOMER_SESSION_KEY = 'blyxu_customer_session_v1';
-const PRODUCT_DETAIL_PREVIEW_KEY = 'blyxu_product_detail_preview_v1';
+const PRODUCT_DETAIL_PREVIEW_KEY = `original_store_product_detail_drive_v2:${GOOGLE_SHEET_API}`;
 const PRODUCTS_CACHE_TTL = 5 * 60 * 1000;
 const SITE_CONFIG_CACHE_TTL = 5 * 60 * 1000;
 const CUSTOMER_SESSION_REFRESH_TTL = 10 * 60 * 1000;
@@ -54,6 +54,7 @@ const IMAGE_WIDTHS = {
     banner: 760,
     spotlight: 520,
     detail: 900,
+    zoom: 1400,
     thumb: 160,
     cart: 140,
     search: 96
@@ -100,6 +101,7 @@ let activePriceFilter = 'todos';
 let activeWholesalePriceFilter = 'todos';
 let activeWholesaleSearchQuery = '';
 let heroProductCarouselTimer = null;
+let mainBannerCarouselTimer = null;
 let homeCategoryCarouselTimer = null;
 let inventorySpotlightTimer = null;
 let inventorySpotlightRendered = false;
@@ -437,7 +439,7 @@ function getCatalogProductImageSource(product) {
 }
 
 function getCatalogPreviewImageUrl(source) {
-    // Use the final card size so each card downloads only one image.
+    // One appropriately sized photo per card, without a second quality download.
     return normalizeImageUrl(source, 'card');
 }
 
@@ -455,12 +457,12 @@ function preloadCatalogImageUrl(src, priority = 'auto') {
 
 function primeCatalogImages(products, grid) {
     if (!Array.isArray(products) || !products.length || typeof Image === 'undefined') return;
+    if (!grid || grid.getBoundingClientRect().top > window.innerHeight + 400) return;
     const columns = getCatalogGridColumnCount(grid);
-    const highPriorityCount = Math.max(CATALOG_BATCH_SIZE, columns * 2);
-    products.slice(0, CATALOG_IMAGE_PRELOAD_LIMIT).forEach((product, index) => {
+    products.slice(0, columns).forEach(product => {
         const source = getCatalogProductImageSource(product);
         const preview = getCatalogPreviewImageUrl(source);
-        if (preview) preloadCatalogImageUrl(preview, index < highPriorityCount ? 'high' : 'auto');
+        if (preview) preloadCatalogImageUrl(preview, 'high');
     });
 }
 
@@ -554,7 +556,7 @@ function initCatalogImageLoading(scope = document) {
                 if (entry.isIntersecting) loadDeferredCatalogImage(entry.target);
             });
         }, {
-            rootMargin: '350px 0px',
+            rootMargin: '400px',
             threshold: 0.01
         });
     }
@@ -565,6 +567,9 @@ function initCatalogImageLoading(scope = document) {
 async function renderHomeSectionsStaggered(options = {}) {
     const { renderCatalog = true } = options;
     const token = ++homeRenderToken;
+    const catalogFirst = renderCatalog && window.location.hash === '#coleccion';
+    if (catalogFirst) renderCatalogProducts();
+    renderBanners(bannerProducts);
     await yieldToBrowser();
     if (token !== homeRenderToken) return;
     renderHomeAdBanner();
@@ -576,7 +581,7 @@ async function renderHomeSectionsStaggered(options = {}) {
     renderInventorySpotlight();
     await yieldToBrowser();
     if (token !== homeRenderToken) return;
-    if (renderCatalog) renderCatalogProducts();
+    if (renderCatalog && !catalogFirst) renderCatalogProducts();
 }
 
 function isCacheFresh(key, ttlMs) {
@@ -649,7 +654,8 @@ function hydrateProductsFromCache(cached = readCache(PRODUCTS_CACHE_KEY)) {
     if (!Array.isArray(products) || !products.length) return false;
 
     allProducts = products;
-    bannerProducts = Array.isArray(banners) ? banners.filter(isActiveProduct) : [];
+    // Banners must come from the current server, never an old catalog snapshot.
+    bannerProducts = [];
     productsLoadError = '';
     setProductsLoading(false);
     return true;
@@ -698,12 +704,8 @@ function getImageTargetWidth(kindOrWidth = 'default') {
     const key = String(kindOrWidth || 'default');
     const base = IMAGE_WIDTHS[key] || IMAGE_WIDTHS.default;
     if (key === 'banner' && typeof window !== 'undefined' && window.innerWidth >= 900) return 1400;
-    if (key === 'detail' && typeof window !== 'undefined') return window.innerWidth <= 640 ? 640 : 800;
-    if (key === 'card' && typeof window !== 'undefined') {
-        const baseWidth = window.innerWidth <= 640 ? 320 : 360;
-        return Math.min(640, Math.round(baseWidth * Math.min(window.devicePixelRatio || 1, 2)));
-    }
-    if (key === 'spotlight' && typeof window !== 'undefined' && window.innerWidth <= 640) return 320;
+    if (key === 'detail' && typeof window !== 'undefined' && window.innerWidth >= 900) return 1100;
+    if ((key === 'card' || key === 'spotlight') && typeof window !== 'undefined' && window.innerWidth <= 640) return 320;
     return base;
 }
 
@@ -755,10 +757,11 @@ function normalizeImageUrl(value, imageSize = 'default') {
     const targetWidth = getImageTargetWidth(imageSize);
 
     if (firstUrl.includes('drive.google.com') && driveMatch && driveMatch[1]) {
-        return `https://drive.google.com/thumbnail?id=${encodeURIComponent(driveMatch[1])}&sz=w${targetWidth}`;
+        return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveMatch[1])}=w${targetWidth}`;
     }
 
     if (firstUrl.startsWith('//')) return `https:${firstUrl}`;
+    if (!/^(https?:|data:|blob:)/i.test(firstUrl)) return 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w320';
 
     return resizeGoogleImageUrl(firstUrl, imageSize);
 }
@@ -782,6 +785,7 @@ function prepareProductDetailPreview(productIndex, mode = 'retail') {
     try {
         sessionStorage.setItem(PRODUCT_DETAIL_PREVIEW_KEY, JSON.stringify({
             id: index,
+            ref: String(product.idVariacion || product.SKU || ''),
             mode,
             name: getProductPreviewName(product),
             image,
@@ -791,14 +795,20 @@ function prepareProductDetailPreview(productIndex, mode = 'retail') {
         }));
     } catch (_) {}
 
-    if (image) preloadCatalogImageUrl(image, 'low');
+    if (image) {
+        const img = new Image();
+        img.decoding = 'async';
+        img.referrerPolicy = 'no-referrer';
+        img.src = image;
+    }
 }
 
 function openProductDetail(productIndex, mode = 'retail') {
     const index = Number(productIndex);
     prepareProductDetailPreview(index, mode);
     const catalogParam = mode === 'wholesale' ? '&catalogo=mayorista' : '';
-    window.location.href = `producto.html?id=${index}${catalogParam}`;
+    const ref = allProducts[index]?.idVariacion || allProducts[index]?.SKU || '';
+    window.location.href = `producto.html?id=${index}${catalogParam}&ref=${encodeURIComponent(ref)}`;
 }
 
 function getImageFallbackUrl(source, imageSize = 'default') {
@@ -806,13 +816,18 @@ function getImageFallbackUrl(source, imageSize = 'default') {
     const driveMatch =
         src.match(/[?&]id=([^&#]+)/) ||
         src.match(/drive\.google\.com\/file\/d\/([^/]+)/) ||
-        src.match(/lh3\.googleusercontent\.com\/d\/([^/?&#]+)/);
+        src.match(/lh3\.googleusercontent\.com\/d\/([^/?&#=]+)/);
 
-    if (driveMatch?.[1] && !src.includes('lh3.googleusercontent.com')) {
-        return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveMatch[1])}=w${getImageTargetWidth(imageSize)}`;
+    if (driveMatch?.[1]) {
+        const fileId = decodeURIComponent(driveMatch[1]);
+        if (src.includes('lh3.googleusercontent.com')) {
+            const sourceWidth = src.match(/=w(\d+)/)?.[1] || getImageTargetWidth(imageSize);
+            return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w${sourceWidth}`;
+        }
+        return `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}=w${getImageTargetWidth(imageSize)}`;
     }
 
-    return 'hero_necklace.png';
+    return 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
 }
 
 function handleCatalogImageError(img) {
@@ -820,7 +835,7 @@ function handleCatalogImageError(img) {
     const fallback = getImageFallbackUrl(img.currentSrc || img.src);
     if (img.src === fallback || img.dataset.fallbackTried === 'true') {
         img.onerror = null;
-        img.src = 'hero_necklace.png';
+        img.src = 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
         return;
     }
     img.dataset.fallbackTried = 'true';
@@ -830,7 +845,7 @@ function handleCatalogImageError(img) {
 function handleBannerImageError(img) {
     if (!img) return;
     const fallback = getImageFallbackUrl(img.currentSrc || img.src, 'banner');
-    if (fallback && fallback !== 'hero_necklace.png' && img.dataset.fallbackTried !== 'true') {
+    if (fallback && fallback !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900' && img.dataset.fallbackTried !== 'true') {
         img.dataset.fallbackTried = 'true';
         img.src = fallback;
         return;
@@ -841,7 +856,7 @@ function handleBannerImageError(img) {
 
 function normalizeGoogleProduct(product) {
     const galeria = parseGallery(getProductField(product, ['Galer\u00eda JSON', 'Galeria JSON', 'Galería JSON', 'galeria'], []))
-        .map(normalizeImageUrl)
+        .map(src => normalizeImageUrl(src))
         .filter(Boolean);
     const imageUrl = normalizeImageUrl(getProductFieldLoose(product, ['Imagen Principal', 'Imagen_Principal', 'imagenPrincipal', 'Imagen', 'imagen', 'Foto', 'foto', 'url', 'image', 'src', 'directUrl'], galeria[0] || ''));
 
@@ -1214,17 +1229,33 @@ function applyPromotionsToProducts() {
 
 // -- LOAD PRODUCTS FROM GOOGLE SHEETS --
 function requestFreshProducts(options = {}) {
-    if(!productsLoadPromise)productsLoadPromise=fetchProducts(options).finally(()=>{productsLoadPromise=null;});
+    if (!productsLoadPromise) {
+        productsLoadPromise = fetchProducts(options).finally(() => { productsLoadPromise = null; });
+    }
     return productsLoadPromise;
+}
+function getCatalogDataSignature() {
+    const fields = ['idProducto','idVariacion','Nombre','Categoria','Catalogo','Precio','Precio_Mayorista','Stock','Imagen','Galeria','Descripcion','Color','Tamano','TipoMedida','UnidadMedida','Ancho','Largo','Fondo','Radio','TallaTextil','Estilo','Estado','Promocion'];
+    const config = Object.fromEntries(Object.entries(siteConfig).filter(([key])=>/^(Mostrar_Precios_Minorista|Mercado_Pago_Publico_Activo|Catalogo_Solo_WhatsApp|Banner_|Home_|Promo_|Wholesale_Promo_)/.test(key)).sort(([a],[b])=>a.localeCompare(b)));
+    return JSON.stringify({products:[...allProducts,...bannerProducts].map(p=>fields.map(key=>p[key]??'')),config});
 }
 async function loadProducts(options = {}) {
     const { renderCatalog = true, useCache = true, showLoading = true } = options;
     const productCache = readCache(PRODUCTS_CACHE_KEY);
-    const usedProductCache = useCache && allProducts.length === 0 && hydrateProductsFromCache(productCache);
-    const productCacheIsFresh = usedProductCache && isCacheFresh(PRODUCTS_CACHE_KEY, PRODUCTS_CACHE_TTL);
+    let usedProductCache = useCache && allProducts.length === 0 && hydrateProductsFromCache(productCache);
+    const bootstrap = window.ORIGINAL_STORE_CATALOG_BOOTSTRAP;
+    if (useCache && !allProducts.length && Array.isArray(bootstrap?.rows)) {
+        const products = bootstrap.rows.map(normalizeGoogleProduct).filter(isActiveProduct);
+        usedProductCache = hydrateProductsFromCache({data:{products:products.filter(p=>!isPublicBannerProduct(p)),banners:[]}});
+    }
 
     const usedConfigCache = useCache && Object.keys(siteConfig).length === 0 && hydrateSiteConfigFromCache();
     const configCacheIsFresh = usedConfigCache && isCacheFresh(SITE_CONFIG_CACHE_KEY, SITE_CONFIG_CACHE_TTL);
+    if (!Object.keys(siteConfig).length && bootstrap?.config) {
+        siteConfig = {...bootstrap.config};
+        showRetailPrices = String(siteConfig[RETAIL_PRICE_CONFIG_KEY]) === '1';
+    }
+    const previewSignature = getCatalogDataSignature();
 
     if (usedProductCache) {
         applyPromotionsToProducts();
@@ -1237,8 +1268,8 @@ async function loadProducts(options = {}) {
         }
     }
 
-    // Cached data is only an instant preview; always validate it against the current inventory.
-    requestFreshProducts({showLoading:showLoading && !usedProductCache && renderCatalog});
+    // Saved products are a quick preview, never the authority after inventory changes.
+    requestFreshProducts({ showLoading: showLoading && !usedProductCache && renderCatalog });
     if (!configLoadPromise && !configCacheIsFresh) {
         configLoadPromise = fetchSiteConfig();
     }
@@ -1248,7 +1279,8 @@ async function loadProducts(options = {}) {
         if (backgroundLoads.length) {
             Promise.all(backgroundLoads).then(() => {
                 applyPromotionsToProducts();
-                if (renderCatalog) {
+                const changed = previewSignature !== getCatalogDataSignature();
+                if (renderCatalog && changed) {
                     if (IS_WHOLESALE_PAGE) {
                         renderCatalogProducts();
                     } else {
@@ -1258,7 +1290,7 @@ async function loadProducts(options = {}) {
                 renderFloatingWhatsApp();
                 renderFooterSocialLinks();
                 renderPromoWidget();
-            }).catch(error=>console.warn('No se pudo actualizar el catálogo:',error));
+            });
         }
         return allProducts;
     }
@@ -1366,22 +1398,22 @@ function renderInventorySpotlightEmpty(message = 'No hay productos disponibles p
     if (totalSlideEl) totalSlideEl.textContent = '00';
 
     hero?.querySelector('.hero-tag') && (hero.querySelector('.hero-tag').innerHTML = '<span class="dot"></span> Inventario');
-    hero?.querySelector('.hero-title') && (hero.querySelector('.hero-title').innerHTML = 'CAT&Aacute;LOGO<br><span class="gradient">BLYXU</span>');
+    hero?.querySelector('.hero-title') && (hero.querySelector('.hero-title').innerHTML = 'CAT&Aacute;LOGO<br><span class="gradient">Original Store</span>');
     hero?.querySelector('.hero-subtitle') && (hero.querySelector('.hero-subtitle').textContent = message);
 }
 
 function getSpotlightProductDetails(product, index = 0) {
     const productIndex = allProducts.indexOf(product);
-    const name = product.Nombre || product.nombre || product.Producto || 'Producto BLYXU';
+    const name = product.Nombre || product.nombre || product.Producto || 'Producto Original Store';
     const category = product.Categoria || product.categoria || 'Destacado';
-    const description = product.Descripcion || product.descripcion || 'Pieza disponible en el inventario BLYXU.';
+    const description = product.Descripcion || product.descripcion || 'Pieza disponible en el inventario Original Store.';
     const variantSummary = getVariantSummary(product);
     const tags = [category, variantSummary].filter(Boolean).slice(0, 3);
     const price = getProductCardPriceInfo(product, 'retail').price;
     const showPrice = shouldShowProductPrices('retail');
     const detailUrl = productIndex >= 0 ? `producto.html?id=${productIndex}` : '#coleccion';
     const images = getProductImageSet(product, 'spotlight');
-    const image = images[0] || 'hero_necklace.png';
+    const image = images[0] || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
 
     return { productIndex, name, category, description, tags, price, showPrice, detailUrl, image, number: index + 1 };
 }
@@ -1444,7 +1476,7 @@ function renderInventorySpotlightProducts(products) {
         return `
             <article class="hero-carousel-slide product-glass-card ${index === 0 ? 'active' : ''}" data-detail-url="${escapeHtml(details.detailUrl)}">
                 <div class="product-glass-media ${toneClass}">
-                    <img src="${escapeHtml(details.image || 'hero_necklace.png')}" alt="${escapeHtml(details.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="handleCatalogImageError(this)">
+                    <img src="${escapeHtml(details.image || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900')}" alt="${escapeHtml(details.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="handleCatalogImageError(this)">
                     <span class="product-glass-badge">${escapeHtml(details.category)}</span>
                     ${stockBadge}
                 </div>
@@ -1516,7 +1548,7 @@ function getNewestProductsForMarquee(products, limit = 15) {
         .map((product, index) => ({ product, index, createdTime: getProductCreatedTime(product) }))
         .filter(item => {
             const img = getProductImageSet(item.product)[0];
-            return img && img !== 'hero_necklace.png';
+            return img && img !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
         })
         .sort((a, b) => {
             if (b.createdTime !== a.createdTime) return b.createdTime - a.createdTime;
@@ -1756,14 +1788,18 @@ function renderHomeAdBanner() {
     }
 
     const rawImage = getSiteConfigValue('Home_Ad_Image', '');
+    const carouselImage = Array.isArray(bannerProducts)
+        ? getPublicProductImage(bannerProducts.find(product => isActiveProduct(product) && getPublicProductImage(product, 'banner')), 'banner')
+        : '';
     const imageCandidates = Array.from(new Set([
         normalizeImageUrl(rawImage, 'banner'),
         String(rawImage || '').trim(),
-        'hero_necklace.png'
+        carouselImage,
+        'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900'
     ].filter(Boolean)));
     const kicker = getSiteConfigValue('Home_Ad_Kicker', 'Edicion limitada');
     const title = getSiteConfigValue('Home_Ad_Title', 'Brilla con tus favoritos');
-    const message = getSiteConfigValue('Home_Ad_Message', 'Descubre piezas seleccionadas, promociones y anuncios especiales de BLYXU.');
+    const message = getSiteConfigValue('Home_Ad_Message', 'Descubre piezas seleccionadas, promociones y anuncios especiales de Original Store.');
     banner.style.display = '';
     const img = document.getElementById('home-ad-image');
     if (img) {
@@ -1788,7 +1824,7 @@ function renderHomeAdBanner() {
             banner.classList.remove('is-empty');
             img.onerror = () => {
                 const currentFallback = getImageFallbackUrl(img.currentSrc || img.src, 'banner');
-                if (currentFallback && currentFallback !== 'hero_necklace.png' && !imageCandidates.includes(currentFallback)) {
+                if (currentFallback && currentFallback !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900' && !imageCandidates.includes(currentFallback)) {
                     imageCandidates.splice(candidateIndex + 1, 0, currentFallback);
                 }
                 candidateIndex += 1;
@@ -1830,14 +1866,14 @@ function renderInventorySpotlight() {
         const img = getProductImageSet(p, 'card')[0];
         const detailUrl = `producto.html?id=${allProducts.indexOf(p)}`;
         const stockBadge = getProductBadgeMarkup(p);
-        const name = p.Nombre || p.nombre || p.Producto || 'Producto BLYXU';
+        const name = p.Nombre || p.nombre || p.Producto || 'Producto Original Store';
         const price = getProductCardPriceInfo(p, 'retail').price;
         const priceText = shouldShowProductPrices('retail') ? formatMoney(price) : 'Precio por consultar';
-        const shouldLoadEarly = !isDuplicate && index < eagerCount;
+        const shouldLoadEarly = !isDuplicate && index < eagerCount && window.location.hash !== '#coleccion';
         const loading = shouldLoadEarly ? 'eager' : 'lazy';
         const priority = shouldLoadEarly ? 'high' : 'low';
         return `<div class="marquee-item" onclick="window.location.href='${escapeHtml(detailUrl)}'" title="${escapeHtml(p.Nombre || '')}">
-                    <img src="${escapeHtml(img || 'hero_necklace.png')}" alt="${escapeHtml(name)}" loading="${loading}" decoding="async" fetchpriority="${priority}" referrerpolicy="no-referrer" onerror="handleCatalogImageError(this)">
+                    <img ${shouldLoadEarly ? `src="${escapeHtml(img || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900')}"` : `data-src="${escapeHtml(img || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900')}" data-catalog-lazy="true"`} alt="${escapeHtml(name)}" loading="${loading}" decoding="async" fetchpriority="${priority}" referrerpolicy="no-referrer" onerror="handleCatalogImageError(this)">
                     ${stockBadge}
                     <div class="marquee-item-info">
                         <strong>${escapeHtml(name)}</strong>
@@ -1852,6 +1888,7 @@ function renderInventorySpotlight() {
         candidates.map((p, index) => getMarqueeItemHtml(p, index, true)).join('');
     marqueeContainer.classList.remove('is-loading');
     marqueeContainer.classList.add('is-ready');
+    initCatalogImageLoading(marqueeContainer);
     
     inventorySpotlightRendered = true;
 }
@@ -1865,17 +1902,17 @@ async function fetchProducts(options = {}) {
     } else {
         try {
             setProductsLoading(showLoading);
-            const res = await fetch(GOOGLE_SHEET_PRODUCTS_URL + '&_=' + Date.now(), {
-                cache: 'no-store'
+            const res = await fetch(GOOGLE_SHEET_PRODUCTS_URL, {
+                cache: 'no-cache', signal:AbortSignal.timeout(12000)
             });
             const data = await res.json();
             if (data && (data.status === 'error' || data.ok === false)) {
                 throw new Error(data.message || data.error || 'Error del Apps Script');
             }
-            if(!res.ok)throw new Error('No se pudo consultar el inventario.');
-            const rows=Array.isArray(data)?data:(data?.data || data?.productos);
-            if(!Array.isArray(rows))throw new Error('La respuesta del inventario no es válida.');
-            productsLoadError='';
+            if (!res.ok) throw new Error('No se pudo consultar el inventario.');
+            const rows = Array.isArray(data) ? data : (data?.data || data?.productos);
+            if (!Array.isArray(rows)) throw new Error('La respuesta del inventario no es válida.');
+            productsLoadError = '';
             dataProducts = rows
                 .map(normalizeGoogleProduct)
                 .filter(isActiveProduct);
@@ -1898,11 +1935,13 @@ async function fetchProducts(options = {}) {
     }
     
     setProductsLoading(false);
-    
+
     // Separar banners del catalogo regular
     bannerProducts = dataProducts.filter(p => isPublicBannerProduct(p) && isActiveProduct(p) && getPublicProductImage(p));
     allProducts = dataProducts.filter(p => !isPublicBannerProduct(p));
+    renderBanners(bannerProducts);
     writeCache(PRODUCTS_CACHE_KEY, { products: allProducts, banners: bannerProducts });
+    window.dispatchEvent(new CustomEvent('original-store-products-updated'));
 
     return allProducts;
 }
@@ -1926,9 +1965,9 @@ async function fetchSiteConfig(options = {}) {
 
     configLoadPromise = (async () => {
         try {
-            const url = `${GOOGLE_SHEET_API}?action=get_config&_=${Date.now()}`;
+            const url = `${GOOGLE_SHEET_API}?action=get_config`;
             const res = await fetch(url, {
-                cache: 'no-store'
+                cache: 'no-cache', signal:AbortSignal.timeout(12000)
             });
             const data = await res.json();
             if (data && data.status === 'success' && data.config) {
@@ -1936,6 +1975,7 @@ async function fetchSiteConfig(options = {}) {
                 showRetailPrices = String(siteConfig[RETAIL_PRICE_CONFIG_KEY] || '0') === '1';
                 localStorage.setItem(RETAIL_PRICE_VISIBILITY_KEY, showRetailPrices ? '1' : '0');
                 writeCache(SITE_CONFIG_CACHE_KEY, siteConfig);
+                window.dispatchEvent(new CustomEvent('original-store-config-updated'));
                 if (typeof updateCartUI === 'function') updateCartUI();
             }
         } catch (err) {
@@ -2185,7 +2225,7 @@ function initContactRequestForm(whatsapp) {
         const phone = String(whatsapp || getCommerceWhatsAppPhone()).replace(/\D/g, '');
 
         const text = [
-            '*Solicitud Concierge BLYXU*',
+            '*Solicitud Concierge Original Store*',
             '',
             `*Nombre:* ${name}`,
             email ? `*Correo:* ${email}` : '',
@@ -2202,7 +2242,7 @@ function renderContactPage() {
 
     const days = getSiteConfigValue('Contacto_Dias', 'Lunes a Sábado');
     const hours = getSiteConfigValue('Contacto_Horarios', '10:00 a.m. - 7:00 p.m.');
-    const note = 'Escríbenos por nuestro número oficial o visita nuestras redes sociales BLYXU.';
+    const note = 'Escríbenos por nuestro número oficial o visita nuestras redes sociales Original Store.';
     const whatsapp = getCommerceWhatsAppPhone();
     const facebook = getSiteConfigValue('Contacto_Facebook', 'blyxu');
     const tiktok = getSiteConfigValue('Contacto_TikTok', 'blyxu');
@@ -2231,6 +2271,108 @@ function renderContactPage() {
     renderContactTimeline(hours);
     renderContactWeek(days);
     startContactClock(days, hours);
+}
+
+// -- RENDER BANNERS --
+function renderBanners(banners) {
+    const track = document.getElementById('main-banner-track');
+    const nav = document.getElementById('main-banner-nav');
+    if (!track) return;
+
+    banners = (Array.isArray(banners) ? banners : [])
+        .map(normalizeGoogleProduct)
+        .filter(isActiveProduct)
+        .filter(isPublicBannerProduct)
+        .filter(getPublicProductImage);
+    
+    const signature = JSON.stringify(banners.map(b => [getPublicProductImage(b, 'banner'), b.Descripcion || b.Color || '']));
+    if (track.dataset.bannerSignature === signature) return;
+    track.dataset.bannerSignature = signature;
+    // Reset before replacing the slides so a previous carousel offset cannot reveal stale content.
+    track.style.transform = 'translateX(0)';
+
+    if (!banners.length) {
+        banners = [{
+            Nombre: 'Original Store',
+            Descripcion: '',
+            Imagen: ''
+        }];
+    }
+    
+    track.innerHTML = banners.map((b, i) => {
+        const rawDesc = String(b.Descripcion || b.Color || '').trim();
+        const isPlaceholder = !rawDesc || rawDesc.toLowerCase().includes('nueva imagen');
+        const descHtml = isPlaceholder ? '' : `<p class="main-banner-desc">${escapeHtml(rawDesc)}</p>`;
+        const imageUrl = getPublicProductImage(b, 'banner');
+        const imageHtml = imageUrl
+            ? `<img src="${escapeHtml(imageUrl)}" alt="Banner Original Store" style="filter: brightness(0.55);" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async" ${i === 0 ? 'fetchpriority="high"' : 'fetchpriority="low"'} referrerpolicy="no-referrer" onerror="handleBannerImageError(this)">`
+            : `<img class="main-banner-fallback-media" src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" loading="eager" decoding="sync">`;
+
+        return `
+        <div class="main-banner-slide ${i===0?'active':''} ${imageUrl ? '' : 'is-placeholder'}">
+            ${imageHtml}
+            <div class="main-banner-overlay"></div>
+            <div class="main-banner-content">
+                
+                ${descHtml}
+                <div class="main-banner-actions">
+                    <a href="#coleccion" class="main-banner-btn">Explorar Colecci\u00f3n</a>
+                    <a href="mayorista.html" class="main-banner-btn" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.2);">Acceso Mayorista</a>
+                </div>
+                <div class="hero-promo-inject" style="margin-top: 32px; width: 100%;"></div>
+            </div>
+        </div>
+        `;
+    }).join('');
+    
+    if (nav) {
+        nav.innerHTML = banners.map((b, i) => `
+            <div class="main-banner-dot ${i===0?'active':''}"></div>
+        `).join('');
+    }
+    
+    initMainBannerCarousel(banners.length);
+}
+
+function initMainBannerCarousel(totalSlides) {
+    if (mainBannerCarouselTimer) {
+        clearInterval(mainBannerCarouselTimer);
+        mainBannerCarouselTimer = null;
+    }
+
+    const prevBtn = document.getElementById('banner-prev');
+    const nextBtn = document.getElementById('banner-next');
+    const nav = document.getElementById('main-banner-nav');
+    const track = document.getElementById('main-banner-track');
+
+    if (totalSlides <= 1) {
+        if (track) track.style.transform = 'translateX(0)';
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+        if (nav) nav.style.display = 'none';
+        return;
+    }
+
+    if (prevBtn) prevBtn.style.display = 'flex';
+    if (nextBtn) nextBtn.style.display = 'flex';
+    if (nav) nav.style.display = 'flex';
+    const dots = document.querySelectorAll('.main-banner-dot');
+    let currentIndex = 0;
+
+    function update() {
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+        document.querySelectorAll('.main-banner-slide').forEach((s, i) => s.classList.toggle('active', i === currentIndex));
+        dots.forEach((d, i) => d.classList.toggle('active', i === currentIndex));
+    }
+
+    if (nextBtn) nextBtn.onclick = () => { currentIndex = (currentIndex + 1) % totalSlides; update(); };
+    if (prevBtn) prevBtn.onclick = () => { currentIndex = (currentIndex - 1 + totalSlides) % totalSlides; update(); };
+    dots.forEach((d, i) => d.onclick = () => { currentIndex = i; update(); });
+
+    mainBannerCarouselTimer = setInterval(() => {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        update();
+    }, 6000);
 }
 
 // -- CATALOG MODES --
@@ -2872,12 +3014,13 @@ function renderProducts(products, options = {}) {
 
     grid.innerHTML = '';
     let rendered = 0;
-    const immediateImageCount = initialBatchSize;
-    const highPriorityImageCount = Math.min(initialBatchSize, getCatalogGridColumnCount(grid));
     const shouldPrioritizeCatalogImages = mode === 'wholesale'
         || gridId === 'wholesale-products-grid'
-        || (typeof window !== 'undefined' && window.location.hash === '#coleccion');
-    // Native lazy loading defers cards below the viewport; no bulk preloads.
+        || (typeof window !== 'undefined' && window.location.hash === '#coleccion')
+        || grid.getBoundingClientRect().top < window.innerHeight + 400;
+    const highPriorityImageCount = Math.min(initialBatchSize, getCatalogGridColumnCount(grid));
+    const immediateImageCount = shouldPrioritizeCatalogImages ? highPriorityImageCount : 0;
+    primeCatalogImages(filtered, grid);
 
     function productCardTemplate(p, i) {
         const name = p.Nombre || p.nombre || p.Producto || 'Producto';
@@ -2889,7 +3032,6 @@ function renderProducts(products, options = {}) {
         const previewImg = getCatalogPreviewImageUrl(rawImg) || img;
         const cat = p.Categoria || p.categoria || '';
         const stock = getProductStock(p);
-        const colors = (p.Color || p.color || '').split(',').map(c => c.trim()).filter(Boolean);
         const variantText = getVariantSummary(p);
         const originalIndex = allProducts.indexOf(p);
         const productIndex = originalIndex >= 0 ? originalIndex : i;
@@ -2916,15 +3058,11 @@ function renderProducts(products, options = {}) {
                   `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a0e2e,#2d1552);font-size:48px;opacity:.3;">?</div>`}
                 ${badge}
                 ${getProductPromotionBadgeMarkup(p, mode)}
-                ${stock > 0 ? `<button class="product-card-quick" onclick="event.stopPropagation(); addToCart(${productIndex}, this, '${mode}')" title="${showPrices ? 'Agregar al carrito' : 'Agregar a consulta general'}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
-                </button>` : ''}
             </div>
             <div class="product-card-info" onclick="openProductDetail(${productIndex}, '${mode}')">
                 <div class="product-card-name">${name}</div>
                 <div class="product-card-desc">${cat}</div>
                 ${variantText ? `<div class="product-card-variant">${escapeHtml(variantText)}</div>` : ''}
-                ${colors.length ? `<div class="product-card-colors" aria-label="Colores disponibles">${colors.map(c => `<span class="color-dot" style="background:${getColorHex(c)}" aria-hidden="true"></span>`).join('')}</div>` : ''}
                 ${showPrices ? `<div class="product-card-price ${oldPrice > price ? 'discount-active' : ''}">
                     <span class="product-price-icon" aria-hidden="true">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 11h18"></path></svg>
@@ -2933,6 +3071,10 @@ function renderProducts(products, options = {}) {
                     ${oldPrice > price ? `<span class="old">${formatMoney(oldPrice)}</span><span class="product-price-discount">-${priceInfo.discountPercentage}%</span>` : ''}
                 </div>` : stock > 0 ? `<button class="product-card-price price-hidden price-consult-btn" type="button" onclick="event.stopPropagation(); consultProductByWhatsApp(allProducts[${productIndex}], '${detailUrl}')">Precio por consultar</button>` :
                 `<button class="product-card-price price-hidden price-consult-btn" type="button" disabled>Agotado por ahora</button>`}
+                <button type="button" class="product-card-quick catalog-add-btn" ${stock > 0 ? '' : 'disabled'} onclick="event.stopPropagation(); addToCart(${productIndex}, this, '${mode}')" aria-label="${stock > 0 ? (showPrices ? 'Añadir al carrito: ' : 'Añadir a consulta: ') : 'Agotado: '}${escapeHtml(name)}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
+                    <span>${stock > 0 ? (showPrices ? 'Añadir al carrito' : 'Añadir a consulta') : 'Agotado'}</span>
+                </button>
             </div>
         </div>`;
     }
@@ -3573,9 +3715,9 @@ function updateCartUI() {
         if (!cart.length) {
             secItemsEl.innerHTML = `
                 <div class="cart-empty-state">
-                    <div class="cart-empty-icon">BLYXU</div>
+                    <div class="cart-empty-icon">Original Store</div>
                     <h3>Tu carrito ${getCartModeLabel()} está vacío ✦</h3>
-                    <p>Descubre nuestras joyas y accesorios exclusivos y añade tus piezas preferidas.</p>
+                    <p>Descubre nuestros peluches y accesorios y añade tus piezas preferidas.</p>
                     <a href="${browseCatalogUrl}" class="cart-btn-browse">Explorar Catálogo</a>
                 </div>
             `;
@@ -4007,7 +4149,7 @@ const GLOBAL_SEARCH_PAGES = [
     { title: 'Pagos', detail: 'QR, transferencia y comprobantes', href: 'pagos.html', keywords: 'pagos pagar qr transferencia cuenta comprobante mercado pago' },
     { title: 'Facturas y pedidos', detail: 'Consultar ordenes y comprobantes', href: 'facturas-pedidos.html', keywords: 'facturas pedidos ordenes consultar comprobantes historial' },
     { title: 'Contacto', detail: 'WhatsApp, horarios y redes', href: 'contacto.html', keywords: 'contacto whatsapp telefono horario redes instagram tiktok facebook' },
-    { title: 'Administrativo', detail: 'Panel interno BLYXU', href: 'administrativo.html', keywords: 'admin administrativo inventario dashboard productos pedidos' }
+    { title: 'Administrativo', detail: 'Panel interno Original Store', href: 'administrativo.html', keywords: 'admin administrativo inventario dashboard productos pedidos' }
 ];
 
 function getGlobalPageResults(query) {
@@ -4510,17 +4652,17 @@ function renderFloatingWhatsApp() {
         button.className = 'floating-whatsapp';
         button.target = '_blank';
         button.rel = 'noopener';
-        button.setAttribute('aria-label', 'Abrir WhatsApp de BLYXU');
+        button.setAttribute('aria-label', 'Abrir WhatsApp de Original Store');
         button.innerHTML = `
             <span class="floating-whatsapp-logo">
-                <img src="Logo2-nav.png" alt="" loading="lazy">
+                <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="" loading="lazy">
             </span>
             <span>WhatsApp</span>
         `;
         document.body.appendChild(button);
     }
 
-    const message = 'Hola BLYXU, quiero hacer una consulta sobre sus productos.';
+    const message = 'Hola Original Store, quiero hacer una consulta sobre sus productos.';
     button.href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }
 
@@ -4537,7 +4679,7 @@ function renderPromoWidget() {
         return;
     }
 
-    const title = getSiteConfigValue(prefix + 'Title', 'Oferta BLYXU');
+    const title = getSiteConfigValue(prefix + 'Title', 'Oferta Original Store');
     const message = getSiteConfigValue(prefix + 'Message', 'Aprovecha nuestros descuentos especiales.');
     const promoDate = getSiteConfigValue(prefix + 'Date', '');
     const promoDiscount = getSiteConfigValue(prefix + 'Discount', '');
@@ -4700,12 +4842,12 @@ function initCustomCursor() {
 }
 
 function consultProductByWhatsApp(product, pageUrl = window.location.href) {
-    const name = product?.Nombre || product?.nombre || product?.Producto || 'Producto BLYXU';
+    const name = product?.Nombre || product?.nombre || product?.Producto || 'Producto Original Store';
     const category = product?.Categoria || product?.categoria || '';
     const imageUrl = normalizeImageUrl(getProductImageSet(product, 'card')[0] || product?.Imagen || product?.['Imagen Principal'] || '', 'card');
     const sku = product?.SKU || product?.idVariacion || product?.['ID Variación'] || product?.['ID Variacion'] || '';
 
-    let msg = '*Consulta de precio BLYXU*\n\n';
+    let msg = '*Consulta de precio Original Store*\n\n';
     msg += `Hola, quiero consultar el precio de:\n*${name}*\n`;
     if (category) msg += `Categoría: ${category}\n`;
     if (sku) msg += `SKU / Ref: ${sku}\n`;
@@ -4841,7 +4983,7 @@ function getProductIdentity(product, productIndex = -1) {
     return {
         idProducto: product?.idProducto || product?.['ID Producto'] || product?.Referencia || product?.referencia || product?.SKU || '',
         idVariacion: product?.idVariacion || product?.['ID Variación'] || product?.['ID Variacion'] || product?.SKU || productIndex,
-        nombre: product?.Nombre || product?.nombre || product?.['Nombre del Producto'] || product?.Producto || 'Producto BLYXU',
+        nombre: product?.Nombre || product?.nombre || product?.['Nombre del Producto'] || product?.Producto || 'Producto Original Store',
         imagen: normalizeImageUrl(product?.Imagen || product?.imagen || product?.Foto || (product?.Galeria && product.Galeria[0]) || '', 'thumb'),
         precio: getProductPrice(product || {}, activeCatalogMode)
     };
@@ -4937,8 +5079,8 @@ function ensureCustomerAuthModal() {
         <div class="customer-auth-dialog" role="dialog" aria-modal="true" aria-labelledby="customer-auth-title">
             <button class="customer-auth-close" type="button" aria-label="Cerrar">&times;</button>
             <div class="customer-auth-brand">
-                <img src="Logo2-nav.png" alt="BLYXU" onerror="this.style.display='none'">
-                <span>Cuenta BLYXU</span>
+                <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" onerror="this.style.display='none'">
+                <span>Cuenta Original Store</span>
             </div>
             <div class="customer-auth-tabs" role="tablist" aria-label="Cuenta de cliente">
                 <button type="button" class="active" data-auth-view="login">Ingresar</button>
@@ -5073,11 +5215,11 @@ function renderCustomerProfile() {
     const promotion = getCurrentCustomerPromotion();
     const benefits = document.getElementById('customer-dashboard-benefits');
     if (benefits) benefits.innerHTML = promotion.percent > 0
-        ? `<div class="customer-profile-card"><strong>${escapeHtml(promotion.label || 'Beneficio BLYXU')}</strong><div class="customer-promo-badge"><b>-${promotion.percent}%</b><span>de descuento</span></div><span>${promotion.expires ? `Válido hasta ${escapeHtml(formatCustomerDate(promotion.expires))}` : 'Sin fecha de vencimiento'}</span><small>Se aplica automáticamente en el carrito a tus pedidos minoristas mientras tengas la sesión iniciada.</small></div>`
+        ? `<div class="customer-profile-card"><strong>${escapeHtml(promotion.label || 'Beneficio Original Store')}</strong><div class="customer-promo-badge"><b>-${promotion.percent}%</b><span>de descuento</span></div><span>${promotion.expires ? `Válido hasta ${escapeHtml(formatCustomerDate(promotion.expires))}` : 'Sin fecha de vencimiento'}</span><small>Se aplica automáticamente en el carrito a tus pedidos minoristas mientras tengas la sesión iniciada.</small></div>`
         : '<div class="customer-dashboard-empty">Por ahora no tienes descuentos activos. Aquí aparecerán tus beneficios cuando estén disponibles.</div>';
 
     card.innerHTML = `
-        <strong>${escapeHtml(customer.nombre || 'Cliente BLYXU')}</strong>
+        <strong>${escapeHtml(customer.nombre || 'Cliente Original Store')}</strong>
         <span>${escapeHtml(customer.email || '')}</span>
         ${customer.telefono && !String(customer.telefono).startsWith('GOOGLE-') ? `<span>${escapeHtml(customer.telefono)}</span>` : ''}
         ${customer.direccion || customer.ciudad ? `<small>${escapeHtml([customer.direccion, customer.ciudad].filter(Boolean).join(', '))}</small>` : ''}
@@ -5217,7 +5359,7 @@ function printCustomerOwnInvoice(index){
     const invoice=window.customerOwnInvoices?.[index];if(!invoice)return;
     const preview=window.open('','_blank');if(!preview){setCustomerAuthMessage('Permite abrir la vista de factura para guardarla.','error');return;}
     const lines=(invoice.productos||[]).map(item=>`<tr><td>${escapeHtml(item.nombre||'Producto')}</td><td>${Number(item.cantidad)||0}</td><td>${formatMoney(Number(item.precio)||0)}</td></tr>`).join('');
-    preview.opener=null;preview.document.write(`<html lang="es"><head><meta charset="utf-8"><title>Factura BLYXU</title><style>body{font-family:Arial;padding:30px;color:#222}table{width:100%;border-collapse:collapse}td,th{padding:12px;text-align:left;border-bottom:1px solid #ddd}@media print{button{display:none}}</style></head><body><h1>BLYXU</h1><h2>Factura ${escapeHtml(invoice.id)}</h2><p>${escapeHtml(getCurrentCustomer()?.nombre||'')}</p><p>${escapeHtml(formatCustomerDate(invoice.fecha))}</p><table><thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th></tr></thead><tbody>${lines}</tbody></table><p>Total: ${formatMoney(Number(invoice.total)||0)}</p><p>Abonado: ${formatMoney(Number(invoice.valorAbonado)||0)} · Saldo: ${formatMoney(Number(invoice.saldoPendiente)||0)}</p><button onclick="window.print()">Imprimir / guardar como PDF</button></body></html>`);preview.document.close();
+    preview.opener=null;preview.document.write(`<html lang="es"><head><meta charset="utf-8"><title>Factura Original Store</title><style>body{font-family:Arial;padding:30px;color:#222}table{width:100%;border-collapse:collapse}td,th{padding:12px;text-align:left;border-bottom:1px solid #ddd}@media print{button{display:none}}</style></head><body><h1>Original Store</h1><h2>Factura ${escapeHtml(invoice.id)}</h2><p>${escapeHtml(getCurrentCustomer()?.nombre||'')}</p><p>${escapeHtml(formatCustomerDate(invoice.fecha))}</p><table><thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th></tr></thead><tbody>${lines}</tbody></table><p>Total: ${formatMoney(Number(invoice.total)||0)}</p><p>Abonado: ${formatMoney(Number(invoice.valorAbonado)||0)} · Saldo: ${formatMoney(Number(invoice.saldoPendiente)||0)}</p><button onclick="window.print()">Imprimir / guardar como PDF</button></body></html>`);preview.document.close();
 }
 
 function renderCustomerFavoritesList(favorites = []) {
@@ -5237,7 +5379,7 @@ function renderCustomerFavoritesList(favorites = []) {
                 <a href="${href}">
                     ${item.imagen ? `<img src="${escapeHtml(item.imagen)}" alt="">` : '<span class="customer-favorite-empty">?</span>'}
                     <div>
-                        <strong>${escapeHtml(item.nombre || 'Producto BLYXU')}</strong>
+                        <strong>${escapeHtml(item.nombre || 'Producto Original Store')}</strong>
                         <span>${item.precio ? formatMoney(Number(item.precio)) : 'Ver producto'}</span>
                     </div>
                 </a>
@@ -5442,7 +5584,7 @@ function renderCustomerAccessForm(panel,mode){
     const phone=`<label>Celular / WhatsApp<input name="telefono" type="tel" autocomplete="tel" maxlength="20" required></label>`;
     const password=customerPasswordField('password',mode==='reset'?'Nueva contraseña':'Contraseña',mode==='login');
     const repeat=customerPasswordField('confirm','Repite la contraseña',false)+`<ul class="customer-password-checks" aria-live="polite"><li data-check-length>○ Escribe al menos 12 caracteres.</li><li data-check-match>○ Repite exactamente la misma contraseña.</li></ul><small>Puedes usar una frase larga que recuerdes. Evita tu nombre o celular. No compartas tu contraseña.</small>`;
-    const description={login:'Tus pedidos, facturas, favoritos y beneficios en un solo lugar.',register:'1. Completa tus datos y crea tu contraseña. 2. Comunica a BLYXU el código de registro que aparecerá al enviar. 3. Cuando aprueben tu cuenta, entra con tu celular y contraseña.',recover:'Envía tu solicitud. BLYXU verificará tu identidad y te entregará un enlace para crear una contraseña nueva.',reset:'Confirma tu contraseña para activar o recuperar tu cuenta. Este enlace se usa una sola vez y vence en una hora.'};
+    const description={login:'Tus pedidos, facturas, favoritos y beneficios en un solo lugar.',register:'1. Completa tus datos y crea tu contraseña. 2. Comunica a Original Store el código de registro que aparecerá al enviar. 3. Cuando aprueben tu cuenta, entra con tu celular y contraseña.',recover:'Envía tu solicitud. Original Store verificará tu identidad y te entregará un enlace para crear una contraseña nueva.',reset:'Confirma tu contraseña para activar o recuperar tu cuenta. Este enlace se usa una sola vez y vence en una hora.'};
     panel.innerHTML=`<h2 id="customer-auth-title">${titles[mode]}</h2><p>${description[mode]}</p><form class="customer-auth-form">${['register','recover'].includes(mode)?names:''}${mode!=='reset'?phone:''}${mode!=='recover'?password:''}${['register','reset'].includes(mode)?repeat:''}${mode==='login'?'<label class="customer-remember"><input type="checkbox" name="remember" checked> Mantener sesión iniciada hasta que cierre sesión</label>':''}<button type="submit">${{login:'Entrar a mi cuenta',register:'Solicitar activación',recover:'Solicitar recuperación',reset:'Guardar contraseña nueva'}[mode]}</button><p role="status" aria-live="polite"></p></form><div class="customer-auth-tabs" style="margin-top:16px"><button type="button" data-access="login">Ingresar</button><button type="button" data-access="register">Registrarme</button></div><button type="button" class="customer-auth-secondary" data-access="recover">Olvidé mi contraseña</button>`;
     panel.querySelectorAll('[data-password-toggle]').forEach(toggle=>toggle.onclick=()=>{const input=panel.querySelector('[name="'+toggle.dataset.passwordToggle+'"]');const visible=input.type==='password';input.type=visible?'text':'password';toggle.setAttribute('aria-label',visible?'Ocultar contraseña':'Mostrar contraseña');toggle.setAttribute('aria-pressed',String(visible));toggle.textContent=visible?'Ocultar':'👁';});
     const check=()=>{const fields=panel.querySelector('form').elements;if(!fields.confirm)return;const length=fields.password.value.length>=12&&fields.password.value.length<=128,match=fields.confirm.value.length>0&&fields.confirm.value===fields.password.value;panel.querySelector('[data-check-length]').textContent=(length?'✓':'○')+' Mínimo 12 caracteres.';panel.querySelector('[data-check-match]').textContent=(match?'✓':'○')+' Las dos contraseñas coinciden.';fields.confirm.setCustomValidity(fields.confirm.value&&!match?'Las contraseñas no coinciden.':'');};panel.querySelectorAll('input[type=password]').forEach(input=>input.addEventListener('input',check));
@@ -5856,8 +5998,8 @@ function buildCartWhatsAppMessage({ isRegisteredOrder, customerType = 'Detal', c
     const hasHiddenPrices = cart.some(item => !cartItemShowsPrice(item));
     const orderLabel = hasHiddenPrices ? 'Consulta General' : (customerType === 'Mayor' ? 'Mayorista' : 'Detal');
     let msg = hasHiddenPrices
-        ? '*Consulta General BLYXU*\n\n'
-        : (isRegisteredOrder ? `*Pedido ${orderLabel} BLYXU*\n\n` : '*Consulta BLYXU*\n\n');
+        ? '*Consulta General Original Store*\n\n'
+        : (isRegisteredOrder ? `*Pedido ${orderLabel} Original Store*\n\n` : '*Consulta Original Store*\n\n');
 
     if (savedOrder && savedOrder['ID Pedido']) {
         msg += `*ID Pedido:* ${savedOrder['ID Pedido']}\n`;
@@ -6201,7 +6343,7 @@ function initBlyxuApp() {
     if (isHomePage) {
         hydrateSiteConfigFromCache();
         renderHomeAdBanner();
-        fetchSiteConfig({ force: true }).then(() => {
+        fetchSiteConfig().then(() => {
             renderHomeAdBanner();
             renderFooterSocialLinks();
             renderPromoWidget();

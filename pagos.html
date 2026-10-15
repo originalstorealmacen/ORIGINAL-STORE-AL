@@ -2,13 +2,13 @@
 <html lang="es">
 
 <head>
-    <script src="backend-config.js?v=supabase-live-20261013"></script>
+    <script src="backend-config.js?v=original-store-cutover-20261013"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Pagos QR - BLYXU</title>
-    <meta name="description" content="Página de pagos y transferencias de BLYXU.">
-    <link rel="icon" type="image/png" href="/blyxu-search-logo.png">
-    <link rel="apple-touch-icon" href="/blyxu-search-logo.png">
+    <title>Pagos QR - Original Store</title>
+    <meta name="description" content="Página de pagos y transferencias de Original Store.">
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180">
     <link rel="preload" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006" as="style">
     <link rel="stylesheet" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006">
     <script>
@@ -33,14 +33,14 @@
         }
 
         .qr-card {
-            background: rgba(14, 10, 24, 0.92);
-            border: 1px solid rgba(168, 85, 247, 0.28);
+            background: rgba(255,255,255,0.92);
+            border: 1px solid rgba(230,185,211,0.28);
             border-radius: 24px;
             padding: 36px 30px;
             text-align: center;
             max-width: 480px;
             width: 100%;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 32px rgba(168, 85, 247, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 24px 60px rgba(90,36,65,0.15), 0 0 32px rgba(90,36,65,0.1), inset 0 1px 0 rgba(90,36,65,0.1);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             display: none;
@@ -57,7 +57,7 @@
             font-size: 26px;
             font-weight: 700;
             margin-bottom: 8px;
-            background: linear-gradient(135deg, #ffffff 30%, #f3e8ff 70%, #ffd969 100%);
+            background: linear-gradient(135deg, #ffffff 30%, #fbe6f2 70%, #f2dae7 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -0.5px;
@@ -65,7 +65,7 @@
 
         .qr-card p {
             font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(62,35,50,0.7);
             margin-bottom: 24px;
             line-height: 1.5;
         }
@@ -76,7 +76,7 @@
             border-radius: 16px;
             margin-top: 14px;
             margin-bottom: 18px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 24px rgba(90,36,65,0.15);
             position: relative;
             overflow: hidden;
             display: inline-block;
@@ -92,7 +92,7 @@
         }
 
         .qr-empty-state {
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(62,35,50,0.5);
             font-size: 14px;
             padding: 24px 0;
             display: none;
@@ -109,7 +109,7 @@
             align-items: center !important;
             justify-content: center !important;
             padding: 20px !important;
-            background: #101014 !important;
+            background: #ffffff !important;
             font-family: 'Outfit', 'Avenir Next', 'Century Gothic', sans-serif !important;
         }
 
@@ -124,7 +124,7 @@
         }
 
         body.payments-auth-blocked:not(.payments-unlocked) {
-            background: #101014 !important;
+            background: #ffffff !important;
             overflow: hidden !important;
         }
 
@@ -140,13 +140,13 @@
         .payments-login-panel {
             width: min(360px, 100%) !important;
             padding: 0 !important;
-            border: 1px solid rgba(255,255,255,.07) !important;
+            border: 1px solid rgba(218,183,202,0.07) !important;
             border-radius: 24px !important;
-            background: #18181c !important;
+            background: #ffffff !important;
             box-shadow:
-                0 0 0 1px rgba(255,255,255,.04),
-                0 40px 100px rgba(0,0,0,.7),
-                0 8px 32px rgba(0,0,0,.4) !important;
+                0 0 0 1px rgba(90,36,65,0.04),
+                0 40px 100px rgba(90,36,65,0.15),
+                0 8px 32px rgba(90,36,65,0.15) !important;
             text-align: center !important;
             position: relative !important;
             overflow: hidden !important;
@@ -158,7 +158,7 @@
             display: block;
             width: 36px; height: 4px;
             border-radius: 99px;
-            background: rgba(255,255,255,.12);
+            background: rgba(255,255,255,0.12);
             margin: 14px auto 0;
         }
 
@@ -177,23 +177,23 @@
             display: block;
             font-size: 10px; font-weight: 500;
             letter-spacing: .12em; text-transform: uppercase;
-            color: rgba(255,255,255,.38);
+            color: rgba(62,35,50,0.38);
             margin: 0 0 10px;
         }
 
         #qr-title {
             margin: 0 0 6px !important;
             font-size: 22px !important; font-weight: 700 !important;
-            color: #fff !important;
+            color: #3e2332 !important;
             letter-spacing: -.01em !important; line-height: 1.15 !important;
             font-family: 'Outfit', 'Avenir Next', 'Century Gothic', sans-serif !important;
             background: none !important;
             -webkit-background-clip: unset !important;
-            -webkit-text-fill-color: #fff !important;
+            -webkit-text-fill-color: #3e2332 !important;
         }
 
         .pl-subtitle {
-            font-size: 13px; color: rgba(255,255,255,.38);
+            font-size: 13px; color: rgba(62,35,50,0.38);
             font-weight: 400; margin: 0 0 32px; line-height: 1.5;
         }
 
@@ -215,7 +215,7 @@
             min-width: 0;
             border-radius: 18px;
             padding: 2px;
-            background: rgba(255,255,255,.05);
+            background: rgba(255,255,255,0.05);
             transition: background .2s;
         }
 
@@ -226,10 +226,10 @@
             background: conic-gradient(
                 from var(--qa, 0deg),
                 transparent 0deg,
-                rgba(255,255,255,.0) 60deg,
-                rgba(255,255,255,.9) 90deg,
-                rgba(180,140,255,.7) 110deg,
-                rgba(255,255,255,.0) 140deg,
+                rgba(255,255,255,0) 60deg,
+                rgba(255,255,255,0.9) 90deg,
+                rgba(251,230,242,0.7) 110deg,
+                rgba(255,255,255,0) 140deg,
                 transparent 360deg
             );
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -249,9 +249,9 @@
             opacity: .35;
             background: conic-gradient(
                 from 45deg,
-                rgba(255,255,255,.6) 0deg, rgba(200,160,255,.4) 90deg,
-                rgba(255,255,255,.6) 180deg, rgba(200,160,255,.4) 270deg,
-                rgba(255,255,255,.6) 360deg
+                rgba(255,255,255,0.6) 0deg, rgba(251,230,242,0.4) 90deg,
+                rgba(255,255,255,0.6) 180deg, rgba(251,230,242,0.4) 270deg,
+                rgba(255,255,255,0.6) 360deg
             );
             animation: none;
         }
@@ -260,9 +260,9 @@
             position: relative;
             width: 100%; height: 78px;
             border-radius: 16px; border: none;
-            background: #1e1e24;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,.45), inset 0 -1px 0 rgba(255,255,255,.04);
-            color: #fff;
+            background: #ffffff;
+            box-shadow: inset 0 2px 4px rgba(90,36,65,0.15), inset 0 -1px 0 rgba(90,36,65,0.04);
+            color: #3e2332;
             font-size: 30px; font-weight: 700;
             font-family: 'Outfit', 'Avenir Next', 'Century Gothic', sans-serif;
             text-align: center; outline: none;
@@ -271,32 +271,32 @@
             transition: background .2s, color .2s, transform .18s cubic-bezier(.4,0,.2,1);
         }
 
-        .qr-pin-digit:focus { background: #22222a; transform: translateY(-2px); }
-        .qr-pin-digit.filled { background: #202028; color: #fff; }
+        .qr-pin-digit:focus { background: #f9eff4; transform: translateY(-2px); }
+        .qr-pin-digit.filled { background: #f9eff4; color: #3e2332; }
 
         .qr-pin-digit.denied {
-            background: rgba(239,68,68,.12) !important;
+            background: rgba(251,230,242,0.12) !important;
             animation: qrPinShake .38s cubic-bezier(.4,0,.2,1) !important;
         }
         .qr-pin-wrap:has(.qr-pin-digit.denied)::before {
             opacity: 1 !important; animation: none !important;
             background: conic-gradient(
-                from 0deg, rgba(239,68,68,.9) 0deg, rgba(239,68,68,.4) 90deg,
-                rgba(239,68,68,.9) 180deg, rgba(239,68,68,.4) 270deg, rgba(239,68,68,.9) 360deg
+                from 0deg, rgba(251,230,242,0.9) 0deg, rgba(251,230,242,0.4) 90deg,
+                rgba(251,230,242,0.9) 180deg, rgba(251,230,242,0.4) 270deg, rgba(251,230,242,0.9) 360deg
             ) !important;
         }
 
         .qr-pin-digit.success-digit {
-            background: rgba(16,185,129,.1) !important;
-            color: #34d399 !important;
+            background: rgba(243,223,234,0.1) !important;
+            color: #691d46 !important;
             transform: scale(.94) !important;
             transition: all .3s ease !important;
         }
         .qr-pin-wrap:has(.qr-pin-digit.success-digit)::before {
             opacity: 1 !important; animation: none !important;
             background: conic-gradient(
-                from 0deg, rgba(16,185,129,.9) 0deg, rgba(16,185,129,.4) 90deg,
-                rgba(52,211,153,.9) 180deg, rgba(16,185,129,.4) 270deg, rgba(16,185,129,.9) 360deg
+                from 0deg, rgba(243,223,234,0.9) 0deg, rgba(243,223,234,0.4) 90deg,
+                rgba(243,223,234,0.9) 180deg, rgba(243,223,234,0.4) 270deg, rgba(243,223,234,0.9) 360deg
             ) !important;
         }
 
@@ -310,10 +310,10 @@
 
         #qr-submit-btn {
             width: 100% !important; height: 50px !important;
-            border: 1.5px solid rgba(255,255,255,.10) !important;
+            border: 1.5px solid rgba(218,183,202,0.1) !important;
             border-radius: 14px !important;
-            background: rgba(255,255,255,.06) !important;
-            color: rgba(255,255,255,.8) !important;
+            background: rgba(255,255,255,0.06) !important;
+            color: rgba(62,35,50,0.8) !important;
             font-family: 'Outfit', 'Avenir Next', 'Century Gothic', sans-serif !important;
             font-size: 13px !important; font-weight: 600 !important;
             letter-spacing: .04em !important;
@@ -322,16 +322,16 @@
             transition: background .2s, border-color .2s, color .2s !important;
         }
         #qr-submit-btn:hover:not(:disabled) {
-            background: rgba(255,255,255,.10) !important;
-            border-color: rgba(255,255,255,.18) !important;
-            color: #fff !important;
+            background: rgba(255,255,255,0.1) !important;
+            border-color: rgba(218,183,202,0.18) !important;
+            color: #3e2332 !important;
         }
         #qr-submit-btn:disabled { opacity: 0.4 !important; cursor: wait !important; }
 
         /* ── ERROR ────────────────────────────────────── */
         #qr-error-msg {
             font-size: 12px !important; font-weight: 500 !important;
-            color: rgba(252,165,165,.85) !important;
+            color: rgba(62,35,50,0.85) !important;
             min-height: 16px !important; margin: 0 0 16px !important;
             display: none;
             letter-spacing: .01em !important;
@@ -341,17 +341,17 @@
         .qr-back-link {
             display: inline-flex; align-items: center; gap: 5px;
             margin-top: 20px;
-            color: rgba(255,255,255,.28); font-size: 11.5px;
+            color: rgba(62,35,50,0.28); font-size: 11.5px;
             font-weight: 400; text-decoration: none;
             letter-spacing: .01em; transition: color .18s;
         }
-        .qr-back-link:hover { color: rgba(255,255,255,.6); }
+        .qr-back-link:hover { color: rgba(62,35,50,0.6); }
 
         /* ── SUCCESS SCREEN ────────────────────────────── */
         #qr-success-overlay {
             position: fixed; inset: 0; z-index: 999999;
             display: none; align-items: center; justify-content: center;
-            background: #101014;
+            background: #ffffff;
         }
         #qr-success-overlay.active {
             display: flex;
@@ -359,9 +359,9 @@
         }
         .qr-success-card {
             width: min(360px, calc(100% - 40px));
-            border: 1px solid rgba(255,255,255,.07);
-            border-radius: 24px; background: #18181c;
-            box-shadow: 0 0 0 1px rgba(255,255,255,.04), 0 40px 100px rgba(0,0,0,.7);
+            border: 1px solid rgba(218,183,202,0.07);
+            border-radius: 24px; background: #ffffff;
+            box-shadow: 0 0 0 1px rgba(90,36,65,0.04), 0 40px 100px rgba(90,36,65,0.15);
             overflow: hidden;
             animation: qrCardPopIn .45s cubic-bezier(.34,1.3,.64,1) .05s both;
         }
@@ -372,17 +372,17 @@
         .qr-check-box {
             width: 72px; height: 72px;
             border-radius: 20px;
-            border: 1.5px solid rgba(16,185,129,.45);
-            background: linear-gradient(160deg, rgba(16,185,129,.16), rgba(16,185,129,.06));
-            box-shadow: 0 0 0 8px rgba(16,185,129,.06), 0 0 40px rgba(16,185,129,.22),
-                        inset 0 1px 0 rgba(16,185,129,.2);
+            border: 1.5px solid rgba(218,183,202,0.45);
+            background: linear-gradient(160deg, rgba(243,223,234,0.16), rgba(243,223,234,0.06));
+            box-shadow: 0 0 0 8px rgba(90,36,65,0.06), 0 0 40px rgba(90,36,65,0.15),
+                        inset 0 1px 0 rgba(90,36,65,0.15);
             display: grid; place-items: center;
             margin: 28px 0 24px;
             animation: qrCheckBoxPop .5s cubic-bezier(.34,1.4,.64,1) .15s both;
         }
         .qr-check-box svg {
             width: 32px; height: 32px;
-            stroke: #34d399; stroke-width: 2.5;
+            stroke: #691d46; stroke-width: 2.5;
             stroke-linecap: round; stroke-linejoin: round; fill: none;
         }
         .qr-check-box svg path {
@@ -392,12 +392,12 @@
         .qr-success-title {
             font-family: 'Outfit', 'Avenir Next', 'Century Gothic', sans-serif;
             font-size: 22px; font-weight: 700;
-            color: #34d399; letter-spacing: -.01em;
+            color: #691d46; letter-spacing: -.01em;
             margin: 0 0 8px;
             animation: qrFadeSlideUp .4s ease .3s both;
         }
         .qr-success-sub {
-            font-size: 13px; color: rgba(255,255,255,.36);
+            font-size: 13px; color: rgba(62,35,50,0.36);
             font-weight: 400;
             animation: qrFadeSlideUp .4s ease .4s both;
         }
@@ -432,7 +432,7 @@
             overflow-x: auto;
             padding-bottom: 8px;
             margin-bottom: 24px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(218,183,202,0.08);
             scrollbar-width: none;
             justify-content: center;
         }
@@ -440,9 +440,9 @@
             display: none;
         }
         .payment-tab-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(168, 85, 247, 0.2);
-            color: rgba(255, 255, 255, 0.75);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(230,185,211,0.2);
+            color: rgba(62,35,50,0.75);
             padding: 10px 18px;
             border-radius: 12px;
             cursor: pointer;
@@ -452,15 +452,15 @@
             transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
         }
         .payment-tab-btn:hover {
-            background: rgba(168, 85, 247, 0.15);
-            color: #fff;
-            border-color: rgba(168, 85, 247, 0.4);
+            background: rgba(251,230,242,0.15);
+            color: #3e2332;
+            border-color: rgba(230,185,211,0.4);
         }
         .payment-tab-btn.active {
-            background: linear-gradient(135deg, #a855f7, #7e22ce);
-            border-color: #c084fc;
-            color: #fff;
-            box-shadow: 0 4px 18px rgba(168, 85, 247, 0.45);
+            background: linear-gradient(135deg, #fbe6f2, #fbe6f2);
+            border-color: #e6b9d3;
+            color: #3e2332;
+            box-shadow: 0 4px 18px rgba(90,36,65,0.15);
         }
         .payment-info-box {
             animation: tabFadeIn 0.3s ease forwards;
@@ -473,8 +473,8 @@
         .copy-box {
             display: flex;
             align-items: center;
-            background: rgba(0, 0, 0, 0.45);
-            border: 1px solid rgba(168, 85, 247, 0.25);
+            background: rgba(255,255,255,0.45);
+            border: 1px solid rgba(230,185,211,0.25);
             border-radius: 12px;
             padding: 8px 12px;
             margin-bottom: 16px;
@@ -483,7 +483,7 @@
         .copy-text {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             font-size: 15px;
-            color: #ffd969;
+            color: #792452;
             font-weight: 700;
             flex: 1;
             word-break: break-all;
@@ -492,9 +492,9 @@
             padding-left: 6px;
         }
         .copy-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            color: #fff;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(218,183,202,0.16);
+            color: #3e2332;
             font-size: 11px;
             font-weight: 800;
             padding: 8px 14px;
@@ -505,19 +505,19 @@
             letter-spacing: 0.5px;
         }
         .copy-btn:hover {
-            background: #ffd969;
-            color: #09030f;
-            border-color: #ffd969;
+            background: #f2dae7;
+            color: #953368;
+            border-color: #dab7ca;
             transform: scale(1.03);
         }
         .instruction-box {
             margin-top: 14px;
             padding: 14px;
-            background: rgba(168, 85, 247, 0.06);
-            border: 1px solid rgba(168, 85, 247, 0.15);
+            background: rgba(251,230,242,0.06);
+            border: 1px solid rgba(230,185,211,0.15);
             border-radius: 12px;
             font-size: 13px;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(62,35,50,0.8);
             line-height: 1.5;
             text-align: left;
         }
@@ -552,14 +552,18 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="storefront-refinement.css?v=nav-fixed-position-20261007">
+    <link rel="stylesheet" href="storefront-refinement.css?v=nav-spacing-20261006-2">
+    <link rel="stylesheet" href="original-store-theme.css?v=20261007-22">
+    <script src="original-store-navigation.js?v=20261007-1" defer></script>
+    <link rel="stylesheet" href="original-store-boutique.css?v=mobile-polish-20261013">
+<meta name="robots" content="noindex, follow">
 </head>
 
 <body data-page="pagos" class="payments-auth-blocked">
 
     <nav class="navbar scrolled" id="navbar">
         <a href="index.html" class="nav-logo">
-            <img src="Logo2-nav.png" alt="BLYXU" onerror="this.style.display='none'">
+            <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" onerror="this.style.display='none'">
         </a>
 
         <ul class="nav-links" id="nav-links">
@@ -573,7 +577,7 @@
 
         <div class="nav-actions">
             
-            <a class="nav-ally-btn" href="https://aloriginalstore.online/" target="_blank" rel="noopener noreferrer" aria-label="Aliados: visitar Original Store (abre en una nueva pestaña)" title="Visitar Original Store"><img src="original-store-ally.png?v=2" alt="Original Store" width="42" height="36"><span>Aliados</span></a>
+            <a class="nav-ally-btn" href="https://www.blyxu.online/" target="_blank" rel="noopener noreferrer" aria-label="Aliados: visitar BLYXU (abre en una nueva pestaña)" title="Visitar BLYXU"><span class="nav-ally-mark"><img src="https://lh3.googleusercontent.com/d/1jGZ2YaxoOGUVKVbqafa9S4eNJWmHi7xS=w180" alt="BLYXU" width="100" height="100"></span><span>Aliados</span></a>
             <button class="nav-icon-btn nav-search-btn" type="button" onclick="openCatalogSearch()" aria-label="Buscar productos" title="Buscar">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="11" cy="11" r="7"></circle>
@@ -614,8 +618,8 @@
                 </div>
 
                 <!-- Logo & text -->
-                <img src="Logo2.png" alt="BLYXU" class="payments-login-logo" onerror="this.style.display='none'">
-                <div class="payments-login-kicker">BLYXU &middot; Zona Segura</div>
+                <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" class="payments-login-logo" onerror="this.style.display='none'">
+                <div class="payments-login-kicker">Original Store &middot; Zona Segura</div>
                 <h2 id="qr-title">Zona de Pagos</h2>
                 <p class="pl-subtitle">Acceso exclusivo &mdash; ingresa tu clave para continuar.</p>
 
@@ -643,7 +647,7 @@
     <!-- Contenido Principal -->
     <section class="qr-page-section">
         <div class="qr-card" id="qr-card-content">
-            <h2>PAGOS BLYXU</h2>
+            <h2>PAGOS Original Store</h2>
             <p>Selecciona tu m&eacute;todo de pago y sigue las instrucciones para realizar tu transferencia o escaneo:</p>
             
             <!-- Pestañas de Métodos de Pago -->
@@ -664,7 +668,7 @@
     <footer class="footer">
         <div class="footer-brand">
             <a href="index.html" class="nav-logo">
-                <img src="Logo2-nav.png" alt="BLYXU" style="height:32px" onerror="this.style.display='none'">
+                <img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="Original Store" style="height:32px" onerror="this.style.display='none'">
             </a>
             <p>Joyer&iacute;a artesanal con piedras naturales. Elegancia, exclusividad y dise&ntilde;o en cada pieza.</p>
             <a class="footer-admin-link" href="administrativo.html" aria-label="Acceso administrativo">
@@ -688,7 +692,7 @@
                     <circle cx="11" cy="11" r="7"></circle>
                     <path d="M16.5 16.5 21 21"></path>
                 </svg>
-                <input type="search" id="footer-page-search" placeholder="Buscar en BLYXU" autocomplete="off">
+                <input type="search" id="footer-page-search" placeholder="Buscar en Original Store" autocomplete="off">
             </label>
             <div class="footer-search-results" id="footer-page-search-results" aria-live="polite">
                 <a href="index.html" data-footer-search-item data-keywords="inicio home principal banner">Inicio</a>
@@ -716,11 +720,11 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 BLYXU. Todos los derechos reservados.</p>
+            <p>&copy; 2026 Original Store. Todos los derechos reservados.</p>
         </div>
     </footer>
-
-    <script src="blyxu-app.js?v=supabase-live-20261013" defer></script>
+    <script src="original-store-catalog-bootstrap.js?v=drive-20261008-1" defer></script>
+    <script src="blyxu-app.js?v=original-store-cutover-20261013" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
         (function() {
@@ -923,13 +927,13 @@
                     const m = methods[index]; if (!m) return;
                     let html = '<div class="payment-info-box">';
                     if (m.type==='key'||m.type==='both'||m.value) {
-                        html += `<p style="margin-bottom:8px;font-weight:700;color:rgba(255,255,255,0.8);font-size:13px;">Número de cuenta o llave:</p>
+                        html += `<p style="margin-bottom:8px;font-weight:700;color:rgba(62,35,50,0.8);font-size:13px;">Número de cuenta o llave:</p>
                         <div class="copy-box"><span class="copy-text">${escapeHtml(m.value)}</span>
                         <button type="button" class="copy-btn" onclick="copyToClipboard('${escapeHtml(m.value)}',this)">Copiar</button></div>`;
                     }
                     const qrImageUrl = (typeof normalizeImageUrl==='function'?normalizeImageUrl(m.image):m.image)||'';
                     if ((m.type==='qr'||m.type==='both'||qrImageUrl)&&qrImageUrl) {
-                        html += `<p style="margin-bottom:6px;font-weight:700;color:rgba(255,255,255,0.8);font-size:13px;">Código QR de Pago:</p>
+                        html += `<p style="margin-bottom:6px;font-weight:700;color:rgba(62,35,50,0.8);font-size:13px;">Código QR de Pago:</p>
                         <div class="qr-image-container"><img src="${escapeHtml(qrImageUrl)}" alt="Código QR de Pago" loading="lazy"></div>`;
                     }
                     if (m.instructions) {

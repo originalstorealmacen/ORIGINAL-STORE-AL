@@ -20,3 +20,17 @@ La sesión vence a los 30 minutos. Para cambiar de teléfono o de pestaña, desv
 - Dependencia fijada: `@supabase/realtime-js@2.117.3`.
 - Pruebas: `node --test tests/shared-scan.test.mjs tests/supabase-server.test.mjs` y `node tests/shared-scan-browser.mjs` (requiere Playwright y Edge). La integración usa dos contextos de navegador y una tercera pestaña aislada; valida el QR generado con el decodificador incluido y comprueba que no se guardan productos.
 - Las pruebas locales simulan la entrega de Realtime; la lectura con cámara física y el flujo autenticado en producción se comprueban al vincular los dispositivos reales.
+
+## Corrección local de IDs y sesión (14 de octubre de 2026)
+
+Los cambios de esta revisión quedan solo en la carpeta local. No se han publicado en GitHub ni desplegado.
+
+- Un ID madre escrito genera el principal `MADRE-V01` y referencias libres `V02`, `V03`… para variantes automáticas, incluidas las ya abiertas. Se comprueban tanto IDs como códigos de barras para impedir referencias ambiguas o duplicadas.
+- Un código físico principal escrito o leído por el escáner existente, local o vinculado, sustituye la madre y actualiza las referencias y QR. Un código de variante solo cambia esa variante. Los códigos propios de las demás se conservan.
+- El celular recibe la madre y la referencia real del campo elegido en el PC. Se conserva la vinculación y no se guardan productos al leer códigos.
+- Se elimina el cierre absoluto del administrador a los 30 minutos. Se bloquea tras 30 minutos sin interacción real, al vencer la credencial o cuando el servidor rechaza la sesión. Los sondeos automáticos no prolongan la actividad. El vencimiento temporal de la vinculación del escáner se mantiene independiente.
+- El borrador de producto y variantes se conserva en `sessionStorage`, dentro de la misma pestaña y asociado a la cuenta autenticada. Incluye las identidades originales necesarias para continuar una edición; excluye contraseñas, credenciales, tokens y archivos sin subir. Al salir se elimina la credencial de memoria. El borrador nunca implica un guardado de inventario.
+
+Archivos de la interfaz que deben acompañarse cuando el propietario decida publicar: `administrativo.html`, `admin-app.js`, `admin-shared-scan.js`, `admin-password-access.js` y los nuevos `admin-product-identity.js` y `admin-session-draft.js`. Esta revisión no cambia el servidor ni requiere migraciones.
+
+Prueba adicional: `node tests/admin-identity-browser.mjs`. Usa el HTML, los formularios y el lector existentes en dos navegadores, con datos y acceso de prueba. Toda conexión externa se intercepta y se impide guardar productos. Comprueba IDs escritos y escaneados, variantes nuevas y guardadas, QR, duplicados, conservación de campos, borradores, actividad durante 35 minutos, bloqueo por inactividad y vencimiento de credenciales.

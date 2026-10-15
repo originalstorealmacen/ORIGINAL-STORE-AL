@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tabs = Array.from(document.querySelectorAll('[data-orders-view]'));
             const apiUrl = typeof GOOGLE_SHEET_API !== 'undefined'
                 ? GOOGLE_SHEET_API
-                : (window.BLYXU_API_URL || 'https://script.google.com/macros/s/AKfycbyMytX5vDXXvNxywckgVmGObGfjLLJEo5iFkJdfqOoDdomVmJ--tnPsOPcmXVSyP9BzuQ/exec');
+                : window.ORIGINAL_STORE_API_URL;
             let currentOrders = [];
             let currentInvoices = [];
             let currentView = 'orders';
@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cards = currentOrders.map(order => {
                     const id = getField(order, ['ID Pedido', 'ID', 'id'], 'Pedido');
                     const date = getField(order, ['Fecha', 'Fecha Pedido'], '');
-                    const name = getField(order, ['Nombre Cliente', 'Nombre', 'Cliente'], 'Cliente BLYXU');
+                    const name = getField(order, ['Nombre Cliente', 'Nombre', 'Cliente'], 'Cliente Original Store');
                     const city = getField(order, ['Ciudad'], '-');
                     const address = getField(order, ['Direccion', 'Direcci\u00f3n', 'Direcci\u00c3\u00b3n'], '-');
                     const state = getField(order, ['Estado Pedido', 'Estado'], 'Pendiente');
@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const id = getField(order, ['ID Factura', 'ID', 'id'], 'Factura');
                     const orderId = getField(order, ['ID Pedido'], '-');
                     const date = getField(order, ['Fecha', 'Fecha Pedido'], '');
-                    const name = getField(order, ['Nombre', 'Nombre Cliente', 'Cliente'], 'Cliente BLYXU');
+                    const name = getField(order, ['Nombre', 'Nombre Cliente', 'Cliente'], 'Cliente Original Store');
                     const phone = getField(order, ['ID Cliente', 'Telefono', 'Tel\u00e9fono', 'Tel\u00c3\u00a9fono'], currentPhone);
                     const city = getField(order, ['Ciudad'], '-');
                     const address = getField(order, ['Direccion', 'Direcci\u00f3n', 'Direcci\u00c3\u00b3n', 'M\u00e9todo Entrega', 'Metodo Entrega'], '-');
@@ -551,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const consultationQr = localQr.createDataURL(5,20);
                 const orderId = getField(order, ['ID Pedido'], id);
                 const date = getField(order, ['Fecha', 'Fecha Pedido'], '');
-                const name = getField(order, ['Nombre', 'Nombre Cliente', 'Cliente'], 'Cliente BLYXU');
+                const name = getField(order, ['Nombre', 'Nombre Cliente', 'Cliente'], 'Cliente Original Store');
                 const phone = getField(order, ['ID Cliente', 'Telefono', 'Tel\u00e9fono', 'Tel\u00c3\u00a9fono'], currentPhone);
                 const city = getField(order, ['Ciudad'], '-');
                 const address = getField(order, ['Direccion', 'Direcci\u00f3n', 'Direcci\u00c3\u00b3n', 'M\u00e9todo Entrega', 'Metodo Entrega'], '-');
@@ -562,11 +562,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const items = parseItems(order);
                 const total = getOrderTotal(order, items);
                 const balanceInfo = getInvoiceBalanceInfo(order, total);
-                const companyLogo = 'blyxu-invoice-logo.png';
-                const companyName = getConfigValue('Factura_Empresa', 'BLYXU JoyerÃ­a & Accesorios');
+                const companyLogo = 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
+                const companyName = getConfigValue('Factura_Empresa', 'Original Store JoyerÃ­a & Accesorios');
                 const companyNit = getConfigValue('Factura_NIT', '000.000.000-0');
                 const companyPhone = getConfigValue('Factura_Telefono', '+57 311 2368622');
-                const companyEmail = getConfigValue('Factura_Email', 'contacto@blyxu.online');
+                const companyEmail = getConfigValue('Factura_Email', 'originalstorealmacen@gmail.com');
                 let totalQty = 0;
 
                 const rows = items.length ? items.map(item => {
@@ -598,13 +598,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <section>
                         <div class="admin-inv-top-banner">
                             <div class="admin-inv-brand-wrapper">
-                                <img src="${escapeHtml(companyLogo)}" alt="BLYXU">
+                                <img src="${escapeHtml(companyLogo)}" alt="Original Store">
                                 <div>
                                     <h1>${escapeHtml(companyName)}</h1>
                                     <p>
                                         <span>WhatsApp: ${escapeHtml(companyPhone)}</span> &bull;
                                         <span>${escapeHtml(companyEmail)}</span> &bull;
-                                        <span>www.blyxu.online</span>
+                                        <span>aloriginalstore.online</span>
                                     </p>
                                 </div>
                             </div>
@@ -653,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="invoice-bottom-grid">
                             <div class="invoice-notes-box">
                                 <div class="notes-title">OBSERVACIONES & NOTAS DE COMPRA</div>
-                                <p>${escapeHtml(note || 'Gracias por preferir BLYXU JoyerÃ­a. Cada una de nuestras piezas cuenta con sello y garantÃ­a de autenticidad BLYXU.')}</p>
+                                <p>${escapeHtml(note || 'Gracias por preferir Original Store JoyerÃ­a. Cada una de nuestras piezas cuenta con sello y garantÃ­a de autenticidad Original Store.')}</p>
                             </div>
                             <div class="invoice-total-container">
                                 <div class="invoice-total-box">
@@ -680,7 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div style="display:flex; align-items:center; gap:14px;">
                                 <img src="${escapeHtml(consultationQr)}" alt="QR para consultar esta factura">
                                 <div>
-                                    <strong style="font-size:13.5px; color:#000000 !important; display:block; margin-bottom:2px;">Consulta tu factura BLYXU</strong>
+                                    <strong style="font-size:13.5px; color:#000000 !important; display:block; margin-bottom:2px;">Consulta tu factura Original Store</strong>
                                     <p style="margin:0; font-size:12px; color:#52525b !important;">Escanea este cÃ³digo QR o haz clic en el enlace:</p>
                                     <a href="${escapeHtml(consultationUrl.href)}" target="_blank" rel="noopener" style="display:inline-block; margin-top:3px; font-size:13px; font-weight:800; color:#000000 !important; text-decoration:underline;">Factura ${escapeHtml(id)}</a>
                                 </div>
@@ -693,8 +693,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         <div class="invoice-footer-line"></div>
                         <div class="invoice-footer">
-                            <p class="thank-you">Gracias por elegir BLYXU JoyerÃ­a & Accesorios</p>
-                            <p class="footer-subtext">Comprobante expedido digitalmente por BLYXU &bull; Tienda Web: <a href="https://www.blyxu.online" target="_blank" style="color:#52525b; font-weight:700;">www.blyxu.online</a> &bull; WhatsApp Soporte: ${escapeHtml(companyPhone)}</p>
+                            <p class="thank-you">Gracias por elegir Original Store JoyerÃ­a & Accesorios</p>
+                            <p class="footer-subtext">Comprobante expedido digitalmente por Original Store &bull; Tienda Web: <a href="https://aloriginalstore.online" target="_blank" style="color:#52525b; font-weight:700;">aloriginalstore.online</a> &bull; WhatsApp Soporte: ${escapeHtml(companyPhone)}</p>
                         </div>
                     </section>
                 `;
@@ -1199,7 +1199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const lookup = input.value.trim();
-                if (!/^(PED|FAC)-[0-9]{14}-[0-9]{4}$/i.test(lookup)) {
+                if (!/^(PED|DET|FAC)-[0-9]{14}-[0-9]{4}$/i.test(lookup)) {
                     status.textContent = 'Escribe el ID completo del pedido o factura, o escanea su QR. No se consulta por celular.';
                     panel.classList.remove('open');
                     return;
@@ -1275,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         try {
                             const url = new URL(reference);
                             if (url.origin !== window.location.origin || !url.pathname.endsWith('/facturas-pedidos.html')) {
-                                scannerError.textContent = 'Este QR no corresponde a un pedido o factura BLYXU.';
+                                scannerError.textContent = 'Este QR no corresponde a un pedido o factura Original Store.';
                                 return;
                             }
                             reference = url.searchParams.get('buscar') || '';

@@ -86,7 +86,7 @@
         const viewer = window.open('', '_blank');
         if (!viewer) throw new Error('Permite abrir una pestaña nueva para ver el comprobante y vuelve a intentarlo.');
         viewer.opener = null;
-        viewer.document.title = 'Comprobante de pedido · BLYXU';
+        viewer.document.title = 'Comprobante de pedido · Original Store';
         viewer.document.body.textContent = 'Preparando tu comprobante privado…';
         return viewer;
     }
@@ -117,7 +117,7 @@
                 pdf.text(clean(value), x, y);
             };
             let y = 18;
-            text('BLYXU', 16, y, 20, 'bold');
+            text('Original Store', 16, y, 20, 'bold');
             text('COMPROBANTE DE PEDIDO · ' + clean(summary.mode), 16, y += 9, 10);
             text(summary.registered ? 'Pedido realizado y registrado' : 'Selección del carrito · Sin registrar', 16, y += 11, 15, 'bold');
             if (summary.registered) text('Referencia: ' + clean(summary.id), 16, y += 7, 10);
@@ -150,7 +150,7 @@
                     pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9);
                     const metaLines = pdf.splitTextToSize('Código: ' + code + (extras ? '\n' + extras : ''), 127);
                     const height = Math.max(38, 21 + titleLines.length * 5 + metaLines.length * 4);
-                    if (y + height > 265) { pdf.addPage(); y = 20; text('BLYXU · Resumen visual', 16, 12, 9); }
+                    if (y + height > 265) { pdf.addPage(); y = 20; text('Original Store · Resumen visual', 16, 12, 9); }
                     pdf.setDrawColor(215); pdf.line(16, y, 194, y);
                     if (picture) {
                         const w = Math.min(29, 29 * picture.ratio), h = w / picture.ratio;
@@ -173,10 +173,10 @@
             text(unpriced ? 'Valor pendiente de cotización' : 'Valor de productos: ' + money(summary.total), 16, y += 7, 11, 'bold');
             text('Este documento resume los productos solicitados.', 16, y += 10, 9);
             text('No constituye una factura de venta ni un comprobante de pago.', 16, y += 6, 9);
-            text('BLYXU te contactará para confirmar disponibilidad y envío.', 16, y += 6, 9);
+            text('Original Store te contactará para confirmar disponibilidad y envío.', 16, y += 6, 9);
             if (summary.registered && summary.id) {
                 await loadQr();
-                const url = new URL('https://blyxu.online/facturas-pedidos.html');
+                const url = new URL('https://aloriginalstore.online/facturas-pedidos.html');
                 url.searchParams.set('buscar', summary.id);
                 const qr = window.qrcode(0, 'M'); qr.addData(url.href); qr.make();
                 if (y + 48 > 270) { pdf.addPage(); y = 20; }
@@ -187,7 +187,7 @@
                 pdf.link(16, y + 5, 178, 35, {url:url.href});
             }
             for (let page = 1; page <= pdf.getNumberOfPages(); page++) {
-                pdf.setPage(page); text('BLYXU · ' + page + ' / ' + pdf.getNumberOfPages(), 16, 285, 8, 'normal', 120);
+                pdf.setPage(page); text('Original Store · ' + page + ' / ' + pdf.getNumberOfPages(), 16, 285, 8, 'normal', 120);
             }
             if(authorizeBeforeSave)await authorizeBeforeSave();
             if (viewer.closed) throw new Error('Cerraste la pestaña del comprobante. Vuelve a abrirlo.');

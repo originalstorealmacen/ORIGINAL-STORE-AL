@@ -10,7 +10,7 @@ async function adminAccessJson(api, nativeFetch, options = {}) {
   throw error;
  } finally { clearTimeout(timeout); }
 }
-// Access is memory-only. Leaving the page requires a fresh sign-in.
+// Credentials stay in memory and are submitted only to the private server over HTTPS.
 async function initializeAdminPasswordAccess(api, nativeFetch, form, onAccess) {
     form.parentElement.querySelector('.admin-secure-access')?.remove();
     const area = document.createElement('div');
@@ -42,27 +42,23 @@ async function initializeAdminPasswordAccess(api, nativeFetch, form, onAccess) {
             area.querySelector('form').addEventListener('submit', async event => {
                 event.preventDefault();const login = event.currentTarget, button = login.querySelector('button'), message = login.querySelector('[role=status]');
                 button.disabled = true;message.textContent = 'Verificando acceso…';
-                try {const auth = await request({action:'adminpasswordlogin', usuario:login.elements.usuario.value, password:login.elements.password.value, codigo:login.elements.codigo.value});login.reset();onAccess(auth.token,{email:auth.email,expires:Date.now()+30*60*1000});}
+                try {const auth = await request({action:'adminpasswordlogin', usuario:login.elements.usuario.value, password:login.elements.password.value, codigo:login.elements.codigo.value});login.reset();onAccess(auth.token,{email:auth.email,expiresAt:Date.now()+30*60*1000});}
                 catch(error){message.textContent=error.message;login.elements.password.value='';login.elements.codigo.value='';}
                 finally{button.disabled=false;}
             });
             return;
         }
-        area.innerHTML = '<p>Inicia sesión con tu cuenta de Google autorizada.</p><div id="admin-bootstrap-google"></div><p role="status"></p>';
+        area.innerHTML = '<p>Inicia sesión con tu cuenta autorizada para entrar al administrador.</p><div id="admin-bootstrap-google"></div><p role="status"></p>';
         const message = area.querySelector('[role=status]');
         if (!config.Google_Client_ID) throw new Error('Falta configurar el acceso actual del administrador.');
         if (!window.google?.accounts?.id) await new Promise((resolve,reject)=>{
             const script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';const timeout=setTimeout(()=>{script.remove();reject(new Error('Google tardó demasiado en cargar. Revisa tu conexión y pulsa Reintentar acceso.'));},20000);script.onload=()=>{clearTimeout(timeout);if(window.google?.accounts?.id)resolve();else reject(new Error('No se pudo iniciar el acceso de Google.'));};script.onerror=()=>{clearTimeout(timeout);script.remove();reject(new Error('No se pudo cargar el acceso de Google.'));};document.head.appendChild(script);
         });
-        let verifyingAccount = false;
         window.google.accounts.id.initialize({client_id:config.Google_Client_ID,callback:async result=>{
-            if (verifyingAccount) return;
-            verifyingAccount = true;
-            message.textContent = 'Verificando cuenta…';
             try {
                 const identity=await request({action:'adminsession',adminCredential:result.credential});
                 onAccess(result.credential,identity);
-            }catch(error){message.textContent=error.message;verifyingAccount=false;}
+            }catch(error){message.textContent=error.message;}
         }});
         window.google.accounts.id.renderButton(area.querySelector('#admin-bootstrap-google'),{type:'standard',theme:'outline',size:'large',text:'continue_with',locale:'es'});
     } catch(error) {area.replaceChildren();const message=document.createElement('p');message.role='status';message.textContent=error.message;const retry=document.createElement('button');retry.type='button';retry.textContent='Reintentar acceso';retry.onclick=()=>initializeAdminPasswordAccess(api,nativeFetch,form,onAccess);area.append(message,retry);}

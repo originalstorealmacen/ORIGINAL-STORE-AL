@@ -1,7 +1,7 @@
-﻿// BLYXU lightweight runtime for informational pages.
-const GOOGLE_SHEET_API = window.BLYXU_API_URL || 'https://script.google.com/macros/s/AKfycbyMytX5vDXXvNxywckgVmGObGfjLLJEo5iFkJdfqOoDdomVmJ--tnPsOPcmXVSyP9BzuQ/exec';
+// Original Store lightweight runtime for informational pages.
+const GOOGLE_SHEET_API = window.ORIGINAL_STORE_API_URL;
 const BLYXU_WHATSAPP_PHONE = '573112368622';
-const SITE_CONFIG_CACHE_KEY = 'blyxu_site_config_cache_v1';
+const SITE_CONFIG_CACHE_KEY = `blyxu_site_config_cache_v1:${GOOGLE_SHEET_API}`;
 const SITE_CONFIG_TTL = 5 * 60 * 1000;
 const CART_KEYS = ['blyxu_cart_retail', 'blyxu_cart_wholesale', 'blyxu_cart'];
 let siteConfig = (function() {
@@ -314,7 +314,7 @@ function renderContactPage() {
     const days = getSiteConfigValue('Contacto_Dias', 'Lunes a Sábado');
     const hours = getSiteConfigValue('Contacto_Horarios', '10:00 a.m. - 7:00 p.m.');
     const phone = getCommerceWhatsAppPhone();
-    const whatsappText = 'Hola BLYXU, quiero recibir asesoría sobre sus productos.';
+    const whatsappText = 'Hola Original Store, quiero recibir asesoría sobre sus productos.';
     const whatsappHref = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(whatsappText)}` : '';
     const phoneDisplay = phone ? '+' + phone.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})$/, '$1 $2 $3 $4') : '+57 311 2368622';
 
@@ -541,7 +541,7 @@ const LITE_GLOBAL_SEARCH_PAGES = [
     { title: 'Pagos', detail: 'QR, transferencia y comprobantes', href: 'pagos.html', keywords: 'pagos pagar qr transferencia cuenta comprobante mercado pago' },
     { title: 'Facturas y pedidos', detail: 'Consultar ordenes y comprobantes', href: 'facturas-pedidos.html', keywords: 'facturas pedidos ordenes consultar comprobantes historial' },
     { title: 'Contacto', detail: 'WhatsApp, horarios y redes', href: 'contacto.html', keywords: 'contacto whatsapp telefono horario redes instagram tiktok facebook' },
-    { title: 'Administrativo', detail: 'Panel interno BLYXU', href: 'administrativo.html', keywords: 'admin administrativo inventario dashboard productos pedidos' }
+    { title: 'Administrativo', detail: 'Panel interno Original Store', href: 'administrativo.html', keywords: 'admin administrativo inventario dashboard productos pedidos' }
 ];
 
 function getLiteGlobalSearchResults(query) {
@@ -650,8 +650,8 @@ function renderFloatingWhatsApp() {
     button.className = 'floating-whatsapp';
     button.target = '_blank';
     button.rel = 'noopener';
-    button.href = `https://wa.me/${phone}?text=${encodeURIComponent('Hola BLYXU, quiero hacer una consulta sobre sus productos.')}`;
-    button.innerHTML = '<span class="floating-whatsapp-logo"><img src="Logo2-nav.png" alt="" loading="lazy"></span><span>WhatsApp</span>';
+    button.href = `https://wa.me/${phone}?text=${encodeURIComponent('Hola Original Store, quiero hacer una consulta sobre sus productos.')}`;
+    button.innerHTML = '<span class="floating-whatsapp-logo"><img src="https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180" alt="" loading="lazy"></span><span>WhatsApp</span>';
     document.body.appendChild(button);
 }
 

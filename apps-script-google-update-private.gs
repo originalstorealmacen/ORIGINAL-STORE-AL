@@ -7,7 +7,7 @@ const SPREADSHEET_ID = '';
 const MERCADO_PAGO_PUBLIC_KEY = 'APP_USR-72ab41d6-5fc7-4867-8e02-564ab0ae9f99';
 // Token privado de prueba. No lo subas a repositorios públicos.
 const MERCADO_PAGO_ACCESS_TOKEN = ''; // Credencial retirada: usar propiedades privadas con una nueva credencial.
-const SITE_URL = 'https://blyxu.online';
+const SITE_URL = 'https://aloriginalstore.online';
 
 const SHEETS = {
   Productos: {
@@ -201,21 +201,7 @@ function handleRequest_(e, method) {
     // 1) LÓGICA DE SUBIDA DE IMÁGENES
     // ==========================================
     if (method === 'POST' && action === 'uploadimage') {
-      const folders = DriveApp.getFoldersByName('PRODUCTOS_Images');
-      const folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('PRODUCTOS_Images');
-      
-      const blob = Utilities.newBlob(Utilities.base64Decode(body.base64Data), body.mimeType, body.fileName);
-      const file = folder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      
-      const fileId = file.getId();
-      return json_({
-        ok: true,
-        status: 'success',
-        url: 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1000',
-        directUrl: 'https://lh3.googleusercontent.com/d/' + fileId,
-        id: fileId
-      });
+      return json_(originalStoreUploadImage_(body));
     }
 
     // ==========================================
@@ -659,7 +645,7 @@ function handleMercadoPagoPreference_(body) {
 
   const payerData = {
     name: clientName,
-    email: clientEmail && clientEmail.indexOf('@') >= 0 ? clientEmail : 'compras@blyxu.online'
+    email: clientEmail && clientEmail.indexOf('@') >= 0 ? clientEmail : 'originalstorealmacen@gmail.com'
   };
 
   const cleanPh = cleanPhone_(clientPhone);

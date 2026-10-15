@@ -1,2 +1,2 @@
-window.BLYXU_BACKEND = Object.freeze({...window.BLYXU_BACKEND, provider: 'supabase'});
-window.BLYXU_API_URL = window.BLYXU_BACKEND.supabase;
+window.ORIGINAL_STORE_BACKEND=Object.freeze({...window.ORIGINAL_STORE_BACKEND,provider:'supabase'});
+window.ORIGINAL_STORE_API_URL=window.ORIGINAL_STORE_BACKEND.supabase;
