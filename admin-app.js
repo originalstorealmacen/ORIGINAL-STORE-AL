@@ -1953,7 +1953,8 @@ async function startHtml5BarcodeCamera(reader, video, status, handleDetectedCode
     return true;
 }
 
-async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId = '', scannerMode = 'auto', continuous = false, preserveRawValue = false } = {}) {
+async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId = '', scannerMode = 'auto', continuous = false, preserveRawValue = false, sharedRemote = false } = {}) {
+    if(window.OriginalStoreSharedScan?.isPhone()&&!sharedRemote&&!preserveRawValue)return window.OriginalStoreSharedScan.openPhoneScanner();
     const modal = buildBarcodeScannerModal();
     modal.classList.toggle('barcode-scanner-qr-mode', scannerMode === 'qr');
     const scannerSession = barcodeScannerSession;
@@ -2000,7 +2001,7 @@ async function openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId
         }
     });
     const reopenWithCamera = deviceId => {
-        openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId: deviceId || '', scannerMode: modeSelect.value, continuous, preserveRawValue });
+        openBarcodeScanner({ targetInputId, onDetected, preferredDeviceId: deviceId || '', scannerMode: modeSelect.value, continuous, preserveRawValue, sharedRemote });
     };
     retryButton?.addEventListener('click', () => {
         reopenWithCamera(preferredDeviceId);

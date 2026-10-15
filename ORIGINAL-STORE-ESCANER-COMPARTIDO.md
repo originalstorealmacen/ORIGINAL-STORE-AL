@@ -34,3 +34,11 @@ Los cambios de esta revisión quedan solo en la carpeta local. No se han publica
 Archivos de la interfaz que deben acompañarse cuando el propietario decida publicar: `administrativo.html`, `admin-app.js`, `admin-shared-scan.js`, `admin-password-access.js` y los nuevos `admin-product-identity.js` y `admin-session-draft.js`. Esta revisión no cambia el servidor ni requiere migraciones.
 
 Prueba adicional: `node tests/admin-identity-browser.mjs`. Usa el HTML, los formularios y el lector existentes en dos navegadores, con datos y acceso de prueba. Toda conexión externa se intercepta y se impide guardar productos. Comprueba IDs escritos y escaneados, variantes nuevas y guardadas, QR, duplicados, conservación de campos, borradores, actividad durante 35 minutos, bloqueo por inactividad y vencimiento de credenciales.
+
+### Modo exclusivo de escáner en el celular
+
+Al vincularse al PC, el teléfono oculta la edición y muestra únicamente el destino real, el lector existente, el estado de conexión y la opción de terminar. El borrador local no se borra ni se modifica al escanear. Al terminar o vencer la vinculación se recupera la edición. Las llamadas al lector local que se produzcan mientras está vinculado se dirigen al envío remoto, evitando que cambien el producto del teléfono.
+
+El indicador se muestra verde cuando la sesión tiene un dispositivo vinculado y el flujo de conexión está abierto; ámbar mientras conecta o reconecta, y gris al desvincular. Una lectura se anuncia como recibida después de que el PC la confirme.
+
+Esta corrección también modifica `admin-shared-scan.css`, que debe acompañar a `admin-shared-scan.js`, `admin-app.js` y `administrativo.html`, además de los archivos de IDs y sesión de la revisión anterior. Todo permanece local; no se publica ni se despliega.

@@ -4,6 +4,32 @@
   let api, form, panel, pc=null, phone=null, target=null, epoch=crypto.randomUUID(), formId=crypto.randomUUID();
   const tabId=crypto.randomUUID(),deviceId=crypto.randomUUID();
   let streamController, heartbeat, stopping=false, pending=null, applying=false, queue=Promise.resolve(), generation=0,metadataPending=false;
+  let transportReady=false,peerAvailable=false,phoneView=null;
+  function light(){
+    if(!panel)return;
+    const active=!!(pc||phone),connected=active&&transportReady&&peerAvailable;
+    $('connection').dataset.state=connected?'connected':active?'connecting':'disconnected';
+    $('connection-text').textContent=connected?(phone?'Conectado al PC':'Celular conectado'):active?'Conectando…':'Sin vincular';
+  }
+  function phoneMode(enabled){
+    if(enabled&&!phoneView){
+      api.closeScanner?.();
+      const main=document.getElementById('admin-main-content'),placeholder=document.createComment('shared-scanner-position');
+      panel.before(placeholder);const editModal=document.getElementById('edit-product-modal');
+      phoneView={placeholder,main,display:main?.style.display,inert:main?.inert,overflow:document.body.style.overflow,editModal,editingWasOpen:editModal?.classList.contains('open')};
+      editModal?.classList.remove('open');
+      if(main){main.inert=true;main.style.display='none';}
+      document.body.append(panel);document.body.classList.add('os-phone-scanner-mode');document.body.style.overflow='hidden';
+      $('disconnect').textContent='Terminar escáner y volver';
+      $('scan').focus();
+    }else if(!enabled&&phoneView){
+      const previous=phoneView;phoneView=null;previous.placeholder.replaceWith(panel);
+      if(previous.main){previous.main.inert=previous.inert;previous.main.style.display=previous.display;}
+      document.body.classList.remove('os-phone-scanner-mode');document.body.style.overflow=previous.overflow;
+      $('disconnect').textContent='Desvincular';if(previous.editingWasOpen)previous.editModal.classList.add('open');
+    }
+  }
+  function openPhoneScanner(){if(phone)return api.openScanner({continuous:true,sharedRemote:true,onDetected:send});}
   const receipts=new Map();
   const seen=new Set(), $=id=>panel.querySelector('[data-scan="'+id+'"]');
   const pairHash=location.hash.startsWith('#os-scan=')?location.hash.slice(9):'';
@@ -49,6 +75,7 @@
   function updatePhone(state){
     if(!phone)return;
     phone.target=state.target;phone.expires=state.expires||phone.expires;
+    if(typeof state.pcOnline==='boolean')peerAvailable=state.pcOnline;light();
     $('destination').textContent='Destino: '+(state.target?.label||'Esperando formulario del computador');
     if(state.lastAck&&pending?.eventId===state.lastAck.eventId){
       const accepted=state.lastAck.accepted;receipts.set(pending.eventId,accepted);pending=null;$('retry').hidden=true;
@@ -75,13 +102,14 @@
 
   function handle(event,data){
     if(event==='closed'||event==='expired'){stopLocal();message('La vinculación terminó. Crea una nueva para continuar.');return;}
-    if(event==='ready'){status();return;}
+    if(event==='ready'){transportReady=true;light();status();return;}
+    if(event==='joined'){peerAvailable=true;light();}
     if(pc){if(event==='scan')receive(data);if(data.pending)receive(data.pending);if(event==='joined')message('Celular vinculado. Esperando lecturas…');}
     if(phone){if(event==='target'||event==='ready')updatePhone(data);if(event==='ack')updatePhone({target:phone.target,lastAck:data});}
   }
   async function status(){
     if(!pc&&!phone)return;
-    try{const state=await request('scanstatus');if(pc&&state.pending)await receive(state.pending);else if(pc&&metadataPending){metadataPending=false;invalidate({renew:false});}if(phone)updatePhone(state);}catch(e){message(e.message,true);if(/venció|pertenece|Inicia sesión/.test(e.message))stopLocal();}
+    try{const state=await request('scanstatus');if(pc){peerAvailable=state.joined===true;light();}if(pc&&state.pending)await receive(state.pending);else if(pc&&metadataPending){metadataPending=false;invalidate({renew:false});}if(phone)updatePhone(state);}catch(e){transportReady=false;light();message(e.message,true);if(/venció|pertenece|Inicia sesión/.test(e.message))stopLocal();}
   }
   async function stream(run){
     while(!stopping&&run===generation&&(pc||phone)){
@@ -93,15 +121,17 @@
           while((end=buffer.indexOf('\n\n'))>=0){const chunk=buffer.slice(0,end);buffer=buffer.slice(end+2);const event=chunk.match(/^event: (.+)$/m)?.[1],data=chunk.match(/^data: (.+)$/m)?.[1];if(event&&data&&run===generation)handle(event,JSON.parse(data));}
         }
       }catch(e){if(e.name!=='AbortError'&&run===generation)message('Reconectando el escáner…',true);}
+      if(run===generation){transportReady=false;light();}
       if(run===generation&&!stopping)await new Promise(r=>setTimeout(r,800));
     }
   }
-  function startConnection(){stopping=false;const run=++generation;clearInterval(heartbeat);heartbeat=setInterval(status,15000);stream(run);}
+  function startConnection(){transportReady=false;light();stopping=false;const run=++generation;clearInterval(heartbeat);heartbeat=setInterval(status,15000);stream(run);}
   function stopLocal(){
+    if(phone)api.closeScanner?.();phoneMode(false);transportReady=false;peerAvailable=false;
     stopping=true;++generation;streamController?.abort();clearInterval(heartbeat);pc=null;phone=null;target=null;pending=null;metadataPending=false;seen.clear();
-    if(panel){$('pair').hidden=true;$('scan').hidden=true;$('retry').hidden=true;$('disconnect').hidden=true;$('create').disabled=false;$('join').disabled=false;$('target').disabled=false;$('destination').textContent='';}
+    if(panel){$('pair').hidden=true;$('scan').hidden=true;$('retry').hidden=true;$('disconnect').hidden=true;$('create').disabled=false;$('join').disabled=false;$('target').disabled=false;$('destination').textContent='';light();}
   }
-  async function close(){try{if(pc||phone)await request(pc?'scanclose':'scanunlink');}catch{}stopLocal();api?.closeScanner?.();message('Escáner desvinculado. Los campos se conservan.');}
+  async function close(){const closing=pc||phone?request(pc?'scanclose':'scanunlink').catch(()=>{}):Promise.resolve();stopLocal();api?.closeScanner?.();message('Escáner desvinculado. Los campos se conservan.');await closing;}
   async function create(){
     try{
       if(pc||phone)await close();targetOptions();target=currentTarget();if(!target)throw Error('Abre un formulario de producto.');
@@ -126,7 +156,7 @@
   async function join(value){
     try{const pair=parsePair(value);if(pc||phone)await close();$('join').disabled=true;
       const state=await request('scanjoin',{...pair,deviceId});phone={...state,sessionId:pair.sessionId};$('create').disabled=true;$('target').disabled=true;$('disconnect').hidden=false;$('scan').hidden=false;
-      updatePhone(state);startConnection();message('Vinculado. Abre el escáner para enviar códigos al computador.');
+      updatePhone(state);phoneMode(true);startConnection();message('Modo escáner: las lecturas se envían al PC. El formulario del celular está cerrado.');
     }catch(e){$('join').disabled=false;message(e.message,true);}
   }
   async function send(value){
@@ -162,12 +192,12 @@
   function initialize(options){
     if(panel)return;api=options;form=document.getElementById('product-form');if(!form)return;
     panel=document.createElement('section');panel.className='os-shared-scan';panel.setAttribute('aria-label','Escáner compartido');
-    panel.innerHTML='<div class="os-scan-heading"><div><strong>Escáner compartido</strong><small>Celular + computador · Original Store</small></div><span>Sesión temporal</span></div><div class="os-scan-actions"><button type="button" class="admin-btn" data-scan="create">Vincular desde este PC</button><button type="button" class="admin-btn secondary" data-scan="join">Vincular celular</button><button type="button" class="admin-btn secondary" data-scan="scan" hidden>Abrir escáner del celular</button><button type="button" class="admin-btn secondary" data-scan="retry" hidden>Reintentar envío</button><button type="button" class="admin-btn secondary" data-scan="disconnect" hidden>Desvincular</button></div><label class="os-scan-target">Recibir el código en<select class="form-control" data-scan="target"></select></label><div class="os-scan-pair" data-scan="pair" hidden><img data-scan="qr" alt="QR temporal para vincular el celular"><div><p>En el celular inicia sesión con la misma cuenta y elige <b>Vincular celular</b>. Escanea este QR con el lector existente.</p><input class="form-control" data-scan="link" readonly aria-label="Enlace temporal de vinculación"><button type="button" class="admin-btn secondary" data-scan="copy">Copiar enlace temporal</button></div></div><p data-scan="destination"></p><p data-scan="status" role="status" aria-live="polite">Solo se transfiere el código escaneado. Tú decides cuándo guardar.</p>';
+    panel.innerHTML='<div class="os-scan-heading"><div><strong>Escáner compartido</strong><small>Celular + computador · Original Store</small></div><span data-scan="connection" class="os-scan-connection" data-state="disconnected" role="status"><i aria-hidden="true"></i><span data-scan="connection-text">Sin vincular</span></span></div><div class="os-scan-actions"><button type="button" class="admin-btn" data-scan="create">Vincular desde este PC</button><button type="button" class="admin-btn secondary" data-scan="join">Vincular celular</button><button type="button" class="admin-btn secondary" data-scan="scan" hidden>Abrir escáner del celular</button><button type="button" class="admin-btn secondary" data-scan="retry" hidden>Reintentar envío</button><button type="button" class="admin-btn secondary" data-scan="disconnect" hidden>Desvincular</button></div><label class="os-scan-target">Recibir el código en<select class="form-control" data-scan="target"></select></label><div class="os-scan-pair" data-scan="pair" hidden><img data-scan="qr" alt="QR temporal para vincular el celular"><div><p>En el celular inicia sesión con la misma cuenta y elige <b>Vincular celular</b>. Escanea este QR con el lector existente.</p><input class="form-control" data-scan="link" readonly aria-label="Enlace temporal de vinculación"><button type="button" class="admin-btn secondary" data-scan="copy">Copiar enlace temporal</button></div></div><p data-scan="destination"></p><p data-scan="status" role="status" aria-live="polite">Solo se transfiere el código escaneado. Tú decides cuándo guardar.</p>';
     form.before(panel);targetOptions();
     $('create').onclick=create;$('disconnect').onclick=close;$('target').onchange=invalidate;
     $('copy').onclick=()=>navigator.clipboard.writeText($('link').value).then(()=>message('Enlace copiado. Ábrelo en el celular con tu cuenta.')).catch(()=>{$('link').select();message('Selecciona y copia el enlace temporal.');});
     $('join').onclick=()=>api.openScanner({preserveRawValue:true,scannerMode:'qr',onDetected:join});
-    $('scan').onclick=()=>api.openScanner({continuous:true,onDetected:send});
+    $('scan').onclick=openPhoneScanner;
     $('retry').onclick=()=>{if(pending)transmit(pending).catch(()=>{});};
     form.addEventListener('reset',()=>{invalidate();setTimeout(invalidate,0);});
     let metadataTimer;
@@ -181,5 +211,5 @@
     if(pairHash)join(pairHash);
     window.addEventListener('pagehide',()=>{if(pc||phone){request(pc?'scanclose':'scanunlink').catch(()=>{});}stopLocal();});
   }
-  window.OriginalStoreSharedScan={initialize,invalidate,close};
+  window.OriginalStoreSharedScan={initialize,invalidate,close,isPhone:()=>!!phone,openPhoneScanner};
 })();
