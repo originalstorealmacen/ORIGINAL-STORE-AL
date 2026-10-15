@@ -1,0 +1,15 @@
+/* Desktop product columns share the available viewport, but never their scroll position. */
+@media screen and (min-width:1301px){
+ body.admin-graphite :is(#view-products,#edit-product-modal) .grid-split.product-admin-grid{
+  grid-template-columns:minmax(0,1fr) minmax(0,1.08fr)!important;
+  height:var(--product-scroll-height,calc(100dvh - 180px));
+  min-height:0;align-items:stretch!important;overflow:hidden;
+ }
+ body.admin-graphite :is(#view-products,#edit-product-modal) .grid-split.product-admin-grid>.product-form-panel,
+ body.admin-graphite :is(#view-products,#edit-product-modal) .grid-split.product-admin-grid>.product-preview-panel{
+  position:relative!important;top:0!important;align-self:stretch!important;
+  min-width:0;min-height:0;height:100%;max-height:100%!important;box-sizing:border-box;
+  overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior-y:contain;
+  scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#b989a0 #faf5f8;
+ }
+}
