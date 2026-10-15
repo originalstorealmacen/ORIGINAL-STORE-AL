@@ -268,3 +268,14 @@
 }
 
 @media screen {html body .collection-section .catalog-filter-bar .glass-dropdown-item.active::after {background:#87334f !important;box-shadow:none !important;}html body .collection-section .catalog-filter-bar .glass-dropdown-item span {font-family:inherit !important;}}
+/* Catalogue summaries keep only the product name, category and price. */
+@media screen {
+ html body .products-grid {align-items:stretch!important;}
+ html body .products-grid .product-card .product-card-info {flex:1 1 auto!important;}
+ html body .products-grid .product-card :is(.product-card-variant,.product-card-colors,.product-card-measure,.product-card-textile-size) {display:none!important;}
+ html body .products-grid .product-card .product-card-name {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;min-height:3.1em;max-height:3.1em;}
+ html body .products-grid .product-card .product-card-desc {white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:1.45em;}
+ html body .products-grid .product-card .product-card-info .catalog-add-btn {margin-top:auto!important;}
+}
+
+@media screen {html body .products-grid .product-card .product-card-info .product-card-price {margin-bottom:10px!important;}}

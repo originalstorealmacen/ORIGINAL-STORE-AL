@@ -3032,7 +3032,6 @@ function renderProducts(products, options = {}) {
         const previewImg = getCatalogPreviewImageUrl(rawImg) || img;
         const cat = p.Categoria || p.categoria || '';
         const stock = getProductStock(p);
-        const variantText = getVariantSummary(p);
         const originalIndex = allProducts.indexOf(p);
         const productIndex = originalIndex >= 0 ? originalIndex : i;
         const isFeatured = featuredFirst && i === 0;
@@ -3062,7 +3061,6 @@ function renderProducts(products, options = {}) {
             <div class="product-card-info" onclick="openProductDetail(${productIndex}, '${mode}')">
                 <div class="product-card-name">${name}</div>
                 <div class="product-card-desc">${cat}</div>
-                ${variantText ? `<div class="product-card-variant">${escapeHtml(variantText)}</div>` : ''}
                 ${showPrices ? `<div class="product-card-price ${oldPrice > price ? 'discount-active' : ''}">
                     <span class="product-price-icon" aria-hidden="true">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 11h18"></path></svg>
