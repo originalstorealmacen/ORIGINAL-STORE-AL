@@ -1,0 +1,20 @@
+/* Product entry: one stage at a time, preserving all entered fields. */
+#product-form [hidden]{display:none!important}
+#product-form .variant-measure-group{grid-column:1/-1}
+#product-form .variant-measure-fields{margin-top:12px;padding:14px;border:1px solid var(--border, #e5d4dd);border-radius:14px;min-width:0}
+#product-form .var-measure-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+#product-form .variant-image-switch{display:flex;align-items:center;gap:10px;font-size:12px;line-height:1.5;text-transform:none;letter-spacing:0;margin:10px 0 14px;cursor:pointer}
+#product-form .variant-image-switch input{appearance:auto;width:36px;height:20px;accent-color:#923552;flex-shrink:0}
+#product-form .variant-general-preview{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px;border:1px solid var(--border, #e5d4dd);border-radius:12px}
+#product-form .variant-general-preview img{width:80px;height:80px;object-fit:contain;border-radius:8px}
+#product-form .variant-general-preview img:not([src]){display:none}
+#product-form .variant-draft-fold>summary{cursor:pointer;font-size:13px;font-weight:700;padding:8px 0 14px}
+#product-form .variant-draft-fold:not([open])>summary{padding-bottom:0}
+#product-form [data-product-next-step]{margin-top:16px}
+@media(max-width:700px){#product-form .var-measure-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#product-form .variant-measure-fields{grid-template-columns:1fr;padding:10px}#product-form .var-measure-grid .form-group:last-child{grid-column:auto}}
+
+#product-form .variant-image-switch input{appearance:none;position:relative;border:1px solid #c3a8b6;border-radius:999px;background:#d6cbd1;cursor:pointer;transition:background .15s}
+#product-form .variant-image-switch input::after{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0002;transition:transform .15s}
+#product-form .variant-image-switch input:checked{background:#923552;border-color:#923552}
+#product-form .variant-image-switch input:checked::after{transform:translateX(16px)}
+#product-form .variant-image-switch input:focus-visible{outline:2px solid #098b88;outline-offset:3px}

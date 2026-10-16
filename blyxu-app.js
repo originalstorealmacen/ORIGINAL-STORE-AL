@@ -668,7 +668,7 @@ function hydrateProductsFromCache(cached = readCache(PRODUCTS_CACHE_KEY)) {
 
     if (!Array.isArray(products) || !products.length) return false;
 
-    allProducts = products;
+    allProducts = resolveInheritedProductImages(products);
     // Banners must come from the current server, never an old catalog snapshot.
     bannerProducts = [];
     productsLoadError = '';
@@ -926,6 +926,22 @@ function getPublicProductCategory(product) {
 
 function getPublicProductCategoryLoose(product) {
     return getProductFieldLoose(product, ['Categoria', 'Categor\u00eda', 'Categoría', 'categoria'], product?.Categoria || product?.categoria || '');
+}
+
+function resolveInheritedProductImages(products) {
+    const principals=new Map();
+    for(const product of products){
+        const mother=String(product.idProducto||product['ID Producto']||'');
+        if(!mother||product['Modo Imagen']==='general')continue;
+        const current=principals.get(mother),ref=getStableProductReference(product);
+        if(!current||ref===mother||ref===mother+'-V01')principals.set(mother,product);
+    }
+    for(const product of products){
+        if(product['Modo Imagen']!=='general')continue;
+        const principal=principals.get(String(product.idProducto||product['ID Producto']||''));
+        if(principal){product.Imagen=principal.Imagen;product['Imagen Principal']=principal['Imagen Principal']||principal.Imagen;product.Galeria=principal.Galeria||[];}
+    }
+    return products;
 }
 
 function getPublicProductImage(product, imageSize = 'default') {
@@ -1970,7 +1986,7 @@ async function fetchProducts(options = {}) {
 
     // Separar banners del catalogo regular
     bannerProducts = dataProducts.filter(p => isPublicBannerProduct(p) && isActiveProduct(p) && getPublicProductImage(p));
-    allProducts = dataProducts.filter(p => !isPublicBannerProduct(p));
+    allProducts = resolveInheritedProductImages(dataProducts.filter(p => !isPublicBannerProduct(p)));
     renderBanners(bannerProducts);
     writeCache(PRODUCTS_CACHE_KEY, { products: allProducts, banners: bannerProducts });
     window.dispatchEvent(new CustomEvent('original-store-products-updated'));
