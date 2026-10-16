@@ -1,0 +1,16 @@
+#quote-review-modal {width:min(94vw,780px);max-height:88dvh;overflow:auto;padding:24px;border:1px solid #e8d9e2;border-radius:20px;color:#432b39;background:#fff;box-sizing:border-box;}
+#quote-review-modal::backdrop{background:rgba(35,23,31,.55);}
+.quote-review-head{display:flex;gap:16px;justify-content:space-between;align-items:start;}
+.quote-review-head h2{font-size:21px;margin:4px 0 10px;}
+.quote-review-head p{overflow-wrap:anywhere;font-size:12px;}
+.quote-review-table{overflow-x:auto;margin:16px 0;}
+#quote-review-modal table{width:100%;border-collapse:collapse;}
+#quote-review-modal th,#quote-review-modal td{padding:10px 6px;text-align:left;border-bottom:1px solid #efe5eb;font-size:13px;}
+#quote-review-modal td small{display:block;overflow-wrap:anywhere;font-size:10px;color:#846776;}
+#quote-review-modal input[type=number]{min-width:90px;max-width:170px;}
+.quote-review-accept{display:flex;gap:10px;align-items:center;font-size:13px;line-height:1.6;margin:18px 0;}
+.quote-review-accept input{accent-color:#a53662;width:18px;height:18px;}
+.quote-review-actions{display:flex;flex-wrap:wrap;gap:10px;}
+#quote-review-status{font-size:13px;line-height:1.6;color:#774256;}
+#admin-order-kind-filter{width:auto;flex:1 1 220px;min-height:44px;}
+#quote-review-modal button:disabled{opacity:.5;cursor:not-allowed;}

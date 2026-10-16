@@ -1447,7 +1447,7 @@ function updateSpotlightText(product, index = 0) {
         });
     }
     if (priceLabelEl) priceLabelEl.textContent = details.showPrice ? 'PRECIO' : 'CONSULTA';
-    if (priceEl) priceEl.textContent = details.showPrice ? formatMoney(details.price) : 'Por consultar';
+    if (priceEl) priceEl.textContent = details.showPrice && details.price>0 ? formatMoney(details.price)+(commerceFlow('retail',[{price:details.price}])==='quote'?' · estimado':'') : 'Por cotizar';
     if (ctaBtn) {
         ctaBtn.onclick = () => { window.location.href = details.detailUrl; };
         ctaBtn.innerHTML = `
@@ -1470,7 +1470,7 @@ function renderInventorySpotlightProducts(products) {
     track.classList.remove('is-loading');
     track.innerHTML = products.map((product, index) => {
         const details = getSpotlightProductDetails(product, index);
-        const priceText = details.showPrice ? formatMoney(details.price) : 'Por consultar';
+        const priceText = details.showPrice && details.price>0 ? formatMoney(details.price)+(commerceFlow('retail',[{price:details.price}])==='quote'?' · estimado':'') : 'Por cotizar';
         const toneClass = index % 3 === 1 ? 'neon-aqua' : index % 3 === 2 ? 'neon-gold' : '';
         const stockBadge = getProductBadgeMarkup(product, index);
         return `
@@ -1868,7 +1868,7 @@ function renderInventorySpotlight() {
         const stockBadge = getProductBadgeMarkup(p);
         const name = p.Nombre || p.nombre || p.Producto || 'Producto Original Store';
         const price = getProductCardPriceInfo(p, 'retail').price;
-        const priceText = shouldShowProductPrices('retail') ? formatMoney(price) : 'Precio por consultar';
+        const priceText = shouldShowProductPrices('retail') && price>0 ? formatMoney(price)+(commerceFlow('retail',[{price}])==='quote'?' · estimado':'') : 'Por cotizar';
         const shouldLoadEarly = !isDuplicate && index < eagerCount && window.location.hash !== '#coleccion';
         const loading = shouldLoadEarly ? 'eager' : 'lazy';
         const priority = shouldLoadEarly ? 'high' : 'low';
@@ -3061,17 +3061,17 @@ function renderProducts(products, options = {}) {
             <div class="product-card-info" onclick="openProductDetail(${productIndex}, '${mode}')">
                 <div class="product-card-name">${name}</div>
                 <div class="product-card-desc">${cat}</div>
-                ${showPrices ? `<div class="product-card-price ${oldPrice > price ? 'discount-active' : ''}">
+                ${showPrices && price>0 ? `<div class="product-card-price ${oldPrice > price ? 'discount-active' : ''}">
                     <span class="product-price-icon" aria-hidden="true">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 11h18"></path></svg>
                     </span>
-                    <span class="product-price-current">${formatMoney(price)}</span>
+                    <span class="product-price-current">${formatMoney(price)}${commerceFlow(mode,[{price}])==='quote'?' · estimado':''}</span>
                     ${oldPrice > price ? `<span class="old">${formatMoney(oldPrice)}</span><span class="product-price-discount">-${priceInfo.discountPercentage}%</span>` : ''}
-                </div>` : stock > 0 ? `<button class="product-card-price price-hidden price-consult-btn" type="button" onclick="event.stopPropagation(); consultProductByWhatsApp(allProducts[${productIndex}], '${detailUrl}')">Precio por consultar</button>` :
+                </div>` : stock > 0 ? `<span class="product-card-price price-hidden">Por cotizar</span>` :
                 `<button class="product-card-price price-hidden price-consult-btn" type="button" disabled>Agotado por ahora</button>`}
-                <button type="button" class="product-card-quick catalog-add-btn" ${stock > 0 ? '' : 'disabled'} onclick="event.stopPropagation(); addToCart(${productIndex}, this, '${mode}')" aria-label="${stock > 0 ? (showPrices ? 'Añadir al carrito: ' : 'Añadir a consulta: ') : 'Agotado: '}${escapeHtml(name)}">
+                <button type="button" class="product-card-quick catalog-add-btn" ${stock > 0 ? '' : 'disabled'} onclick="event.stopPropagation(); addToCart(${productIndex}, this, '${mode}')" aria-label="${stock > 0 ? (productActionLabel(p,mode)+': ') : 'Agotado: '}${escapeHtml(name)}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
-                    <span>${stock > 0 ? (showPrices ? 'Añadir al carrito' : 'Añadir a consulta') : 'Agotado'}</span>
+                    <span>${stock > 0 ? productActionLabel(p,mode) : 'Agotado'}</span>
                 </button>
             </div>
         </div>`;
@@ -3235,17 +3235,15 @@ function shouldRegisterCartOrder(mode = activeCartMode) {
     return true; // Pedidos y consultas siempre se registran antes de confirmar.
 }
 
-function isRetailCheckoutConsultationMode(mode = activeCartMode, items = cart) {
-    return normalizeCartMode(mode) === 'retail' && (!shouldShowProductPrices('retail') || items.some(item => !cartItemShowsPrice(item)));
+function commerceFlow(mode=activeCartMode,items=cart){
+ return OriginalStoreOrderFlow.kind({mode:normalizeCartMode(mode),items,visible:shouldShowProductPrices(mode),payments:isMercadoPagoCheckoutEnabled()});
 }
-
-function isCartConsultationMode(items = cart) {
-    return isRetailCheckoutConsultationMode(activeCartMode, items);
-}
-
-function cartItemShowsPrice(item) {
-    return shouldShowProductPrices(normalizeCartMode(item?.mode || activeCartMode));
-}
+function productActionLabel(product,mode=activeCatalogMode){return OriginalStoreOrderFlow.labels[commerceFlow(mode,[{price:getProductPrice(product,mode)}])].add;}
+function cartActionLabels(){return OriginalStoreOrderFlow.labels[commerceFlow()];}
+function isRetailCheckoutConsultationMode(mode=activeCartMode,items=cart){return commerceFlow(mode,items)==='quote';}
+function isCartConsultationMode(items=cart){return isRetailCheckoutConsultationMode(activeCartMode,items);}
+function cartItemShowsPrice(item){return shouldShowProductPrices(normalizeCartMode(item?.mode||activeCartMode))&&Number.isFinite(Number(item?.price))&&Number(item.price)>0;}
+function cartLinePrice(item,multiplier=1){return cartItemShowsPrice(item)?formatMoney(item.price*multiplier)+(isCartConsultationMode()?' · estimado':''):'Por cotizar';}
 
 function getProductVariationId(product) {
     return product?.idVariacion || product?.['ID Variaci\u00f3n'] || product?.['ID Variacion'] || product?.SKU || product?.Nombre || '';
@@ -3489,7 +3487,7 @@ function openCartItemPreview(idx) {
     const currentProductIndex = getCartProductIndex(item);
     const detailUrl = product ? getCartProductDetailUrl(product, mode) : '#';
     const image = item.img || normalizeImageUrl(product?.Imagen || product?.imagen || '', 'cart');
-    const priceText = cartItemShowsPrice(item) ? formatMoney(item.price) : 'Precio por consultar';
+    const priceText = cartLinePrice(item);
 
     const variantGrid = variants.length ? `
         <div class="cart-preview-variants">
@@ -3602,7 +3600,7 @@ function setCartPaymentMethod(method) {
             mpTab.setAttribute('aria-pressed', 'true');
             wsTab.setAttribute('aria-pressed', 'false');
             if (btnCheckout) btnCheckout.classList.remove('btn-ws-mode');
-            if (btnText) btnText.textContent = 'Check Out con Mercado Pago ✦';
+            if (btnText) btnText.textContent = 'Continuar al pago';
             if (mpBadges) mpBadges.style.display = 'flex';
             if (emailField) emailField.style.display = 'flex';
         } else if (resolvedMethod === 'ws') {
@@ -3611,10 +3609,10 @@ function setCartPaymentMethod(method) {
             wsTab.setAttribute('aria-pressed', 'true');
             mpTab.setAttribute('aria-pressed', 'false');
             if (btnCheckout) btnCheckout.classList.add('btn-ws-mode');
-            if (btnText) btnText.textContent = 'Registrar pedido';
+            if (btnText) btnText.textContent = activeCartMode==='wholesale'?'Enviar pedido mayorista':'Solicitar cotización';
             if (mpBadges) mpBadges.style.display = 'none';
             if (emailField) emailField.style.display = 'flex';
-            if (isConsultationMode && btnText) btnText.textContent = 'Registrar consulta';
+            if (isConsultationMode && btnText) btnText.textContent = 'Solicitar cotización';
         } else {
             mpTab.classList.remove('active');
             wsTab.classList.remove('active');
@@ -3627,10 +3625,15 @@ function setCartPaymentMethod(method) {
         }
     }
     updateCartPaymentFormState(resolvedMethod);
+    document.querySelectorAll('.cart-section-title,.cart-header h2,.cart-header h3').forEach(el=>el.textContent=cartActionLabels().title);
 }
 window.setCartPaymentMethod = setCartPaymentMethod;
 
 function updateCartUI() {
+    const flowLabels=cartActionLabels();
+    document.querySelectorAll('.cart-section-title,.cart-header h2').forEach(el=>el.textContent=flowLabels.title);
+    document.querySelectorAll('#cart-btn,[onclick="openCart()"]').forEach(el=>el.setAttribute('aria-label',flowLabels.title));
+    const manualTab=document.querySelector('#tab-payment-ws strong');if(manualTab)manualTab.textContent=activeCartMode==='wholesale'?'Enviar pedido mayorista':'Solicitar cotización';
     const badge = document.getElementById('cart-count');
     const itemsEl = document.getElementById('cart-items');
     const totalEl = document.getElementById('cart-total');
@@ -3676,13 +3679,14 @@ function updateCartUI() {
     const mpCheckoutEnabled = isMercadoPagoCheckoutEnabled();
 
     if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'flex' : 'none'; }
-    if (titleEl) titleEl.innerHTML = `Carrito ${getCartModeLabel()}`;
+    if (titleEl) titleEl.textContent = cartActionLabels().title;
     if (secCountLabel) secCountLabel.textContent = `${count} ${count === 1 ? 'producto' : 'productos'}`;
     if (secModeBadge) secModeBadge.textContent = getCartModeLabel();
     localStorage.removeItem('blyxu-last-order');
     // Update Standalone Section Summary Totals
-    const formattedSubtotal = hasHiddenPrices ? 'Por consultar' : formatMoney(pricingSummary.subtotal);
-    const formattedTotal = hasHiddenPrices ? 'Por consultar' : formatMoney(total);
+    const knownSubtotal=cart.filter(cartItemShowsPrice).reduce((sum,item)=>sum+item.price*item.qty,0);
+    const formattedSubtotal = !cart.length?'—':hasHiddenPrices?(knownSubtotal>0?formatMoney(knownSubtotal)+' · estimado parcial, faltan precios':'Por cotizar'):formatMoney(pricingSummary.subtotal)+(isCartConsultationMode()?' · estimado':'');
+    const formattedTotal = !cart.length?'—':hasHiddenPrices?(knownSubtotal>0?formatMoney(knownSubtotal)+' · estimado parcial, faltan precios':'Por cotizar'):formatMoney(total)+(isCartConsultationMode()?' · estimado':'');
     if (secSubtotalEl) secSubtotalEl.textContent = formattedSubtotal;
     if (secTotalEl) secTotalEl.textContent = formattedTotal;
     const summaryBox = secSubtotalEl?.closest('.cart-summary-box');
@@ -3714,7 +3718,7 @@ function updateCartUI() {
             secItemsEl.innerHTML = `
                 <div class="cart-empty-state">
                     <div class="cart-empty-icon">Original Store</div>
-                    <h3>Tu carrito ${getCartModeLabel()} está vacío ✦</h3>
+                    <h3>${cartActionLabels().title}: sin productos</h3>
                     <p>Descubre nuestros peluches y accesorios y añade tus piezas preferidas.</p>
                     <a href="${browseCatalogUrl}" class="cart-btn-browse">Explorar Catálogo</a>
                 </div>
@@ -3745,7 +3749,7 @@ function updateCartUI() {
                             </button>
                             <div class="cart-sec-prod-meta">
                                 <h4 class="cart-sec-prod-title">${escapeHtml(c.name)}</h4>
-                                <div class="cart-sec-prod-price">${cartItemShowsPrice(c) ? `${formatMoney(c.price)} c/u` : 'Precio por consultar'}</div>
+                                <div class="cart-sec-prod-price">${cartLinePrice(c)}</div>
                                 ${c.sku || c.idVariacion ? `<div class="cart-sec-prod-ref">Ref: ${escapeHtml(c.sku || c.idVariacion)}</div>` : ''}
                             </div>
                         </div>
@@ -3760,7 +3764,7 @@ function updateCartUI() {
                             </div>
                         </div>
                         <div class="cart-sec-total-col">
-                            <span class="cart-sec-row-total">${cartItemShowsPrice(c) ? formatMoney(c.price * c.qty) : 'Por consultar'}</span>
+                            <span class="cart-sec-row-total">${cartLinePrice(c,c.qty)}</span>
                         </div>
                         <div class="cart-sec-act-col">
                             <button class="cart-sec-del-btn" type="button" onclick="removeFromCart(${i})" aria-label="Eliminar producto" title="Eliminar producto">×</button>
@@ -3775,24 +3779,21 @@ function updateCartUI() {
     if (isWholesale || retailConsultationMode || !mpCheckoutEnabled) {
         const mpTab = document.getElementById('tab-payment-mp');
         if (mpTab) mpTab.style.display = 'none';
+        const requestTab=document.getElementById('tab-payment-ws');if(requestTab)requestTab.style.display='flex';
         const paymentTabs = mpTab?.closest('.cart-payment-tabs');
         if (paymentTabs) paymentTabs.style.gridTemplateColumns = '1fr';
         setCartPaymentMethod('ws');
-        if (secCheckoutBtnText) secCheckoutBtnText.textContent = 'Confirmar y Registrar Pedido Mayorista ✦';
-        if (secCheckoutBtnText && retailConsultationMode) secCheckoutBtnText.textContent = 'Registrar consulta';
-        if (secCheckoutBtnText && !isWholesale && !retailConsultationMode && !mpCheckoutEnabled) secCheckoutBtnText.textContent = 'Registrar pedido';
+        if (secCheckoutBtnText) secCheckoutBtnText.textContent = cartActionLabels().submit;
+        if (secCheckoutBtnText && retailConsultationMode) secCheckoutBtnText.textContent = 'Solicitar cotización';
+        if (secCheckoutBtnText && !isWholesale && !retailConsultationMode && !mpCheckoutEnabled) secCheckoutBtnText.textContent = cartActionLabels().submit;
     } else {
         const mpTab = document.getElementById('tab-payment-mp');
         if (mpTab) mpTab.style.display = 'flex';
         const paymentTabs = mpTab?.closest('.cart-payment-tabs');
         if (paymentTabs) paymentTabs.style.gridTemplateColumns = '1fr 1fr';
-        if (currentCartSectionPaymentMethod === 'mp') {
-            setCartPaymentMethod('mp');
-        } else if (currentCartSectionPaymentMethod === 'ws') {
-            setCartPaymentMethod('ws');
-        } else {
-            setCartPaymentMethod('');
-        }
+        const requestTab=document.getElementById('tab-payment-ws');if(requestTab)requestTab.style.display='none';
+        if(paymentTabs)paymentTabs.style.gridTemplateColumns='1fr';
+        setCartPaymentMethod('mp');
     }
 
     // Wire Standalone Checkout Button
@@ -3894,16 +3895,14 @@ function updateCartUI() {
     // Sidebar Fallback update (if present)
     if (itemsEl) {
         if (!cart.length) {
-            itemsEl.innerHTML = `<div class="cart-empty">Tu carrito ${getCartModeLabel()} est&aacute; vac&iacute;o</div>`;
+            itemsEl.innerHTML = `<div class="cart-empty">${cartActionLabels().title}: sin productos</div>`;
             if (totalEl) totalEl.textContent = '$0';
             if (consultNoteEl) consultNoteEl.textContent = '';
             const checkoutBtn = document.getElementById('btn-checkout');
             const formContainer = document.getElementById('cart-wholesale-form');
             if (formContainer) formContainer.style.display = 'none';
             if (checkoutBtn) {
-                checkoutBtn.textContent = isCartConsultationMode()
-                    ? 'Registrar consulta por WhatsApp'
-                    : (shouldRegisterCartOrder() ? `Registrar Pedido ${getCartOrderLabel()}` : 'Enviar consulta por WhatsApp');
+                checkoutBtn.textContent = cartActionLabels().submit;
                 checkoutBtn.style.display = 'block';
             }
         } else {
@@ -3929,14 +3928,14 @@ function updateCartUI() {
                     </button>
                     <div class="cart-item-info">
                         <div class="cart-item-name">${escapeHtml(c.name)}</div>
-                        <div class="cart-item-price">${cartItemShowsPrice(c) ? `${formatMoney(c.price)} unidad` : 'Precio por consultar'}</div>
+                        <div class="cart-item-price">${cartLinePrice(c)}</div>
                         ${variantSelect}
                         <div class="cart-item-qty">
                             <button type="button" onclick="incrementCartQty(${i}, -1)" aria-label="Restar cantidad">-</button>
                             <input type="number" min="1" ${c.stock ? `max="${c.stock}"` : ''} value="${c.qty}" onchange="updateCartQty(${i}, this.value)" aria-label="Cantidad">
                             <button type="button" onclick="incrementCartQty(${i}, 1)" aria-label="Sumar cantidad">+</button>
                         </div>
-                        <div class="cart-item-subtotal">${cartItemShowsPrice(c) ? formatMoney(c.price * c.qty) : 'Por consultar'}</div>
+                        <div class="cart-item-subtotal">${cartLinePrice(c,c.qty)}</div>
                     </div>
                     <button class="cart-item-remove" type="button" onclick="removeFromCart(${i})" aria-label="Eliminar producto" title="Eliminar producto">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -3953,7 +3952,7 @@ function updateCartUI() {
             if (totalEl) totalEl.textContent = formattedTotal;
             if (consultNoteEl) {
                 consultNoteEl.textContent = hasHiddenPrices
-                    ? 'Este carrito se enviará como consulta general por WhatsApp.'
+                    ? 'Tu cotización se registra en el sistema. Compartirla por WhatsApp es opcional.'
                     : `Al finalizar, se registrará el pedido ${getCartOrderLabel().toLowerCase()} en el sistema.`;
             }
         }
@@ -5281,7 +5280,7 @@ function renderCustomerOrdersList(orders = []) {
             <article class="customer-order-card">
                 <div>
                     <strong>${escapeHtml(order.id || 'Pedido')}</strong>
-                    <button type="button" data-order-id="${escapeHtml(order.id)}" onclick="BlyxuReceiptAccess.downloadCustomer(this.dataset.orderId,this)">Abrir comprobante de pedido</button>
+                    <button type="button" data-order-id="${escapeHtml(order.id)}" onclick="BlyxuReceiptAccess.downloadCustomer(this.dataset.orderId,this)">Abrir comprobante de ${isConsultation ? 'cotización' : 'pedido'}</button>
                     <span>${escapeHtml(formatCustomerDate(order.fecha))}</span>
                 </div>
                 ${previews.length ? `<div class="customer-order-products">
@@ -5831,7 +5830,7 @@ async function checkoutWithMercadoPago(cliente, options = {}) {
         console.error('Error al conectar con Mercado Pago:', error);
         const secErrorBox = document.getElementById('cart-section-form-error');
         if (secErrorBox) {
-            secErrorBox.innerHTML = `<strong>Error en pasarela:</strong> ${escapeHtml(error.message || 'No se pudo generar el pago con Mercado Pago.')}<br><small style="margin-top:4px; display:inline-block;">Puedes seleccionar <strong>Registrar pedido</strong> para finalizar tu pedido con un asesor.</small>`;
+            secErrorBox.innerHTML = `<strong>Error en pasarela:</strong> ${escapeHtml(error.message || 'No se pudo generar el pago con Mercado Pago.')}<br><small style="margin-top:4px; display:inline-block;">Puedes seleccionar <strong>Solicitar cotización</strong> para enviar tu selección con un asesor.</small>`;
             secErrorBox.style.display = 'block';
             secErrorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -5909,73 +5908,15 @@ function buyNowWithMercadoPago(productIndex, sourceButton, mode = activeCatalogM
 
 let orderCheckoutInProgress = false;
 
-async function saveOrderToGoogleSheets(cliente, total, customerType = getCartCustomerType()) {
-    const normalizedType = customerType === 'Mayor' ? 'Mayor' : 'Detal';
-    const orderLabel = normalizedType === 'Mayor' ? 'Mayorista' : 'Detal';
-    const isConsultation = normalizedType === 'Detal' && isCartConsultationMode();
-    const pricingSummary = getCartPricingSummary(cart);
-    const promotion = pricingSummary.promotion;
-    const productos = cart.map(item => ({
-        idVariacion: item.idVariacion || item.sku || item.name,
-        id: item.idVariacion || item.sku || item.name,
-        nombre: item.name,
-        opcion: item.variantLabel || '',
-        color: item.color || '',
-        talla: item.talla || '',
-        cantidad: item.qty,
-        precioOriginal: isConsultation ? 0 : item.price,
-        precio: isConsultation ? 0 : (promotion.percent > 0 ? Math.max(0, Math.round(item.price * (1 - promotion.percent / 100))) : item.price),
-        subtotal: isConsultation ? 0 : (promotion.percent > 0 ? Math.max(0, Math.round(item.price * (1 - promotion.percent / 100))) : item.price) * item.qty,
-        precioEstado: isConsultation ? 'Por consultar' : '',
-        descuentoCliente: isConsultation ? '' : (promotion.percent || ''),
-        promoCliente: isConsultation ? '' : (promotion.label || ''),
-        sku: item.sku || '',
-        img: item.img || '',
-        imagen: item.img || '',
-        modo: item.mode || activeCatalogMode
-    }));
-
-    const fingerprint = JSON.stringify({ cliente, productos, normalizedType });
-    let pendingOrder = null;
-    try { pendingOrder = JSON.parse(localStorage.getItem('blyxu-pending-order') || 'null'); } catch (_) {}
-    const orderId = pendingOrder?.fingerprint === fingerprint ? pendingOrder.id : `${normalizedType === 'Mayor' ? 'MAY' : 'DET'}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    localStorage.setItem('blyxu-pending-order', JSON.stringify({ id: orderId, fingerprint }));
-    const payload = {
-        resource: 'pedidos',
-        action: 'crear',
-        token: getCustomerSession()?.token || '',
-        'ID Pedido': orderId,
-        'Nombre Cliente': cliente.nombre,
-        'Tipo Cliente': normalizedType,
-        'Telefono': cliente.telefono,
-        'Email': cliente.email || '',
-        'Direccion': cliente.direccion,
-        'Ciudad': cliente.ciudad,
-        'Productos JSON': JSON.stringify(productos),
-        'Cantidad Total': cart.reduce((sum, item) => sum + item.qty, 0),
-        'Subtotal': isConsultation ? 0 : pricingSummary.total,
-        'Estado Pedido': isConsultation ? 'Consulta pendiente' : 'Pendiente',
-        'Metodo Contacto': isConsultation ? 'Consulta registrada en el sistema' : `Sistema ${orderLabel}`,
-        'Stock Descontado': isConsultation ? 'NO' : '',
-        'Nota Cliente': [
-            cliente.nota || '',
-            isConsultation ? 'Precios ocultos: consulta pendiente de contacto' : '',
-            !isConsultation && promotion.percent > 0 ? `Promo cliente registrado: ${promotion.label} (-${promotion.percent}%)` : ''
-        ].filter(Boolean).join(' | ')
-    };
-
-    const response = await fetch(GOOGLE_SHEET_API, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-    });
-    if (!response.ok) throw new Error('No se pudo confirmar el registro. Reintenta con el mismo pedido.');
-    const result = await response.json();
-    if (!result || result.status !== 'success' || result.ok === false) {
-        throw new Error(result?.message || result?.error || 'No se pudo guardar el pedido');
-    }
-    const savedId = result.data?.['ID Pedido'] || result.id || result.idPedido;
-    if (!savedId) throw new Error('El servidor no confirmó el ID del pedido. Reintenta para verificarlo.');
-    return { ...payload, ...result.data, 'ID Pedido': savedId, receipt:result.receipt, summaryCreatedAt: result.data?.Fecha || new Date().toISOString() };
+async function saveOrderToGoogleSheets(cliente,total,customerType=getCartCustomerType()){
+ const items=cart.map(item=>({idVariacion:item.idVariacion||item.sku,cantidad:item.qty}));
+ const request={mode:customerType==='Mayor'?'wholesale':'retail',cliente,items};
+ const fingerprint=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(request))))).map(v=>v.toString(16).padStart(2,'0')).join('');let pending;
+ try{pending=JSON.parse(localStorage.getItem('original_store_pending_request')||'null');}catch{}
+ if(!pending||pending.fingerprint!==fingerprint){pending={fingerprint,key:crypto.randomUUID().replaceAll('-','')};localStorage.setItem('original_store_pending_request',JSON.stringify(pending));}
+ const response=await fetch(GOOGLE_SHEET_API,{method:'POST',body:JSON.stringify({action:'submitrequest',...request,token:getCustomerSession()?.token||'',idempotencyKey:pending.key})});
+ const result=await response.json();if(!response.ok||!result.ok||!result.data?.['ID Pedido'])throw Error(result.error||'No se pudo confirmar la solicitud. Reintenta: tu selección se conserva.');
+ return {...result.data,receipt:result.receipt,summaryCreatedAt:result.data.Fecha||new Date().toISOString()};
 }
 
 function askCustomerInfo() {
@@ -5988,47 +5929,9 @@ function askRetailQuestion() {
     return noteEl ? noteEl.value.trim() : '';
 }
 
-function buildCartWhatsAppMessage({ isRegisteredOrder, customerType = 'Detal', cliente = null, savedOrder = null, total = 0, note = '' }) {
-    if (isRegisteredOrder && savedOrder?.['ID Pedido']) {
-        return `Pedido registrado con éxito\nID del pedido: ${savedOrder['ID Pedido']}\nCliente: ${cliente?.nombre || savedOrder['Nombre Cliente'] || ''}`;
-    }
-
-    const hasHiddenPrices = cart.some(item => !cartItemShowsPrice(item));
-    const orderLabel = hasHiddenPrices ? 'Consulta General' : (customerType === 'Mayor' ? 'Mayorista' : 'Detal');
-    let msg = hasHiddenPrices
-        ? '*Consulta General Original Store*\n\n'
-        : (isRegisteredOrder ? `*Pedido ${orderLabel} Original Store*\n\n` : '*Consulta Original Store*\n\n');
-
-    if (savedOrder && savedOrder['ID Pedido']) {
-        msg += `*ID Pedido:* ${savedOrder['ID Pedido']}\n`;
-        msg += '*Registro:* Completado\n*Estado del pedido:* Pendiente de confirmación\n';
-    }
-
-    if (cliente) {
-        msg += `*Cliente:* ${cliente.nombre}\n`;
-        msg += `*Telefono:* ${cliente.telefono}\n`;
-        const addressParts = [cliente.direccion, cliente.ciudad].filter(Boolean);
-        if (addressParts.length) {
-            msg += `*Direccion:* ${addressParts.join(', ')}\n`;
-        }
-        msg += '\n';
-    } else {
-        msg += 'Hola, quiero consultar estos productos:\n\n';
-    }
-
-    cart.forEach(c => {
-        const lineTotal = cartItemShowsPrice(c) ? formatMoney(c.price * c.qty) : 'Precio por consultar';
-        msg += `- ${c.name} x ${c.qty} - ${lineTotal}\n`;
-        if (c.variantLabel) msg += `  Opci\u00f3n: ${c.variantLabel}\n`;
-        const reference = c.sku || c.idVariacion;
-        if (reference && reference !== c.name) msg += `  Ref: ${reference}\n`;
-    });
-
-    msg += hasHiddenPrices ? '\n*Total:* Por consultar' : `\n*Total: ${formatMoney(total)}*`;
-    const finalNote = cliente?.nota || note;
-    if (finalNote) msg += `\n\n*Nota:* ${finalNote}`;
-
-    return msg;
+function buildCartWhatsAppMessage({savedOrder}) {
+    if(!savedOrder?.['ID Pedido'])return 'La solicitud todavía no está registrada.';
+    return OriginalStoreOrderFlow.labels[OriginalStoreOrderFlow.kindOf(savedOrder)].document+'\nReferencia: '+savedOrder['ID Pedido'];
 }
 
 async function checkout(skipPrompt = false) {
@@ -6041,17 +5944,17 @@ async function checkout(skipPrompt = false) {
 }
 
 function canSendOrderWhatsApp() {
-    return navigator.userAgentData?.mobile === true || /Android.*Mobile|iPhone|iPod|Windows Phone/i.test(navigator.userAgent);
+    return Boolean(getCommerceWhatsAppPhone());
 }
 
 async function performOrderCheckout(skipPrompt = false) {
     if (!cart.length) return;
     await syncRetailPriceVisibility();
     const total = getCartPricingSummary(cart).total;
-    const isConsultation = isCartConsultationMode();
+    let isConsultation = isCartConsultationMode();
     const isRegisteredOrder = shouldRegisterCartOrder();
     const customerType = getCartCustomerType();
-    const orderLabel = isConsultation ? 'Consulta' : getCartOrderLabel();
+    const orderLabel = cartActionLabels().document;
     
     const cliente = isRegisteredOrder ? window.wsClienteTemp : null;
     if (isRegisteredOrder && !cliente) {
@@ -6069,13 +5972,14 @@ async function performOrderCheckout(skipPrompt = false) {
     const originalText = btn ? btn.textContent : '';
     if (btn) {
         btn.disabled = true;
-        btn.textContent = isRegisteredOrder ? 'Registrando pedido...' : 'Preparando WhatsApp...';
+        btn.textContent = isConsultation ? 'Registrando cotización...' : 'Registrando pedido...';
     }
 
     let savedOrder = null;
     if (isRegisteredOrder) {
         try {
             savedOrder = await saveOrderToGoogleSheets(cliente, total, customerType);
+            isConsultation = OriginalStoreOrderFlow.kindOf(savedOrder)==='quote';
         } catch (error) {
             console.error('Error guardando pedido:', error);
             const errorBox = document.getElementById('cart-section-form-error');
@@ -6104,6 +6008,7 @@ async function performOrderCheckout(skipPrompt = false) {
         window.BlyxuReceiptAccess?.begin(savedOrder.receipt);
         localStorage.removeItem('blyxu-last-order');
         localStorage.removeItem('blyxu-pending-order');
+        localStorage.removeItem('original_store_pending_request');
     }
     cart = [];
     saveCart();
@@ -6123,12 +6028,12 @@ async function performOrderCheckout(skipPrompt = false) {
                     <div class="cart-success-icon">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </div>
-                    <h4>Pedido registrado correctamente</h4>
-                    <p>${isConsultation ? 'Tu consulta quedó registrada correctamente. Nos pondremos en contacto contigo.' : `Tu pedido ${orderLabel.toLowerCase()} quedo registrado correctamente. Nos pondremos en contacto contigo. Copia la referencia para cualquier duda.`}</p>
-                    <div class="cart-order-id">Pedido ${escapeHtml(orderId)}</div>
+                    <h4>${isConsultation ? 'Cotización registrada correctamente' : 'Pedido registrado correctamente'}</h4>
+                    <p>${isConsultation ? 'Tu cotización quedó registrada. Los precios conocidos son estimados; confirmaremos los pendientes contigo.' : `Tu ${orderLabel.toLowerCase()} quedó registrado correctamente. Nos pondremos en contacto contigo. Copia la referencia para cualquier duda.`}</p>
+                    <div class="cart-order-id">Referencia ${escapeHtml(orderId)}</div>
                     <div class="cart-success-actions">
                         <div data-temporary-receipt>
-                            <button class="cart-copy-reference-btn" type="button" data-receipt-download onclick="BlyxuReceiptAccess.downloadTemporary(this)">Abrir comprobante de pedido</button>
+                            <button class="cart-copy-reference-btn" type="button" data-receipt-download onclick="BlyxuReceiptAccess.downloadTemporary(this)">Abrir comprobante de ${isConsultation ? 'cotización' : 'pedido'}</button>
                             <p data-receipt-status role="status">Acceso privado disponible durante un máximo de 5 minutos.</p>
                         </div>
                         <button class="cart-copy-reference-btn" type="button" data-order-reference="${escapeHtml(orderId)}" onclick="copyOrderReference(this.dataset.orderReference, this)">
@@ -6136,7 +6041,7 @@ async function performOrderCheckout(skipPrompt = false) {
                         </button>
                         ${canSendOrderWhatsApp() ? `<a class="cart-whatsapp-link" href="${whatsappHref}" target="_blank" rel="noopener">
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20l1.2-5.2A8.5 8.5 0 1 1 21 11.5Z"></path><path d="M9.2 8.8c.2 2.8 2.3 5 5.1 5.5"></path></svg>
-                            Enviar pedido por WhatsApp
+                            Compartir ${isConsultation ? 'cotización' : 'pedido'} por WhatsApp (opcional)
                         </a>` : ''}
                         <button class="btn-checkout" onclick="dismissWholesaleOrderNotice()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);">Cerrar</button>
                     </div>

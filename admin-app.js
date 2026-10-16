@@ -11618,28 +11618,14 @@ function getInvoiceTableTargets() {
 }
 
 function buildOrderRowHtml(p, idx) {
-    const id = getOrderIdValue(p) || '-';
-    const fecha = p.Fecha || '-';
-    const cliente = p['Nombre Cliente'] || p.Nombre || '-';
-    const total = parseFloat(p.Subtotal || p.Total || 0);
-    const estado = p['Estado Pedido'] || p.Estado || 'Pendiente';
-    const colorEstado = getInvoiceStatusColor(estado);
-
-    return `
-        <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <td data-label="Pedido" style="font-weight:700;">${escapeHtml(id)}</td>
-            <td data-label="Fecha" style="font-size:12px; color:var(--text-muted);">${formatInvoiceListDate(fecha)}</td>
-            <td data-label="Cliente" style="font-weight:600;">${escapeHtml(cliente)} <br><span style="font-size:10px; color:var(--primary);">${escapeHtml(p['Teléfono'] || p.Telefono || '')}</span></td>
-            <td data-label="Total" style="font-weight:800; color:#fff;">$${total.toLocaleString('es-CO')}</td>
-            <td data-label="Estado"><span style="background:rgba(255,255,255,0.1); color:${colorEstado}; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:700;">${escapeHtml(estado)}</span></td>
-            <td data-label="Accion" class="orders-actions-cell">
-                <button class="orders-action-btn" onclick="abrirEditorFactura(${idx})" type="button" title="Ajustar factura">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
-                    Facturar
-                </button>
-            </td>
-        </tr>
-    `;
+    const id=getOrderIdValue(p)||'-',quoted=window.OriginalStoreOrderAdmin?.kind(p)==='quote';
+    const total=Number(p.Subtotal||p.Total||0),state=p['Estado Pedido']||p.Estado||'Pendiente';
+    const totalLabel=total>0?formatAdminInvoiceMoney(total)+(quoted?' · estimado':'')+(Number(p['Precios Pendientes'])>0?' · parcial':''):'Por cotizar';
+    return `<tr><td data-label="Pedido">${escapeHtml(id)}<br><small>${escapeHtml(OriginalStoreOrderFlow.labels[OriginalStoreOrderFlow.kindOf(p)].document)}</small></td>
+        <td data-label="Fecha">${escapeHtml(formatInvoiceListDate(p.Fecha||''))}</td>
+        <td data-label="Cliente">${escapeHtml(p['Nombre Cliente']||p.Nombre||'-')}<br><small>${escapeHtml(p['Teléfono']||p.Telefono||'')}</small></td>
+        <td data-label="Total">${totalLabel}</td><td data-label="Estado">${escapeHtml(state)}</td>
+        <td data-label="Accion" class="orders-actions-cell"><button class="orders-action-btn" type="button" onclick="${quoted?`OriginalStoreOrderAdmin.review(${idx})`:`abrirEditorFactura(${idx})`}">${quoted?'Revisar cotización':'Facturar'}</button></td></tr>`;
 }
 
 function buildInvoiceRowHtml(f, idx) {
@@ -11688,6 +11674,7 @@ function renderPedidos() {
     const pendingOrders = (window.pedidosList || [])
         .map((p, idx) => ({ p, idx }))
         .filter(({ p }) => {
+            if(window.OriginalStoreOrderAdmin && !OriginalStoreOrderAdmin.filter(p))return false;
             const id = String(getOrderIdValue(p)).trim();
             if (id && facturedOrderIds.has(id)) return false;
             const estado = p['Estado Pedido'] || p.Estado || '';
@@ -12830,6 +12817,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.abrirEditorFactura = function(idx = null, source = 'pedido') {
+    if(source==='pedido' && idx!==null && window.OriginalStoreOrderAdmin?.kind(window.pedidosList?.[idx])==='quote'){
+        showToast('Revisa la cotización y confirma que el cliente aceptó antes de convertirla y facturar.','error');
+        OriginalStoreOrderAdmin.review(idx);return;
+    }
     window.invoiceItems = [];
     window.invoiceEditIndex = idx;
     window.invoiceEditSource = idx === null ? 'manual' : source;
