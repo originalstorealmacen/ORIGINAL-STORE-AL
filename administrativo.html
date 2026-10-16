@@ -7449,6 +7449,7 @@
 </style><link rel="stylesheet" href="inventory-tools.css?v=20261013-1">
     <link rel="stylesheet" href="admin-category-picker.css?v=20261014-1">
 <link rel="stylesheet" href="admin-retail-pricing.css?v=20261015">
+<link rel="stylesheet" href="admin-order-workflow.css?v=20261016">
 </head>
 <body class="admin-graphite">
     <div class="bg-animation"></div>
@@ -7897,7 +7898,7 @@
                         </div>
                         <details class="admin-fold orders-navigation-fold" open><summary>Pedidos y facturas</summary>
                         <div class="orders-search-row">
-                            <input class="form-control" id="admin-orders-search" placeholder="Buscar cliente, pedido o factura...">
+                            <select id="admin-order-kind-filter" class="form-control" aria-label="Filtrar solicitudes"><option value="all">Todas las solicitudes</option><option value="wholesale">Pedidos mayoristas</option><option value="quote">Cotizaciones minoristas</option><option value="retail">Pedidos minoristas</option></select><input class="form-control" id="admin-orders-search" placeholder="Buscar cliente, pedido o factura...">
                             <div class="orders-tabs">
                                 <button class="orders-tab-btn active" data-orders-tab-target="orders-mayor">Pedidos <span id="orders-count-badge">0</span></button>
                                 <button class="orders-tab-btn" data-orders-tab-target="invoices-mayor">Facturas <span id="invoices-count-badge">0</span></button>
@@ -7929,6 +7930,13 @@
     </div>
 
     <div id="edit-product-modal" class="modal"><div class="modal-card"><div class="edit-modal-header"><h2>Editar producto</h2><div class="edit-modal-nav"><button type="button" class="admin-btn secondary" id="edit-modal-prev-product">Anterior</button><select class="form-control" id="edit-modal-product-jump" aria-label="Editar otro producto"></select><button type="button" class="admin-btn secondary" id="edit-modal-next-product">Siguiente</button></div><button class="admin-btn secondary" onclick="cerrarModalEdicion()">Cerrar</button></div><div id="edit-modal-content-area"></div></div></div>
+    <dialog id="quote-review-modal" aria-labelledby="quote-review-title">
+        <header class="quote-review-head"><div><h2 id="quote-review-title">Revisar cotización</h2><p id="quote-review-reference"></p></div><button class="admin-btn secondary" type="button" id="quote-review-close" aria-label="Cerrar revisión">Cerrar</button></header>
+        <p>Los precios son estimados hasta la aceptación del cliente. Guardar y convertir no generan factura, cobro ni descuento de inventario.</p>
+        <div class="quote-review-table"><table><thead><tr><th>Producto / referencia</th><th>Cantidad</th><th>Precio unitario</th></tr></thead><tbody id="quote-review-items"></tbody></table></div>
+        <strong id="quote-review-total"></strong><label class="quote-review-accept"><input type="checkbox" id="quote-client-accepted">El cliente aceptó las cantidades y precios de la cotización guardada.</label>
+        <p id="quote-review-status" role="status" aria-live="polite"></p><div class="quote-review-actions"><button class="admin-btn secondary" type="button" id="quote-save">Guardar cotización</button><button class="admin-btn" type="button" id="quote-convert" disabled>Convertir en pedido</button></div>
+    </dialog>
     <div id="confirm-modal" class="modal"><div class="modal-card" style="max-width:420px;"><h2 id="modal-title">Confirmar</h2><p id="modal-body">¿Estas seguro?</p><div style="display:flex;gap:10px;justify-content:flex-end;"><button class="admin-btn secondary" id="modal-cancel-btn">Cancelar</button><button class="admin-btn" id="modal-confirm-btn">Aceptar</button></div></div></div>
     <div id="inventory-qr-modal" class="modal">
         <div class="modal-card inventory-qr-card">
@@ -8353,10 +8361,12 @@
 <script src="admin-session-draft.js?v=20261014-local-session" defer></script>
 <script src="admin-shared-scan.js?v=20261014-local-scanner-mode" defer></script>
 <script type="module" src="admin-retail-pricing.js?v=20261015"></script>
-<script src="admin-app.js?v=original-store-retail-pricing-20261015" defer></script>
+<script src="order-flow.js?v=20261016" defer></script>
+<script src="admin-order-workflow.js?v=20261016" defer></script>
+<script src="admin-app.js?v=order-workflow-20261016" defer></script>
 <script src="inventory-tools.js?v=20261013-1"></script>
     <script src="inventory-category-manager.js?v=category-dialog-20261013" defer></script>
-<script src="order-summary.js?v=pdf-fast-20261007" defer></script>
+<script src="order-summary.js?v=order-workflow-20261016" defer></script>
 <script src="order-receipt-access.js?v=browser-qr-20261006" defer></script>
 <script src="order-notifications-admin.js?v=admin-refresh-access-20261006-3" defer></script>
 <script src="pending-products-admin.js?v=pending-actions-20261006-4" defer></script>
