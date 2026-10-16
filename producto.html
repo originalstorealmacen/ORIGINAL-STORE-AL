@@ -26,7 +26,7 @@
                 const mode = params.get('catalogo') === 'mayorista' ? 'wholesale' : 'retail';
                 const ref = params.get('ref') || '';
                 const preview = JSON.parse(sessionStorage.getItem("original_store_product_detail_drive_v2:" + window.ORIGINAL_STORE_API_URL + "") || 'null');
-                if (!preview || Date.now() - Number(preview.savedAt || 0) > 120000 || preview.id !== id || preview.mode !== mode || (ref && preview.ref && preview.ref !== ref)) return;
+                if (!preview || Date.now() - Number(preview.savedAt || 0) > 120000 || (ref ? preview.ref !== ref : preview.id !== id) || preview.mode !== mode) return;
                 const src = preview.imageCard || preview.image || preview.imageDetail;
                 if (!src || !/^https:\/\//.test(src)) return;
                 window.ORIGINAL_STORE_INITIAL_DETAIL = preview;
@@ -38,7 +38,8 @@
         })();
     </script>
     <script src="original-store-catalog-bootstrap.js?v=drive-20261008-1" defer></script>
-    <script src="blyxu-app.js?v=original-store-cutover-20261013" defer></script>
+    <script src="order-flow.js?v=20261016" defer></script>
+<script src="blyxu-app.js?v=variant-images-20261016" defer></script>
     <link rel="stylesheet" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006">
     <style>
         /* STUDIO NOIR PRODUCT DETAIL */
@@ -998,7 +999,7 @@
     <link rel="stylesheet" href="storefront-refinement.css?v=nav-spacing-20261006-2">
     <link rel="stylesheet" href="original-store-theme.css?v=20261007-22">
     <script src="original-store-navigation.js?v=20261007-1" defer></script>
-    <link rel="stylesheet" href="original-store-boutique.css?v=mobile-polish-20261013">
+    <link rel="stylesheet" href="original-store-boutique.css?v=image-integrity-20261016">
     <link rel="stylesheet" href="original-store-product-studio.css?v=20261008-4">
 <meta name="robots" content="index, follow, max-image-preview:large">
     <style>
@@ -1056,7 +1057,7 @@
     <!-- ===== PRODUCT DETAIL ===== -->
     <main class="product-detail-container product-detail-luxury" id="product-detail">
         <section class="product-gallery">
-            <h1 class="product-mobile-heading" id="detail-name-mobile">Nombre del Producto</h1>
+            <h1 class="product-mobile-heading" id="detail-name-mobile">Cargando producto…</h1>
             <div class="product-main-img" id="detail-img-container">
                 <script>
                     (() => {
@@ -1093,7 +1094,7 @@
                         try {
                             const preview = window.ORIGINAL_STORE_INITIAL_DETAIL || JSON.parse(sessionStorage.getItem("original_store_product_detail_drive_v2:" + window.ORIGINAL_STORE_API_URL + "") || 'null');
                             const fresh = preview && Date.now() - Number(preview.savedAt || 0) < 120000;
-                            if (fresh && preview.id === productId && preview.mode === mode) {
+                            if (fresh && (params.get('ref') ? preview.ref === params.get('ref') : preview.id === productId) && preview.mode === mode) {
                                 initialSrc = preview.imageCard || preview.image || preview.imageDetail || '';
                                 initialName = preview.name || '';
                             }
@@ -1136,7 +1137,7 @@
                     <div class="product-info-cat" id="detail-cat">Categoría</div>
                     <div class="product-availability-pill" id="detail-availability-pill">
                         <span>Disponibilidad</span>
-                        <strong id="detail-stock">En Stock</strong>
+                        <strong id="detail-stock">Consultando…</strong>
                     </div>
                 </div>
                 <div class="product-stock-alert" id="detail-stock-alert" style="display:none;"></div>
@@ -1144,7 +1145,7 @@
 
             <!-- 2. Product Title -->
             <div class="product-title-row">
-                <h1 class="product-info-name" id="detail-name">Nombre del Producto</h1>
+                <h1 class="product-info-name" id="detail-name">Cargando producto…</h1>
                 <button class="btn-save-favorite-detail" id="btn-save-favorite-detail" type="button" aria-label="Guardar favorito">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                     <span>Guardar favorito</span>
@@ -1157,18 +1158,18 @@
             <div class="product-purchase-row">
             <!-- 5. Actions (CTA: Add to cart, Favorite, WhatsApp) -->
             <div class="product-info-actions">
-                <button class="btn-buy-now" id="btn-add-to-cart-detail">Añadir al Carrito</button>
+                <button class="btn-buy-now" id="btn-add-to-cart-detail" disabled>Cargando…</button>
                 <button class="btn-save-favorite-detail" id="btn-save-favorite-detail-hidden" type="button" aria-label="Guardar favorito">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                     <span>Guardar favorito</span>
                 </button>
                 <button class="btn-consult-direct" id="btn-consult-product-detail" type="button" style="display:none;">Consultar este producto por WhatsApp</button>
-                <p class="cart-consult-note" id="detail-cart-note" style="display:none;">Añadir al carrito sirve para hacer una consulta general de varios productos.</p>
+                <p class="cart-consult-note" id="detail-cart-note" style="display:none;">Añade productos a tu cotización y envía la solicitud desde el resumen. WhatsApp es opcional.</p>
             </div>
 
             <!-- 3. Price & Badges -->
             <div class="product-info-price">
-                <span id="detail-price">$0</span>
+                <span id="detail-price">Cargando…</span>
                 <span class="old" id="detail-old-price" style="display:none;">$0</span>
                 <span class="detail-promo-badge" id="detail-promo-badge" style="display:none;"></span>
             </div>
@@ -1260,6 +1261,7 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            try {
             const urlParams = new URLSearchParams(window.location.search);
             const detailCatalogMode = urlParams.get('catalogo') === 'mayorista' ? 'wholesale' : 'retail';
             const catalogBackUrl = detailCatalogMode === 'wholesale' ? 'mayorista.html' : './#coleccion';
@@ -1284,19 +1286,19 @@
                 const preview = JSON.parse(sessionStorage.getItem(PRODUCT_DETAIL_PREVIEW_KEY) || 'null');
                 const isFreshPreview = preview && Date.now() - Number(preview.savedAt || 0) < 120000;
                 const previewImage = preview?.imageCard || preview?.image || preview?.imageDetail || '';
-                if (isFreshPreview && preview.id === currentDetailProductId && preview.mode === detailCatalogMode && previewImage) {
+                if (isFreshPreview && (currentDetailReference ? preview.ref === currentDetailReference : preview.id === currentDetailProductId) && preview.mode === detailCatalogMode && previewImage) {
                     let previewFallbackTried = false;
                     detailImg.onerror = () => {
                         const alternate = typeof getImageFallbackUrl === 'function'
                             ? getImageFallbackUrl(previewImage, 'detail')
                             : '';
-                        if (!previewFallbackTried && alternate && alternate !== previewImage && alternate !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900') {
+                        if (!previewFallbackTried && alternate && alternate !== previewImage && alternate !== 'product-image-placeholder.svg') {
                             previewFallbackTried = true;
                             detailImg.src = alternate;
                             return;
                         }
                         detailImg.onerror = null;
-                        detailImg.src = 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
+                        detailImg.src = 'product-image-placeholder.svg';
                         detailImgContainer.classList.add('is-fallback');
                         detailImgContainer.style.backgroundImage = '';
                     };
@@ -1317,7 +1319,16 @@
             detailShowsPrices = shouldShowProductPrices(detailCatalogMode);
             updateCartUI();
             const requestedRef = urlParams.get('ref');
-            if (requestedRef) currentDetailProductId = allProducts.findIndex(p => String(p.idVariacion || p.SKU || '') === requestedRef);
+            if (!requestedRef && Number.isInteger(currentDetailProductId)) {
+                const preview = window.ORIGINAL_STORE_INITIAL_DETAIL;
+                if (preview?.ref) currentDetailReference = preview.ref;
+            }
+            if (currentDetailReference) currentDetailProductId = allProducts.findIndex(p => String(p.idVariacion || p.SKU || '') === currentDetailReference);
+            if(currentDetailReference && currentDetailProductId < 0){
+                await Promise.all([requestFreshProducts({showLoading:false}),configLoadPromise||fetchSiteConfig()]);
+                currentDetailProductId=allProducts.findIndex(p=>String(p.idVariacion||p.SKU||'')===currentDetailReference);
+                detailShowsPrices=shouldShowProductPrices(detailCatalogMode);
+            }
 
             if (!Number.isInteger(currentDetailProductId) || !allProducts[currentDetailProductId]) {
                 document.getElementById('product-detail').innerHTML = `
@@ -1477,8 +1488,11 @@
                     .replace(/[?#].*$/, '');
             }
 
+            let detailImageRevision = 0;
             function switchMainImage(src, alt) {
-                const nextSrc = src || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
+                const revision = ++detailImageRevision;
+                const isCurrent = () => revision === detailImageRevision;
+                const nextSrc = src || 'product-image-placeholder.svg';
                 const currentSrc = detailImg.getAttribute('src') || '';
                 const isSameImage = currentSrc === nextSrc;
                 if (isSameImage && detailImg.complete && detailImg.naturalWidth > 0) return;
@@ -1499,27 +1513,31 @@
                 detailImgContainer.classList.remove('is-fallback');
 
                 const finishSwap = () => {
+                    if (!isCurrent()) return;
                     detailImgContainer.classList.remove('is-loading');
                     detailImg.classList.add('is-ready');
                     requestAnimationFrame(() => {
+                        if (!isCurrent()) return;
                         detailImgContainer.style.backgroundImage = '';
                     });
                 };
 
                 let alternateTried = false;
                 const usePlaceholder = () => {
+                    if (!isCurrent()) return;
                     detailImg.onerror = null;
                     detailImg.onload = null;
-                    detailImg.src = 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
+                    detailImg.src = 'product-image-placeholder.svg';
                     detailImgContainer.classList.add('is-fallback');
                     finishSwap();
                 };
 
                 const fallback = () => {
+                    if (!isCurrent()) return;
                     const alternate = typeof getImageFallbackUrl === 'function'
                         ? getImageFallbackUrl(nextSrc, 'detail')
                         : '';
-                    if (!alternateTried && alternate && alternate !== nextSrc && alternate !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900') {
+                    if (!alternateTried && alternate && alternate !== nextSrc && alternate !== 'product-image-placeholder.svg') {
                         alternateTried = true;
                         preloadDetailImage(alternate);
                         detailImg.referrerPolicy = 'no-referrer';
@@ -1540,6 +1558,7 @@
                     preloader.decoding = 'async';
                     preloader.referrerPolicy = 'no-referrer';
                     preloader.onload = () => {
+                        if (!isCurrent()) return;
                         detailImg.onerror = fallback;
                         detailImg.onload = finishSwap;
                         detailImg.src = nextSrc;
@@ -1638,6 +1657,7 @@
                     chip.type = 'button';
                     chip.className = `detail-variant-chip ${isActive ? 'active' : ''}`;
                     chip.dataset.productIndex = String(sibIndex);
+                    chip.dataset.productRef = getStableProductReference(sib);
 
                     const dimensionLabel = getVariantFieldValue(sib, variantDimension);
                     const labelParts = getVisibleVariantParts(sib);
@@ -1732,7 +1752,7 @@
                 const oldPrice = getProductDisplayOldPrice(product, detailCatalogMode, price);
                 const img = normalizeImageUrl(preferredImage || product.Imagen || product.imagen || (product.Galeria && product.Galeria[0]) || '', 'detail');
                 const cat = getDisplayValue(product.Categoria, product.categoria);
-                const desc = getDisplayValue(product.Descripcion, product.descripcion, 'Sin descripcion disponible.');
+                const desc = getDisplayValue(getProductField(product, ['Descripcion', 'Descripción', 'Características del producto', 'Caracteristicas del producto', 'Caractreristicas del producto', 'Descripción del producto']), 'Sin descripcion disponible.');
                 const stock = getProductStock(product);
                 preloadDetailImage(img);
 
@@ -1740,7 +1760,7 @@
                 const mobileName = document.getElementById('detail-name-mobile');
                 if (mobileName) mobileName.textContent = name;
                 document.getElementById('detail-cat').textContent = detailCatalogMode === 'wholesale' ? `Mayorista - ${cat}` : cat;
-                document.getElementById('detail-price').textContent = detailShowsPrices ? formatMoney(price) : 'Precio por consultar';
+                document.getElementById('detail-price').textContent = detailShowsPrices && price>0 ? formatMoney(price)+(commerceFlow(detailCatalogMode,[{price}])==='quote'?' · estimado':'') : 'Por cotizar';
                 document.getElementById('detail-desc').textContent = desc;
                 document.getElementById('detail-stock').textContent = getAvailabilityText(stock);
                 document.getElementById('detail-availability-pill')?.classList.toggle('is-out', stock <= 0);
@@ -1794,22 +1814,22 @@
                 renderRecommendations(productId, product);
 
                 cartBtn.disabled = stock <= 0;
-                cartBtn.textContent = stock > 0 ? (detailCatalogMode === 'wholesale' ? 'Añadir al pedido' : (detailShowsPrices ? 'Añadir al Carrito' : 'Añadir a consulta general')) : 'Agotado por ahora';
+                cartBtn.textContent = stock > 0 ? productActionLabel(product,detailCatalogMode) : 'Agotado por ahora';
                 cartBtn.onclick = () => {
                     if (stock <= 0) return;
-                    addToCart(productId, null, detailCatalogMode);
+                    addToCart(resolveProductIndex(currentDetailReference), null, detailCatalogMode);
                 };
                 if (favoriteBtn) {
-                    favoriteBtn.onclick = () => saveCustomerFavorite(productId, favoriteBtn);
+                    favoriteBtn.onclick = () => saveCustomerFavorite(resolveProductIndex(currentDetailReference), favoriteBtn);
                 }
                 if (favoriteMobileBtn) {
-                    favoriteMobileBtn.onclick = () => saveCustomerFavorite(productId, favoriteMobileBtn);
+                    favoriteMobileBtn.onclick = () => saveCustomerFavorite(resolveProductIndex(currentDetailReference), favoriteMobileBtn);
                 }
                 cartBtn.closest('.product-info-actions')?.classList.remove('has-online-payment');
 
                 cartBtn.closest('.product-info-actions')?.classList.toggle('has-consult-actions', !detailShowsPrices && stock > 0);
                 if (consultBtn) {
-                    consultBtn.style.display = !detailShowsPrices && stock > 0 ? 'inline-flex' : 'none';
+                    consultBtn.style.display = 'none';
                     consultBtn.onclick = !detailShowsPrices && stock > 0 ? () => consultProductByWhatsApp(product) : null;
                 }
                 if (cartNote) cartNote.style.display = !detailShowsPrices && stock > 0 ? 'block' : 'none';
@@ -1869,13 +1889,10 @@
             });
             window.addEventListener('original-store-config-updated', () => {
                 detailShowsPrices = shouldShowProductPrices(detailCatalogMode);
-                if (allProducts[currentDetailProductId]) renderVariantInPlace(currentDetailProductId, false);
+                const index = resolveProductIndex(currentDetailReference);
+                if (index >= 0) renderVariantInPlace(index, false);
             });
-            setTimeout(() => {
-                if (Number.isInteger(currentDetailProductId)) {
-                    renderVariantInPlace(currentDetailProductId, false);
-                }
-            }, 0);
+            renderVariantInPlace(currentDetailProductId, true);
 
             variationContainer?.addEventListener('click', (event) => {
                 const chip = event.target.closest('.detail-variant-chip');
@@ -1885,7 +1902,7 @@
                 event.stopPropagation();
                 event.stopImmediatePropagation();
 
-                let nextId = Number.parseInt(chip.dataset.productIndex, 10);
+                let nextId = chip.dataset.productRef ? resolveProductIndex(chip.dataset.productRef) : Number.parseInt(chip.dataset.productIndex, 10);
                 if (!Number.isInteger(nextId)) {
                     const inlineClick = chip.getAttribute('onclick') || '';
                     const match = inlineClick.match(/id=(\d+)/);
@@ -1899,9 +1916,21 @@
                     renderVariantInPlace(nextId, true, nextImage);
                 }
             }, true);
+            } catch (error) {
+                console.error('No se pudo cargar la ficha del producto', error);
+                const detail = document.getElementById('product-detail');
+                if (detail) {
+                    detail.replaceChildren();
+                    const box = document.createElement('div'); box.className = 'product-not-found';
+                    const title = document.createElement('h2'); title.textContent = 'No pudimos cargar este producto';
+                    const note = document.createElement('p'); note.textContent = 'Reintenta para ver su imagen, descripción y precio.';
+                    const retry = document.createElement('button'); retry.className = 'main-banner-btn'; retry.textContent = 'Reintentar'; retry.onclick = () => location.reload();
+                    box.append(title, note, retry); detail.append(box);
+                }
+            }
         });
     </script>
-<script src="order-summary.js?v=pdf-fast-20261007" defer></script>
+<script src="order-summary.js?v=order-workflow-20261016" defer></script>
 <script src="order-receipt-access.js?v=browser-qr-20261006" defer></script>
 </body>
 </html>
