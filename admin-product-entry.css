@@ -1,0 +1,29 @@
+/* New-product surface only; preserve existing inventory/edit controls. */
+#product-form .entry-option{min-width:0}
+#product-form .entry-option-toggle{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border,#ead9e2);border-radius:12px;font-size:12px;cursor:pointer}
+#product-form .entry-option-toggle input{accent-color:#923552;width:32px;height:18px;flex:0 0 auto}
+#product-form .entry-option-panel{padding-top:12px;min-width:0}
+#product-form .entry-option-size,#product-form .entry-option-gallery{grid-column:1/-1}
+#product-form .entry-option-size>.entry-option-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#product-form .entry-option-size .measurement-panel{grid-column:1/-1}
+#product-form .entry-style-image-choice{display:flex;gap:8px;align-items:center;font-size:11px;line-height:1.5;padding:10px 0}
+#product-form[data-simple-entry="1"] #variation-options-panel>h3,
+#product-form[data-simple-entry="1"] #btn-show-variation-generator,
+#product-form[data-simple-entry="1"] #variation-generator-fields,
+#product-form[data-simple-entry="1"] .var-size-mode{display:none!important}
+#product-form[data-simple-entry="1"] :is(#btn-add-variant,#btn-add-manual-variant,.btn-save-individual-variant){background:#fff!important;color:#87334f!important;border:1px solid #d9bdcb!important;box-shadow:none!important;font-weight:500!important}
+#product-form[data-simple-entry="1"] .var-id,#product-form[data-simple-entry="1"] #prod-id{background:#faf7f9;cursor:default}
+#product-form .entry-option-toggle[hidden],#product-form .entry-style-image-choice[hidden],#product-form .entry-option-panel[hidden]{display:none!important}
+@media(max-width:700px){#product-form .entry-option-size>.entry-option-panel{grid-template-columns:1fr}}
+
+[data-entry-preview="1"] .preview-variant-card:not(:has(img)){display:flex;align-items:center;min-height:42px;width:auto;max-width:100%;padding:8px 12px}
+[data-entry-preview="1"] .preview-variant-list{display:flex;flex-wrap:wrap;gap:8px}
+[data-entry-preview="1"] .preview-variant-card:not(:has(img)) .preview-variant-copy{min-width:0}
+
+#product-form[data-simple-entry="1"] #variation-options-panel{display:none!important}
+
+#product-form .entry-option-toggle input{appearance:none;position:relative;border:1px solid #c6b6bf;border-radius:999px;background:#d8cdd3;cursor:pointer;width:32px;height:18px}
+#product-form .entry-option-toggle input::after{content:'';position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px #0002;transition:transform .15s}
+#product-form .entry-option-toggle input:checked{background:#923552;border-color:#923552}
+#product-form .entry-option-toggle input:checked::after{transform:translateX(14px)}
+#product-form .entry-option-toggle input:focus-visible{outline:2px solid #0d8987;outline-offset:3px}

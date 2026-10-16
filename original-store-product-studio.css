@@ -98,3 +98,18 @@ html body.product-detail-page #product-detail .detail-variant-label {font-size:1
 html body.product-detail-page #product-detail .detail-variant-list {display:flex!important;flex-wrap:wrap!important;gap:8px!important;}
 html body.product-detail-page #product-detail .detail-variant-label {white-space:normal!important;overflow:visible!important;text-overflow:clip!important;letter-spacing:0!important;max-width:110px!important;}
 html body.product-detail-page #product-detail .detail-variant-img-wrap {flex:0 0 38px!important;}
+
+/* Explicit style text options and angle thumbnails. */
+html body.product-detail-page #product-detail .detail-variant-chip.text-only{display:flex!important;align-items:center!important;justify-content:center!important;min-width:0!important;width:auto!important;max-width:100%!important;min-height:38px!important;padding:9px 13px!important;border-radius:10px!important;gap:0!important}
+html body.product-detail-page #product-detail .detail-variant-chip.text-only .detail-variant-label{font-size:11px!important;white-space:normal!important;text-overflow:clip!important;overflow:visible!important;line-height:1.35!important}
+html body.product-detail-page #product-detail .detail-variant-list:has(.text-only){display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+html body.product-detail-page #product-detail .gallery-thumb{border-radius:9px!important;height:50px!important;flex:0 0 50px;cursor:pointer}
+html body.product-detail-page #product-detail .gallery-thumb img{border-radius:6px!important}
+html body.product-detail-page #product-detail .gallery-thumb.active{outline:2px solid #923552;outline-offset:2px}
+html body.product-detail-page #product-detail .product-thumbnails{max-height:350px;overflow:auto;overscroll-behavior:contain}
+
+html body.product-detail-page #product-detail #detail-thumbnails .gallery-thumb{width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;flex:0 0 44px!important;box-sizing:border-box!important;display:block!important;padding:3px!important;aspect-ratio:1!important}
+html body.product-detail-page #product-detail #detail-thumbnails .gallery-thumb img{width:100%!important;height:100%!important;object-fit:cover!important}
+
+html body.product-detail-page #product-detail .detail-variant-chip.text-only:has(.detail-variant-color-dot){gap:7px!important}
+html body.product-detail-page #product-detail .detail-variant-chip.text-only .detail-variant-color-dot{display:inline-block;width:13px;height:13px;flex:0 0 13px;border-radius:50%;border:1px solid #bba6b0}

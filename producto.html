@@ -39,7 +39,7 @@
     </script>
     <script src="original-store-catalog-bootstrap.js?v=drive-20261008-1" defer></script>
     <script src="order-flow.js?v=20261016" defer></script>
-<script src="blyxu-app.js?v=variant-images-20261016" defer></script>
+<script src="blyxu-app.js?v=style-angles-20261016" defer></script>
     <link rel="stylesheet" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006">
     <style>
         /* STUDIO NOIR PRODUCT DETAIL */
@@ -1000,7 +1000,7 @@
     <link rel="stylesheet" href="original-store-theme.css?v=20261007-22">
     <script src="original-store-navigation.js?v=20261007-1" defer></script>
     <link rel="stylesheet" href="original-store-boutique.css?v=image-integrity-20261016">
-    <link rel="stylesheet" href="original-store-product-studio.css?v=20261008-4">
+    <link rel="stylesheet" href="original-store-product-studio.css?v=style-angles-20261016">
 <meta name="robots" content="index, follow, max-image-preview:large">
     <style>
     /* Color-only products use compact swatches without repeated photographs. */
@@ -1604,23 +1604,22 @@
                     addImage(src, index === 0 ? 'Principal' : `Vista ${index + 1}`, activeProductId);
                 });
 
-                group.forEach((sibling, siblingIndex) => {
-                    const siblingProductId = allProducts.indexOf(sibling);
-                    if (siblingProductId === activeProductId) return;
-                    const siblingLabel = getVariantLabel(sibling, siblingIndex);
-                    getProductImageSet(sibling).forEach((src, imageIndex) => {
-                        addImage(src, imageIndex === 0 ? siblingLabel : `${siblingLabel} ${imageIndex + 1}`, siblingProductId);
-                    });
-                });
 
                 return items.slice(0, 14);
             }
 
             function renderVariantThumbnails(product, name, activeSrc) {
-                thumbsContainer.innerHTML = '';
-                const gallery = thumbsContainer.closest('.product-gallery');
-                gallery?.classList.add('has-single-image');
-                thumbsContainer.style.display = 'none';
+                const items=getGalleryItems(product,currentDetailProductId);
+                const host=thumbsContainer.closest('.product-gallery');
+                host?.classList.toggle('has-single-image',items.length<=1);
+                thumbsContainer.replaceChildren();thumbsContainer.style.display=items.length>1?'flex':'none';
+                for(const [index,item] of items.entries()){
+                    const button=document.createElement('button');button.type='button';button.className='gallery-thumb';button.title=item.label;button.setAttribute('aria-label',item.label);
+                    const active=getImageIdentity(item.src)===getImageIdentity(activeSrc);button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+                    const img=document.createElement('img');img.src=normalizeImageUrl(item.src,'thumb');img.alt=item.label;img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.onerror=()=>{img.onerror=null;img.src='product-image-placeholder.svg';};button.append(img);
+                    button.addEventListener('click',()=>{switchMainImage(item.src,name);for(const node of thumbsContainer.children){node.classList.toggle('active',node===button);node.setAttribute('aria-pressed',String(node===button));}});
+                    thumbsContainer.append(button);
+                }
             }
 
             function renderVariantChips(productId, product) {
@@ -1675,6 +1674,13 @@
                         chip.appendChild(colorDot);
                         list.appendChild(chip);
                         return;
+                    }
+                    if(sib['Vista Variante']==='texto'){
+                        chip.classList.add('text-only');
+                        const color=getVariantFieldValue(sib,'color');
+                        if(color&&new Set(siblings.map(item=>normalizeSearchText(getVariantFieldValue(item,'color')))).size>1){const dot=document.createElement('span');dot.className='detail-variant-color-dot';dot.style.background=getColorHex(color);dot.setAttribute('aria-hidden','true');chip.append(dot);chip.setAttribute('aria-label',label+' · '+color);}
+                        const size=getVariantFieldValue(sib,'size'),varyingSizes=new Set(siblings.map(item=>normalizeSearchText(getVariantFieldValue(item,'size')))).size>1;
+                        const text=document.createElement('span');text.className='detail-variant-label';text.textContent=label+(variantDimension!=='size'&&size&&varyingSizes?' · '+size:'');chip.append(text);list.append(chip);return;
                     }
                     const groupPhoto = siblings.map(item => getProductImageSet(item, 'thumb')[0]).find(Boolean);
                     const variantImg = getProductImageSet(sib, 'thumb')[0] || groupPhoto || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
@@ -1864,7 +1870,7 @@
                 };
 
                 detailImgContainer.addEventListener('click', () => {
-                    zoomImg.src = normalizeImageUrl(allProducts[currentDetailProductId]?.Imagen || detailImg.src, 'zoom');
+                    zoomImg.src = normalizeImageUrl(detailImg.src || allProducts[currentDetailProductId]?.Imagen, 'zoom');
                     zoomImg.alt = detailImg.alt || '';
                     zoomOverlay.classList.add('open');
                     zoomOverlay.setAttribute('aria-hidden', 'false');

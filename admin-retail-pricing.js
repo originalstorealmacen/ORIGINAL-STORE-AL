@@ -88,7 +88,7 @@ function init(){
   }catch(error){status.textContent=error.message;}finally{button.disabled=false;}
  });
  // Initialize controls only for added variant nodes; avoid observing text/price updates.
- const container=$('variants-container');if(container)new MutationObserver(()=>sync()).observe(container,{childList:true,subtree:true});
+ const container=$('variants-container');if(container)new MutationObserver(changes=>{if(changes.some(change=>[...change.addedNodes].some(node=>node.nodeType===1&&(node.matches?.('.admin-panel,.variant-edit-card')||node.querySelector?.('.var-precio,.ve-precio')))))sync();}).observe(container,{childList:true,subtree:true});
 
  load().then(()=>{if(records().length)renderInventoryInBatches();}).catch(()=>{});sync();
 }

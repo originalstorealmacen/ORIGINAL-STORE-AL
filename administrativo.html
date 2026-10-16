@@ -7451,6 +7451,7 @@
 <link rel="stylesheet" href="admin-retail-pricing.css?v=20261015">
 <link rel="stylesheet" href="admin-order-workflow.css?v=20261016">
 <link rel="stylesheet" href="admin-variant-workflow.css?v=20261016">
+<link rel="stylesheet" href="admin-product-entry.css?v=20261016">
 </head>
 <body class="admin-graphite">
     <div class="bg-animation"></div>
@@ -7689,10 +7690,10 @@
                                         <div class="form-group"><label>Promoción / descuento</label><select class="form-control highlight-select" id="prod-promoción" name="Promoción"><option value="FALSO">No aplica promoción</option><option value="Ambos">Aplica a ambos</option><option value="Minorista">Solo minorista</option><option value="Mayorista">Solo mayorista</option></select><small class="field-hint">La vista previa calcula el descuento.</small></div>
                                         <div class="form-group admin-form-wide"><label>Características / descripción</label><textarea class="form-control" id="prod-descripcion" placeholder="Materiales, medidas, cuidados o notas importantes..."></textarea><small class="field-hint">Escribe datos útiles para evitar dudas.</small></div>
                                     </div>
-                                <button type="button" class="admin-btn secondary" data-product-next-step="product-main-step">Siguiente: producto principal</button></div></details>
-<details class="product-config-card product-entry-fold main-product-fold" id="product-main-step"><summary><span class="config-card-index">02</span><span>Producto principal<small>Referencia, stock, características e imágenes del primer producto</small></span></summary><div class="product-entry-body">
+                                <button type="button" class="admin-btn secondary" data-product-next-step="product-main-step">Siguiente: variable inicial V01</button></div></details>
+<details class="product-config-card product-entry-fold main-product-fold" id="product-main-step"><summary><span class="config-card-index">02</span><span><span id="product-main-step-title">Variable inicial V01</span><small>Referencia, stock, características e imágenes del primer producto</small></span></summary><div class="product-entry-body">
 <div class="product-config-card variant-card">
-                                    <div class="config-card-heading"><span class="config-card-index">02</span><div><h3>Producto principal y stock</h3><p>Configura el producto principal: color, talla, stock y estado.</p></div></div>
+                                    <div class="config-card-heading"><span class="config-card-index">02</span><div><h3 id="product-main-heading">Variable inicial V01</h3><p>Configura el producto principal: color, talla, stock y estado.</p></div></div>
                                     <div class="admin-form-grid">
                                         <div class="form-group"><label>Referencia del producto principal</label><input type="text" class="form-control important-code-field" id="prod-id" name="id" placeholder="Ej: PROD-001-V01"><small class="field-hint">Referencia específica del producto principal.</small></div>
                                         <div class="form-group"><label>Stock</label><input type="number" class="form-control" id="prod-stock-inicial" name="Cantidad" min="0" value="12" required><input type="hidden" id="prod-stock" value="12"><small class="field-hint">Si queda en 0 se marca como agotado.</small></div>
@@ -8359,12 +8360,13 @@
 <script src="barcode-frame-reader.js?v=automatic-20261006-2" defer></script>
 <script src="admin-product-scroll.js?v=20261014-local-1" defer></script>
 <script src="admin-product-identity.js?v=20261014-local-ids" defer></script>
-<script src="admin-session-draft.js?v=20261014-local-session" defer></script>
+<script src="admin-session-draft.js?v=new-product-controls-20261016" defer></script>
 <script src="admin-shared-scan.js?v=20261014-local-scanner-mode" defer></script>
-<script type="module" src="admin-retail-pricing.js?v=20261015"></script>
+<script type="module" src="admin-retail-pricing.js?v=new-product-performance-20261016"></script>
 <script src="order-flow.js?v=20261016" defer></script>
 <script src="admin-order-workflow.js?v=20261016" defer></script>
-<script src="admin-app.js?v=variant-workflow-20261016" defer></script>
+<script src="admin-app.js?v=new-product-simple-20261016" defer></script>
+<script src="admin-product-entry.js?v=20261016" defer></script>
 <script src="inventory-tools.js?v=20261013-1"></script>
     <script src="inventory-category-manager.js?v=category-dialog-20261013" defer></script>
 <script src="order-summary.js?v=order-workflow-20261016" defer></script>

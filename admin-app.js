@@ -200,6 +200,8 @@ function getAdminPromotionDiscountPercent() {
     return 20;
 }
 
+let productPreviewFrame=0;
+function scheduleLivePreview(){if(productPreviewFrame)return;productPreviewFrame=requestAnimationFrame(()=>{productPreviewFrame=0;updateLivePreview();});}
 function updateLivePreview() {
     const nombre = document.getElementById('prod-nombre')?.value || 'Nombre del Producto';
     const categoria = document.getElementById('prod-categoria')?.value || 'CATEGORÍA';
@@ -1421,7 +1423,7 @@ function updateProductQrPreview() {
     if (codeLabel) codeLabel.textContent = code || 'Generando referencia...';
     if (image) {
         image.hidden = !code;
-        if (code) image.src = getInventoryQrImageUrl(code, 240);
+        if (code&&image.dataset.qrValue!==code){image.src=getInventoryQrImageUrl(code,240);image.dataset.qrValue=code;}
     }
 }
 
@@ -2179,6 +2181,7 @@ function syncProductStatusWithStockInput() {
 
 function normalizeProductPayloadForSubmit(data) {
     assertProductImageUploadReady();
+    if(document.getElementById('prod-galeria')?.dataset.uploadState==='uploading')throw Error('Espera a que terminen de cargar las fotos de ángulos.');
     for(const field of document.querySelectorAll('#variants-container .var-imagen')){if(!field.disabled&&field.validity.customError)throw new Error(field.validationMessage);}
     const payload = { ...(data || {}) };
     delete payload.__adminForceCreate;
@@ -2216,6 +2219,8 @@ function normalizeProductPayloadForSubmit(data) {
     if (cantidad !== '') payload.Stock = cantidad;
     applyAutomaticStockStatus(payload);
 
+    const row=[...document.querySelectorAll('#variants-container .admin-panel')].find(root=>root.querySelector('.var-id')?.value===idVariacion);
+    window.OriginalStoreProductEntry?.decorate(payload,row);
     return window.OriginalStoreRetailPricing?.decorate(payload) || payload;
 }
 
@@ -2492,6 +2497,7 @@ function collectVariantPayloads() {
 
 function setProductFormMode(isEditing) {
     isEditingProduct = isEditing;
+    window.OriginalStoreProductEntry?.sync();
     const title = el('product-form-title');
     const mode = el('product-form-mode');
     const btn = el('btn-save');
@@ -2800,7 +2806,7 @@ function getVariantEditorCardPreviewRow(card, index = 0, activeImage = '') {
         id: card.querySelector('.var-id')?.value || `Variante ${index + 2}`,
         key,
         title,
-        label: title || `Variante ${index + 2}`,
+        label: window.OriginalStoreProductEntry?.isNew()&&style ? style : (title || `Variante ${index + 2}`),
         detail: [splitProductColorValues(color).map(getColorDisplayName).join(', '), style, measure].filter(Boolean).join(' / '),
         color,
         style,
@@ -2987,6 +2993,11 @@ function getPreviewVariantRows(activeImage = '') {
         if (row) rows.push(row);
     });
 
+    if(window.OriginalStoreProductEntry?.isNew())for(const row of rows){
+        const card=[...document.querySelectorAll('#variants-container .admin-panel')].find(card=>getVariantPreviewCardKey(card)===row.key);
+        row.displayImage=card?!!card.querySelector('.var-style-show-image')?.checked:!!document.getElementById('prod-style-show-image')?.checked;
+        if(row.style)row.label=row.style;
+    }
     return rows.filter(row => row.detail || row.image || row.label);
 }
 
@@ -3022,7 +3033,7 @@ function renderProductPreviewOptions(activeImage = '') {
         <div class="preview-variant-list">
             ${rows.map((row, index) => `
                 <button type="button" class="preview-variant-card ${(activeIndex === -1 ? index === 0 : row.active) ? 'active' : ''}" data-preview-index="${index}" data-preview-key="${escapeHtml(row.key || '')}" data-preview-url="${escapeHtml(row.image || '')}">
-                    <img src="${escapeHtml(row.image || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180')}" alt="" onerror="handleInventoryImageError(this)">
+                    ${row.displayImage===false?'':`<img src="${escapeHtml(row.image || 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180')}" alt="" onerror="handleInventoryImageError(this)">`}
                     <span class="preview-variant-copy">
                         <strong>${escapeHtml(row.label || `Variante ${index + 1}`)}</strong>
                         <span>${escapeHtml(row.detail || 'Sin atributos')}</span>
@@ -3069,12 +3080,13 @@ function renderProductPreviewGallery(activeUrl = '') {
     gallery.style.display = 'flex';
 
     const active = normalizeImageUrl(activeUrl || urls[0]);
-    gallery.innerHTML = urls.map((url, index) => `
+    const markup = urls.map((url, index) => `
         <button type="button" class="preview-angle-thumb ${url === active ? 'active' : ''}" data-preview-url="${escapeHtml(url)}" aria-label="Vista ${index + 1}">
             <img src="${escapeHtml(url)}" alt="">
             <span>${index === 0 ? 'Principal' : 'Vista ' + (index + 1)}</span>
         </button>
     `).join('');
+    if(gallery.dataset.markup!==markup){gallery.innerHTML=markup;gallery.dataset.markup=markup;}
 }
 
 function renderProductGalleryManager() {
@@ -3099,8 +3111,12 @@ function renderProductGalleryManager() {
 }
 
 function resetProductForm() {
+    window.OriginalStoreProductEntry?.reset();
     openProductEntryStep(document.getElementById('product-general-step'));
     resetProductImageUploadState();
+    productGalleryUploadRevision++;
+    const galleryField=document.getElementById('prod-galeria');if(galleryField){if(galleryField.dataset.uploadState==='uploading')document.getElementById('btn-save').disabled=false;delete galleryField.dataset.uploadState;galleryField.setCustomValidity('');}
+    const galleryStatus=document.getElementById('prod-gallery-upload-status');if(galleryStatus)galleryStatus.textContent='';
     window.OriginalStoreSharedScan?.invalidate();
     const pendingForm = document.getElementById('product-form');
     if (pendingForm) delete pendingForm.dataset.pendingKey;
@@ -3721,7 +3737,7 @@ document.addEventListener('DOMContentLoaded', () => {
     inputsToWatch.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            el.addEventListener('input', updateLivePreview);
+            el.addEventListener('input', scheduleLivePreview);
             el.addEventListener('change', updateLivePreview);
         }
     });
@@ -3899,7 +3915,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     variantsContainer?.addEventListener('input', event => {
         handleVariantPreviewActivity(event);
-        updateLivePreview();
+        scheduleLivePreview();
     });
     variantsContainer?.addEventListener('change', event => {
         handleVariantPreviewActivity(event);
@@ -4038,6 +4054,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.querySelectorAll('.variant-draft-fold').forEach(fold=>fold.open=false);
         card.innerHTML='<details class="variant-draft-fold" open><summary>'+escapeHtml(autoVariantId)+'</summary><div>'+card.innerHTML+'</div></details>';
         container.appendChild(card);
+        window.OriginalStoreProductEntry?.card(card);
         syncVariantImageMode(card);
         initColorPickers(card);
         const variantIdInput = card.querySelector('.var-id');
@@ -5436,6 +5453,7 @@ function setupDragAndDrop(containerId, onFileProcessed, onLocalPreview, onUpload
 }
 
 let productImageUploadRevision=0;
+let productGalleryUploadRevision=0;
 function resetProductImageUploadState(){
     productImageUploadRevision++;
     const field=document.getElementById('prod-imagen');if(field){field.setCustomValidity('');delete field.dataset.uploadState;}
@@ -5591,36 +5609,21 @@ function initProductGalleryUpload() {
     if (!dropZone || !fileInput) return;
 
     async function uploadGalleryFiles(files) {
-        const selected = Array.from(files || []).filter(file => file.type && file.type.startsWith('image/'));
-        if (!selected.length) {
-            showToast('Selecciona imagenes validas para la galeria', 'warning');
-            return;
-        }
-
-        const saveBtn = document.getElementById('btn-save');
-        const previousText = saveBtn?.textContent || 'Guardar producto';
-        if (saveBtn) {
-            saveBtn.disabled = true;
-            saveBtn.textContent = `Subiendo ${selected.length} foto(s)...`;
-        }
-
-        try {
-            const uploadedUrls = [];
-            for (const file of selected) {
-                uploadedUrls.push(await uploadCarouselImage(file));
-            }
-            appendAdminGalleryUrls(uploadedUrls);
-            showToast(`${uploadedUrls.length} foto(s) agregadas a la galeria`, 'success');
-        } catch (error) {
-            console.error('Error subiendo galeria de producto:', error);
-            showToast('No se pudieron subir todas las fotos: ' + (error.message || error), 'error');
-        } finally {
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.textContent = previousText;
-            }
-            fileInput.value = '';
-        }
+        const selected=Array.from(files||[]).filter(file=>file.type?.startsWith('image/'));
+        if(!selected.length){showToast('Selecciona imágenes válidas para los ángulos.','warning');return;}
+        if(galleryInput.dataset.uploadState==='uploading'){showToast('Ya hay fotos de ángulos en proceso.');return;}
+        const revision=++productGalleryUploadRevision,saveBtn=document.getElementById('btn-save'),previousText=saveBtn?.textContent;
+        galleryInput.dataset.uploadState='uploading';if(saveBtn)saveBtn.disabled=true;
+        const status=document.getElementById('prod-gallery-upload-status')||Object.assign(document.createElement('p'),{id:'prod-gallery-upload-status'});status.setAttribute('role','status');if(!status.isConnected)dropZone.after(status);
+        const results=new Array(selected.length),failures=[];let next=0,done=0;
+        async function worker(){while(next<selected.length&&revision===productGalleryUploadRevision){const index=next++;try{results[index]=await uploadCarouselImage(selected[index]);}catch(error){failures.push(index);}finally{done++;if(revision===productGalleryUploadRevision){status.textContent='Fotos procesadas: '+done+' de '+selected.length;if(saveBtn)saveBtn.textContent='Subiendo ángulos '+done+'/'+selected.length;}}}}
+        try{
+            await Promise.all(Array.from({length:Math.min(2,selected.length)},worker));
+            if(revision!==productGalleryUploadRevision)return;
+            appendAdminGalleryUrls(results.filter(Boolean));
+            status.textContent=results.filter(Boolean).length+' foto(s) agregadas.'+(failures.length?' No se pudieron subir '+failures.length+': '+failures.map(i=>selected[i].name).join(', ')+'. Puedes reintentarlas.':'');
+            scheduleLivePreview();
+        }finally{if(revision===productGalleryUploadRevision){galleryInput.dataset.uploadState='ready';fileInput.value='';if(saveBtn){saveBtn.disabled=document.getElementById('prod-imagen')?.dataset.uploadState==='uploading';saveBtn.textContent=previousText;}}}
     }
 
     dropZone.addEventListener('click', () => fileInput.click());
@@ -14372,6 +14375,7 @@ function initializeOriginalStoreAdminSession() {
         refreshDraft(draft){
             window.OriginalStoreProductIdentity.adopt({preserve:true,mother:draft.identityMother||getInputValue('prod-id-producto')});
             updateProductMeasurementFields();setProductBarcodeScanMode(document.getElementById('prod-barcode-scan-mode')?.checked);
+            window.OriginalStoreProductEntry?.sync();
             updateProductImagePreviewBox(getInputValue('prod-imagen'));renderProductGalleryManager();updateLivePreview();
             window.OriginalStoreSharedScan?.invalidate();
         }

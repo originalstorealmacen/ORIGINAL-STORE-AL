@@ -3,7 +3,7 @@
   'use strict';
   const IDLE=30*60*1000, DRAFT_KEY='original_store_product_draft_v1';
   let api,owner='',lastActivity=0,expires=Infinity,timer,checking=false,locked=true,restoring=false,ready=false,saveTimer,hasLiveDraft=false,revision=0;
-  const metaKeys=['autoBarcode','generatedBarcode','scannedReference','identityMother','identityAuto','uploadState'];
+  const metaKeys=['autoBarcode','generatedBarcode','scannedReference','identityMother','identityAuto','uploadState','entryHiddenValue'];
   function fieldState(input,selector){
     const metadata={};for(const name of metaKeys)if(input.dataset[name]!==undefined)metadata[name]=input.dataset[name];
     return {selector,validation:input.validity?.customError?input.validationMessage:'',value:input.type==='checkbox'||input.type==='radio'?input.checked:input.value,metadata};
