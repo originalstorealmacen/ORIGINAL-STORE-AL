@@ -2181,6 +2181,7 @@ function syncProductStatusWithStockInput() {
 }
 
 function normalizeProductPayloadForSubmit(data) {
+    assertProductImageUploadReady();
     const payload = { ...(data || {}) };
     delete payload.__adminForceCreate;
     delete payload.__adminOriginalId;
@@ -3049,6 +3050,7 @@ function renderProductGalleryManager() {
 }
 
 function resetProductForm() {
+    resetProductImageUploadState();
     window.OriginalStoreSharedScan?.invalidate();
     const pendingForm = document.getElementById('product-form');
     if (pendingForm) delete pendingForm.dataset.pendingKey;
@@ -5376,6 +5378,18 @@ function setupDragAndDrop(containerId, onFileProcessed, onLocalPreview, onUpload
     }, false);
 }
 
+let productImageUploadRevision=0;
+function resetProductImageUploadState(){
+    productImageUploadRevision++;
+    const field=document.getElementById('prod-imagen');if(field){field.setCustomValidity('');delete field.dataset.uploadState;}
+    const preview=document.getElementById('preview-img-el');if(preview)delete preview.dataset.localPreviewSrc;
+    const status=document.getElementById('product-image-upload-status');if(status)status.textContent='';
+    const save=document.getElementById('btn-save');if(save?.dataset.readyText){save.disabled=false;save.textContent=save.dataset.readyText;delete save.dataset.readyText;}
+}
+function assertProductImageUploadReady(){
+    const field=document.getElementById('prod-imagen');
+    if(['uploading','failed'].includes(field?.dataset.uploadState))throw Error('La imagen principal no está lista. Vuelve a subirla o pega un enlace antes de guardar.');
+}
 function initProductImageUpload() {
     const dropZone = document.getElementById('prod-image-drop-zone');
     const fileInput = document.getElementById('prod-image-file');
@@ -5385,12 +5399,16 @@ function initProductImageUpload() {
 
     if (!dropZone || !fileInput) return;
 
+    const status=document.createElement('p');status.id='product-image-upload-status';status.className='field-hint';status.setAttribute('role','status');imageInput?.closest('.image-url-row')?.after(status);
+    imageInput?.addEventListener('input',event=>{if(event.isTrusted){resetProductImageUploadState();updateProductImagePreviewBox(imageInput.value);updateLivePreview();}});
     const handleFileSelection = async (file) => {
         if (!file || !file.type.startsWith('image/')) {
             showToast('Por favor, selecciona un archivo de imagen', 'warning');
             return;
         }
 
+        const ticket=++productImageUploadRevision;
+        imageInput.dataset.uploadState='uploading';imageInput.setCustomValidity('Espera a que termine la subida de la imagen principal.');status.textContent='Subiendo la imagen principal a Drive…';
         const localUrl = URL.createObjectURL(file);
         updateProductImagePreviewBox(localUrl);
 
@@ -5403,7 +5421,7 @@ function initProductImageUpload() {
 
         const saveBtn = document.getElementById('btn-save');
         if (saveBtn) {
-            saveBtn.dataset.readyText = saveBtn.textContent || 'Guardar producto';
+            if(!saveBtn.dataset.readyText)saveBtn.dataset.readyText = saveBtn.textContent || 'Guardar producto';
             saveBtn.disabled = true;
             saveBtn.textContent = 'Optimizando imagen...';
         }
@@ -5411,22 +5429,30 @@ function initProductImageUpload() {
         showToast('Convirtiendo imagen a WebP y subiendo...');
         try {
             const uploadedUrl = await uploadCarouselImage(file);
+            if(ticket!==productImageUploadRevision)return;
+            imageInput.dataset.uploadState='ready';imageInput.setCustomValidity('');
+            if(imgEl)delete imgEl.dataset.localPreviewSrc;
             if (imageInput) {
                 imageInput.value = uploadedUrl;
                 imageInput.dispatchEvent(new Event('input'));
             }
-            updateProductImagePreviewBox(uploadedUrl);
+            updateProductImagePreviewBox(uploadedUrl);updateLivePreview();status.textContent='Imagen principal subida a Drive.';
             showToast('Imagen subida con éxito', 'success');
         } catch (err) {
+            if(ticket!==productImageUploadRevision)return;
+            imageInput.dataset.uploadState='failed';imageInput.setCustomValidity('La imagen no se pudo subir. Vuelve a subirla o pega un enlace antes de guardar.');
+            if(imgEl)delete imgEl.dataset.localPreviewSrc;
+            updateProductImagePreviewBox(imageInput.value);updateLivePreview();status.textContent='No se guardó la nueva imagen. Vuelve a subirla o pega un enlace antes de guardar.';
             console.error(err);
             showToast('Error al subir imagen: ' + (err.message || err), 'error');
         } finally {
-            if (saveBtn) {
+            URL.revokeObjectURL(localUrl);
+            if (saveBtn && ticket===productImageUploadRevision) {
                 saveBtn.disabled = false;
                 saveBtn.textContent = saveBtn.dataset.readyText || 'Guardar producto';
                 delete saveBtn.dataset.readyText;
             }
-            fileInput.value = '';
+            if(ticket===productImageUploadRevision)fileInput.value = '';
         }
     };
 
@@ -5450,6 +5476,7 @@ function initProductImageUpload() {
     if (removeBtn) {
         removeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            resetProductImageUploadState();
             if (imageInput) {
                 imageInput.value = '';
                 imageInput.dispatchEvent(new Event('input'));

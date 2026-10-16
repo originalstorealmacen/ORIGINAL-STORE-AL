@@ -14,6 +14,7 @@ const BLYXU_WHATSAPP_PHONE = '573112368622';
 const MERCADO_PAGO_PUBLIC_KEY = 'APP_USR-72ab41d6-5fc7-4867-8e02-564ab0ae9f99';
 const BLYXU_DEFAULT_MAP_URL = 'https://maps.app.goo.gl/xa5Ebxsc7MDwUz5a6';
 const LOW_STOCK_THRESHOLD = 3;
+const PRODUCT_IMAGE_PLACEHOLDER = 'product-image-placeholder.svg';
 
 // Columnas esperadas en tu Google Sheet:
 // Nombre | Categoria | Catalogo | Precio | Precio_Mayorista | Stock | Imagen | Color | Descripcion
@@ -435,7 +436,7 @@ function runWhenIdle(callback, timeout = 1400) {
 
 function getCatalogProductImageSource(product) {
     if (!product) return '';
-    return product.Imagen || product.imagen || product.Foto || (product.Galeria && product.Galeria[0]) || '';
+    return getPublicProductImage(product, 'card');
 }
 
 function getCatalogPreviewImageUrl(source) {
@@ -486,7 +487,7 @@ function promoteCatalogImage(img) {
 
     fullImage.onload = () => {
         const applyFullImage = () => {
-            if (!img.isConnected) return;
+            if (!img.isConnected || img.dataset.imageUnavailable==='true' || img.dataset.fullSrc!==fullSrc) return;
             img.dataset.fullLoaded = 'true';
             img.classList.remove('is-previewing');
             img.classList.add('is-loaded');
@@ -775,8 +776,22 @@ function getProductPreviewImage(product, imageSize = 'detail') {
     return imageSet[0] || normalizeImageUrl(product?.Imagen || product?.imagen || product?.Foto || (product?.Galeria && product.Galeria[0]) || '', imageSize);
 }
 
+function getStableProductReference(product) {
+    return String(product?.idVariacion || product?.SKU || '').trim();
+}
+
+function resolveProductIndex(identity) {
+    return typeof identity === 'number' ? (Number.isInteger(identity) ? identity : -1)
+        : allProducts.findIndex(product => getStableProductReference(product) === String(identity));
+}
+
+function getStableProductDetailUrl(product, mode = 'retail') {
+    const ref = getStableProductReference(product);
+    return ref ? 'producto.html?ref=' + encodeURIComponent(ref).replace(/'/g, '%27') + (mode === 'wholesale' ? '&catalogo=mayorista' : '') : '#coleccion';
+}
+
 function prepareProductDetailPreview(productIndex, mode = 'retail') {
-    const index = Number(productIndex);
+    const index = resolveProductIndex(productIndex);
     const product = Number.isInteger(index) ? allProducts[index] : null;
     if (!product) return;
 
@@ -803,12 +818,12 @@ function prepareProductDetailPreview(productIndex, mode = 'retail') {
     }
 }
 
-function openProductDetail(productIndex, mode = 'retail') {
-    const index = Number(productIndex);
+function openProductDetail(identity, mode = 'retail') {
+    const index = resolveProductIndex(identity);
+    const product = allProducts[index];
+    if (!product) return;
     prepareProductDetailPreview(index, mode);
-    const catalogParam = mode === 'wholesale' ? '&catalogo=mayorista' : '';
-    const ref = allProducts[index]?.idVariacion || allProducts[index]?.SKU || '';
-    window.location.href = `producto.html?id=${index}${catalogParam}&ref=${encodeURIComponent(ref)}`;
+    window.location.href = getStableProductDetailUrl(product, mode);
 }
 
 function getImageFallbackUrl(source, imageSize = 'default') {
@@ -827,25 +842,26 @@ function getImageFallbackUrl(source, imageSize = 'default') {
         return `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}=w${getImageTargetWidth(imageSize)}`;
     }
 
-    return 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
+    return PRODUCT_IMAGE_PLACEHOLDER;
 }
 
 function handleCatalogImageError(img) {
     if (!img) return;
-    const fallback = getImageFallbackUrl(img.currentSrc || img.src);
-    if (img.src === fallback || img.dataset.fallbackTried === 'true') {
-        img.onerror = null;
-        img.src = 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
-        return;
+    img.removeAttribute('data-full-src');img.dataset.fullLoaded='error';
+    const original=img.dataset.originalSource || img.currentSrc || img.src;
+    if(!img.dataset.originalSource)img.dataset.originalSource=original;
+    const fallback=getImageFallbackUrl(original,'card');
+    if(img.dataset.fallbackTried!=='true' && fallback!==PRODUCT_IMAGE_PLACEHOLDER && fallback!==original){
+        img.dataset.fallbackTried='true';img.src=fallback;return;
     }
-    img.dataset.fallbackTried = 'true';
-    img.src = fallback;
+    img.onerror=null;img.src=PRODUCT_IMAGE_PLACEHOLDER;img.dataset.imageUnavailable='true';
+    img.alt=(img.alt||'Producto')+' · imagen no disponible';img.classList.remove('is-previewing');
 }
 
 function handleBannerImageError(img) {
     if (!img) return;
     const fallback = getImageFallbackUrl(img.currentSrc || img.src, 'banner');
-    if (fallback && fallback !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900' && img.dataset.fallbackTried !== 'true') {
+    if (fallback && fallback !== PRODUCT_IMAGE_PLACEHOLDER && fallback !== 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900' && img.dataset.fallbackTried !== 'true') {
         img.dataset.fallbackTried = 'true';
         img.src = fallback;
         return;
@@ -882,7 +898,7 @@ function normalizeGoogleProduct(product) {
         Radio: getProductField(product, ['Radio'], ''),
         TallaTextil: getProductField(product, ['Talla Textil', 'TallaTextil'], ''),
         Estilo: cleanProductStyleValue(getProductField(product, ['Estilo', 'estilo'], '')),
-        Descripcion: getProductField(product, ['Caracter\u00edsticas del producto', 'Caracteristicas del producto', 'Características del producto', 'Caractreristicas del producto', 'Descripcion', 'descripcion'], ''),
+        Descripcion: getProductField(product, ['Caracter\u00edsticas del producto', 'Caracteristicas del producto', 'Características del producto', 'Caractreristicas del producto', 'Descripcion', 'Descripción', 'descripcion', 'descripción', 'Descripcion del producto', 'Descripción del producto'], ''),
         SKU: getProductField(product, ['SKU', 'sku'], ''),
         Estado: getProductFieldLoose(product, ['Estado', 'estado'], 'Activo'),
         Fecha_Creacion: getProductField(product, ['Fecha de Creaci\u00f3n', 'Fecha de Creacion', 'Fecha_Creacion', 'Fecha de Creación', 'Fecha de Creación', 'createdAt', 'created_at'], ''),
@@ -1148,12 +1164,14 @@ function getCatalogRepresentativeKey(product) {
     ].join(':');
 }
 
-function getCatalogRepresentativeScore(product, index, mode = activeCatalogMode) {
-    let score = 100000 - index;
-    if (getProductStock(product) > 0) score += 50000;
-    if (isGeneralProductReference(product)) score += 20000;
-    if (normalizeImageUrl(product?.Imagen || product?.imagen || '')) score += 5000;
-    if (getProductPrice(product, mode) > 0) score += 1000;
+function getCatalogRepresentativeScore(product,index,mode=activeCatalogMode) {
+    const mother=String(product.idProducto||product['ID Producto']||'').trim(),variant=String(getProductVariationId(product)||'').trim();
+    let score=100000-index;
+    if(mother && variant===mother)score+=3000000;
+    else if(isGeneralProductReference(product))score+=2000000;
+    if(getProductStock(product)>0)score+=50000;
+    if(getCatalogProductImageSource(product))score+=5000;
+    if(getProductPrice(product,mode)>0)score+=1000;
     return score;
 }
 
@@ -1411,7 +1429,7 @@ function getSpotlightProductDetails(product, index = 0) {
     const tags = [category, variantSummary].filter(Boolean).slice(0, 3);
     const price = getProductCardPriceInfo(product, 'retail').price;
     const showPrice = shouldShowProductPrices('retail');
-    const detailUrl = productIndex >= 0 ? `producto.html?id=${productIndex}` : '#coleccion';
+    const detailUrl = productIndex >= 0 ? getStableProductDetailUrl(product) : '#coleccion';
     const images = getProductImageSet(product, 'spotlight');
     const image = images[0] || 'https://lh3.googleusercontent.com/d/1tab2v6baqQeNF7qMPaXmevFX1Cfh063V=w900';
 
@@ -1864,7 +1882,7 @@ function renderInventorySpotlight() {
     const eagerCount = IS_MOBILE_VIEWPORT ? 4 : 6;
     const getMarqueeItemHtml = (p, index, isDuplicate = false) => {
         const img = getProductImageSet(p, 'card')[0];
-        const detailUrl = `producto.html?id=${allProducts.indexOf(p)}`;
+        const detailUrl = getStableProductDetailUrl(p);
         const stockBadge = getProductBadgeMarkup(p);
         const name = p.Nombre || p.nombre || p.Producto || 'Producto Original Store';
         const price = getProductCardPriceInfo(p, 'retail').price;
@@ -3032,14 +3050,18 @@ function renderProducts(products, options = {}) {
         const previewImg = getCatalogPreviewImageUrl(rawImg) || img;
         const cat = p.Categoria || p.categoria || '';
         const stock = getProductStock(p);
+        const hasAvailableVariant=stock<=0 && products.some(v=>getCatalogRepresentativeKey(v)===getCatalogRepresentativeKey(p)&&getProductStock(v)>0);
+        const available=stock>0||hasAvailableVariant;
+        const actionLabel=hasAvailableVariant?'Elegir variante':productActionLabel(p,mode);
         const originalIndex = allProducts.indexOf(p);
         const productIndex = originalIndex >= 0 ? originalIndex : i;
+        const productIdentity = escapeHtml(JSON.stringify(getStableProductReference(p) || productIndex));
         const isFeatured = featuredFirst && i === 0;
-        const detailUrl = `producto.html?id=${productIndex}${mode === 'wholesale' ? '&catalogo=mayorista' : ''}`;
+        const detailUrl = getStableProductDetailUrl(p, mode);
         const badge = getProductBadgeMarkup(p, i);
         const detailPrepAttrs = mode === 'wholesale'
             ? ''
-            : ` onpointerenter="prepareProductDetailPreview(${productIndex}, '${mode}')" ontouchstart="prepareProductDetailPreview(${productIndex}, '${mode}')"`;
+            : ` onpointerenter="prepareProductDetailPreview(${productIdentity}, '${mode}')" ontouchstart="prepareProductDetailPreview(${productIdentity}, '${mode}')"`;
         const shouldLoadImageNow = i < immediateImageCount;
         const isHighPriorityImage = i < highPriorityImageCount && shouldPrioritizeCatalogImages;
         const imagePriority = isHighPriorityImage ? 'high' : shouldLoadImageNow ? 'auto' : 'low';
@@ -3050,28 +3072,28 @@ function renderProducts(products, options = {}) {
         const fullImageAttr = img && previewImg && img !== previewImg ? ` data-full-src="${escapeHtml(img)}"` : '';
 
         return `
-        <div class="product-card ${isFeatured ? 'featured' : ''} reveal" data-index="${productIndex}"${detailPrepAttrs} tabindex="0">
-            <div class="product-card-img" onclick="openProductDetail(${productIndex}, '${mode}')">
-                <button type="button" class="product-card-favorite" style="position:absolute;top:12px;right:12px;z-index:3;border-radius:50%;width:36px;height:36px;background:#17171c;color:#fff;border:1px solid #666;cursor:pointer" aria-label="Guardar en favoritos" onclick="event.stopPropagation();saveCustomerFavorite(${productIndex},this)">♡</button>
+        <div class="product-card ${isFeatured ? 'featured' : ''} reveal" data-index="${productIndex}" data-product-ref="${escapeHtml(getStableProductReference(p))}"${detailPrepAttrs} tabindex="0">
+            <div class="product-card-img" onclick="openProductDetail(${productIdentity}, '${mode}')">
+                <button type="button" class="product-card-favorite" style="position:absolute;top:12px;right:12px;z-index:3;border-radius:50%;width:36px;height:36px;background:#17171c;color:#fff;border:1px solid #666;cursor:pointer" aria-label="Guardar en favoritos" onclick="event.stopPropagation();saveCustomerFavorite(resolveProductIndex(${productIdentity}),this)">♡</button>
                 ${img ? `<img ${imageSourceAttrs}${fullImageAttr} data-catalog-priority="${imagePriority}" alt="${escapeHtml(name)}" loading="${imageLoading}" decoding="async" fetchpriority="${imagePriority}" referrerpolicy="no-referrer" onload="handleCatalogImageLoad(this)" onerror="handleCatalogImageError(this)">` :
                   `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a0e2e,#2d1552);font-size:48px;opacity:.3;">?</div>`}
                 ${badge}
                 ${getProductPromotionBadgeMarkup(p, mode)}
             </div>
-            <div class="product-card-info" onclick="openProductDetail(${productIndex}, '${mode}')">
+            <div class="product-card-info" onclick="openProductDetail(${productIdentity}, '${mode}')">
                 <div class="product-card-name">${name}</div>
                 <div class="product-card-desc">${cat}</div>
                 ${showPrices && price>0 ? `<div class="product-card-price ${oldPrice > price ? 'discount-active' : ''}">
                     <span class="product-price-icon" aria-hidden="true">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 11h18"></path></svg>
                     </span>
-                    <span class="product-price-current">${formatMoney(price)}${commerceFlow(mode,[{price}])==='quote'?' · estimado':''}</span>
+                    <span class="product-price-current">${formatMoney(price)}${commerceFlow(mode,[{price}])==='quote'?'<small class="product-price-estimate">estimado</small>':''}</span>
                     ${oldPrice > price ? `<span class="old">${formatMoney(oldPrice)}</span><span class="product-price-discount">-${priceInfo.discountPercentage}%</span>` : ''}
-                </div>` : stock > 0 ? `<span class="product-card-price price-hidden">Por cotizar</span>` :
+                </div>` : available ? `<span class="product-card-price price-hidden">Por cotizar</span>` :
                 `<button class="product-card-price price-hidden price-consult-btn" type="button" disabled>Agotado por ahora</button>`}
-                <button type="button" class="product-card-quick catalog-add-btn" ${stock > 0 ? '' : 'disabled'} onclick="event.stopPropagation(); addToCart(${productIndex}, this, '${mode}')" aria-label="${stock > 0 ? (productActionLabel(p,mode)+': ') : 'Agotado: '}${escapeHtml(name)}">
+                <button type="button" class="product-card-quick catalog-add-btn" ${available ? '' : 'disabled'} onclick="event.stopPropagation(); ${hasAvailableVariant ? `openProductDetail(${productIdentity}, '${mode}')` : `addToCart(resolveProductIndex(${productIdentity}), this, '${mode}')`}" aria-label="${available ? (actionLabel+': ') : 'Agotado: '}${escapeHtml(name)}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
-                    <span>${stock > 0 ? productActionLabel(p,mode) : 'Agotado'}</span>
+                    <span>${available ? actionLabel : 'Agotado'}</span>
                 </button>
             </div>
         </div>`;
@@ -3472,7 +3494,7 @@ function closeCartPreview() {
 function getCartProductDetailUrl(product, mode = activeCartMode) {
     const productIndex = allProducts.indexOf(product);
     if (productIndex < 0) return '#';
-    return `producto.html?id=${productIndex}${normalizeCartMode(mode) === 'wholesale' ? '&catalogo=mayorista' : ''}`;
+    return getStableProductDetailUrl(product, normalizeCartMode(mode));
 }
 
 function openCartItemPreview(idx) {
@@ -4179,7 +4201,7 @@ function getGlobalProductResults(query) {
             return {
                 title: product.Nombre || product.nombre || product.Producto || 'Producto',
                 detail: `${category}${product.SKU ? ' · ' + product.SKU : ''}`,
-                href: `producto.html?id=${productIndex >= 0 ? productIndex : 0}${mode === 'wholesale' ? '&catalogo=mayorista' : ''}`,
+                href: getStableProductDetailUrl(product, mode),
                 image: normalizeImageUrl(getProductImageSet(product, 'search')[0] || product.Imagen || product['Imagen Principal'] || product.imagen || '', 'search'),
                 meta: price ? `$${Number(price).toLocaleString('es-CO')}` : 'Producto'
             };
@@ -5370,7 +5392,7 @@ function renderCustomerFavoritesList(favorites = []) {
 
     list.innerHTML = favorites.map(item => {
         const productIndex = findProductIndexForFavorite(item);
-        const href = productIndex >= 0 ? `producto.html?id=${productIndex}` : 'index.html#coleccion';
+        const href = productIndex >= 0 ? getStableProductDetailUrl(allProducts[productIndex]) : 'index.html#coleccion';
         return `
             <article class="customer-favorite-card">
                 <a href="${href}">

@@ -279,3 +279,17 @@
 }
 
 @media screen {html body .products-grid .product-card .product-card-info .product-card-price {margin-bottom:10px!important;}}
+
+/* Quote qualifier stays secondary; prices and controls fit narrow catalog cards. */
+@media screen {
+ html body .products-grid .product-card .product-price-current {display:inline-flex!important;flex-wrap:wrap;align-items:baseline;gap:4px;max-width:100%;line-height:1.2!important;}
+ html body .products-grid .product-card .product-price-current .product-price-estimate {font-size:11px!important;font-weight:400!important;line-height:1.2!important;letter-spacing:0!important;color:#856b79!important;white-space:nowrap;}
+}
+@media screen and (max-width:480px) {
+ html body .products-grid .product-card .product-card-price {flex-wrap:wrap!important;gap:4px!important;min-height:36px!important;align-content:center;}
+ html body .products-grid .product-card .product-price-icon {display:none!important;}
+ html body .products-grid .product-card .product-price-current {font-size:18px!important;}
+ html body .products-grid .product-card .product-price-current .product-price-estimate {font-size:10px!important;}
+ html body .products-grid .product-card .catalog-add-btn {white-space:normal!important;line-height:1.25!important;min-height:44px;}
+ html body .products-grid .product-card .catalog-add-btn svg {flex:0 0 16px;}
+}
