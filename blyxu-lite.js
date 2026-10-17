@@ -1,6 +1,6 @@
 // Original Store lightweight runtime for informational pages.
 const GOOGLE_SHEET_API = window.ORIGINAL_STORE_API_URL;
-const BLYXU_WHATSAPP_PHONE = '573112368622';
+const BLYXU_WHATSAPP_PHONE = '573223774422';
 const SITE_CONFIG_CACHE_KEY = `blyxu_site_config_cache_v1:${GOOGLE_SHEET_API}`;
 const SITE_CONFIG_TTL = 5 * 60 * 1000;
 const CART_KEYS = ['blyxu_cart_retail', 'blyxu_cart_wholesale', 'blyxu_cart'];
@@ -94,7 +94,7 @@ async function fetchSiteConfig(options = {}) {
 }
 
 function getSiteConfigValue(key, fallback = '') {
-    const value = siteConfig[key];
+    const value = window.OriginalStoreBrand?.value(key,siteConfig[key]) ?? siteConfig[key];
     return value === undefined || value === null || value === '' ? fallback : String(value);
 }
 
@@ -316,7 +316,7 @@ function renderContactPage() {
     const phone = getCommerceWhatsAppPhone();
     const whatsappText = 'Hola Original Store, quiero recibir asesoría sobre sus productos.';
     const whatsappHref = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(whatsappText)}` : '';
-    const phoneDisplay = phone ? '+' + phone.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})$/, '$1 $2 $3 $4') : '+57 311 2368622';
+    const phoneDisplay = phone ? '+' + phone.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})$/, '$1 $2 $3 $4') : '+57 322 3774422';
 
     setTextById('contact-days', days);
     setTextById('contact-hours', hours);

@@ -24,7 +24,7 @@ if (!window.OriginalStoreOrderFlow) {
 // 5. Pega la URL aqui abajo:
 const GOOGLE_SHEET_API = window.ORIGINAL_STORE_API_URL;
 const GOOGLE_SHEET_PRODUCTS_URL = `${GOOGLE_SHEET_API}?resource=productos`;
-const BLYXU_WHATSAPP_PHONE = '573112368622';
+const BLYXU_WHATSAPP_PHONE = '573223774422';
 const MERCADO_PAGO_PUBLIC_KEY = 'APP_USR-72ab41d6-5fc7-4867-8e02-564ab0ae9f99';
 const BLYXU_DEFAULT_MAP_URL = 'https://maps.app.goo.gl/xa5Ebxsc7MDwUz5a6';
 const LOW_STOCK_THRESHOLD = 3;
@@ -1283,7 +1283,7 @@ function requestFreshProducts(options = {}) {
     return productsLoadPromise;
 }
 function getCatalogDataSignature() {
-    const fields = ['idProducto','idVariacion','Nombre','Categoria','Catalogo','Precio','Precio_Mayorista','Stock','Imagen','Galeria','Descripcion','Color','Tamano','TipoMedida','UnidadMedida','Ancho','Largo','Fondo','Radio','TallaTextil','Estilo','Estado','Promocion'];
+    const fields = ['idProducto','idVariacion','Nombre','Categoria','Catalogo','Precio','Precio_Mayorista','Stock','Imagen','Galeria','Descripcion','Color','Tamano','TipoMedida','UnidadMedida','Ancho','Largo','Fondo','Radio','TallaTextil','Estilo','Estado','Promocion','Vista Variante'];
     const config = Object.fromEntries(Object.entries(siteConfig).filter(([key])=>/^(Mostrar_Precios_Minorista|Mercado_Pago_Publico_Activo|Catalogo_Solo_WhatsApp|Banner_|Home_|Promo_|Wholesale_Promo_)/.test(key)).sort(([a],[b])=>a.localeCompare(b)));
     return JSON.stringify({products:[...allProducts,...bannerProducts].map(p=>fields.map(key=>p[key]??'')),config});
 }
@@ -2037,7 +2037,7 @@ async function fetchSiteConfig(options = {}) {
 }
 
 function getSiteConfigValue(key, fallback = '') {
-    const value = siteConfig[key];
+    const value = window.OriginalStoreBrand?.value(key,siteConfig[key]) ?? siteConfig[key];
     return value === undefined || value === null || value === '' ? fallback : String(value);
 }
 
@@ -2303,7 +2303,7 @@ function renderContactPage() {
     const whatsappHref = whatsapp ? `https://wa.me/${String(whatsapp).replace(/\D/g, '')}` : '';
     const phoneDisplay = whatsapp
         ? '+' + String(whatsapp).replace(/^(\d{2})(\d{3})(\d{3})(\d{4})$/, '$1 $2 $3 $4')
-        : '+57 311 2368622';
+        : '+57 322 3774422';
     const facebookHref = normalizeSocialUrl(facebook, 'https://facebook.com/');
     const tiktokHref = normalizeSocialUrl(tiktok, 'https://www.tiktok.com/@');
     const instagramHref = normalizeSocialUrl(instagram, 'https://instagram.com/');

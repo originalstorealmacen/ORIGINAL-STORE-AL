@@ -579,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const companyLogo = 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
                 const companyName = getConfigValue('Factura_Empresa', 'Original Store JoyerÃ­a & Accesorios');
                 const companyNit = getConfigValue('Factura_NIT', '000.000.000-0');
-                const companyPhone = getConfigValue('Factura_Telefono', '+57 311 2368622');
+                const companyPhone = getConfigValue('Factura_Telefono', '+57 322 3774422');
                 const companyEmail = getConfigValue('Factura_Email', 'originalstorealmacen@gmail.com');
                 let totalQty = 0;
 

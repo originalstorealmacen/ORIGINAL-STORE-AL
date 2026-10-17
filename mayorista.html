@@ -18,10 +18,13 @@
     <link rel="preconnect" href="https://drive.google.com">
     <link rel="preconnect" href="https://lh3.googleusercontent.com">
     <link rel="preload" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006" as="style">
-    <link rel="preload" href="blyxu-app.js?v=style-angles-20261016" as="script">
+    <link rel="preload" href="blyxu-app.js?v=whatsapp-20261016" as="script">
     <link rel="stylesheet" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006" data-blyxu-main-style="1">
     <script src="wholesale-session.js?v=wholesale-renewal-ampm-20261007"></script>
     <style>
+        /* Reserve space for the fixed navigation before the session notice. */
+        html body[data-catalog-mode="wholesale"] #coleccion.collection-section.wholesale-page-section {padding-top:124px!important;scroll-margin-top:110px;}
+        @media(max-width:600px) {html body[data-catalog-mode="wholesale"] #coleccion.collection-section.wholesale-page-section {padding-top:104px!important;scroll-margin-top:90px;}}
         .wholesale-session-clock {display:block;width:fit-content;max-width:100%;box-sizing:border-box;margin:0 0 16px;padding:9px 12px;border:1px solid #dab7ca;border-radius:6px;color:#3e2332;background:#ffffff;font-size:11px;line-height:1.6;white-space:pre-line;}
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
@@ -471,8 +474,9 @@
     <link rel="stylesheet" href="storefront-refinement.css?v=nav-spacing-20261006-2">
     <link rel="stylesheet" href="original-store-theme.css?v=20261007-22">
     <script src="original-store-navigation.js?v=20261007-1" defer></script>
-    <link rel="stylesheet" href="original-store-boutique.css?v=image-integrity-20261016">
+    <link rel="stylesheet" href="original-store-boutique.css?v=brand-controls-20261016">
 <meta name="robots" content="noindex, follow">
+    <script src="original-store-brand.js?v=whatsapp-20261016"></script>
 </head>
 
 <body data-catalog-mode="wholesale" class="wholesale-gated">
@@ -716,7 +720,7 @@
     <!-- Carga diferida optimizada de la aplicacion -->
     <script src="original-store-catalog-bootstrap.js?v=drive-20261008-1" defer></script>
     <script src="order-flow.js?v=20261016" defer></script>
-<script src="blyxu-app.js?v=style-angles-20261016" defer></script>
+<script src="blyxu-app.js?v=whatsapp-20261016" defer></script>
     <script>
         (function() {
             const body = document.body;

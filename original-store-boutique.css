@@ -293,3 +293,16 @@
  html body .products-grid .product-card .catalog-add-btn {white-space:normal!important;line-height:1.25!important;min-height:44px;}
  html body .products-grid .product-card .catalog-add-btn svg {flex:0 0 16px;}
 }
+
+/* Primary purchase actions retain the brand colour in every interactive state. */
+@media screen {
+ html body .products-grid .product-card .product-card-info .catalog-add-btn:not(:disabled):is(:hover,:focus-visible,:active),
+ html body.product-detail-page #product-detail #btn-add-to-cart-detail:not(:disabled):is(:hover,:focus-visible,:active) {
+  background:#74263f!important;background-image:none!important;border-color:#74263f!important;color:#fff!important;-webkit-text-fill-color:#fff!important;filter:none!important;
+  box-shadow:0 4px 12px #87334f22!important;
+ }
+ html body .products-grid .product-card .product-card-info .catalog-add-btn:not(:disabled):is(:hover,:focus-visible,:active) :is(span,svg),
+ html body.product-detail-page #product-detail #btn-add-to-cart-detail:not(:disabled):is(:hover,:focus-visible,:active) :is(span,svg) {color:inherit!important;-webkit-text-fill-color:currentColor!important;}
+ html body .products-grid .product-card .product-card-info .catalog-add-btn:focus-visible,
+ html body.product-detail-page #product-detail #btn-add-to-cart-detail:focus-visible {outline:2px solid #087e80!important;outline-offset:3px!important;}
+}

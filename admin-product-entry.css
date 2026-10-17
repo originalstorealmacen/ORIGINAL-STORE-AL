@@ -1,4 +1,4 @@
-/* New-product surface only; preserve existing inventory/edit controls. */
+/* Shared progressive controls for creation and inventory editing. */
 #product-form .entry-option{min-width:0}
 #product-form .entry-option-toggle{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border,#ead9e2);border-radius:12px;font-size:12px;cursor:pointer}
 #product-form .entry-option-toggle input{accent-color:#923552;width:32px;height:18px;flex:0 0 auto}
@@ -12,7 +12,7 @@
 #product-form[data-simple-entry="1"] #variation-generator-fields,
 #product-form[data-simple-entry="1"] .var-size-mode{display:none!important}
 #product-form[data-simple-entry="1"] :is(#btn-add-variant,#btn-add-manual-variant,.btn-save-individual-variant){background:#fff!important;color:#87334f!important;border:1px solid #d9bdcb!important;box-shadow:none!important;font-weight:500!important}
-#product-form[data-simple-entry="1"] .var-id,#product-form[data-simple-entry="1"] #prod-id{background:#faf7f9;cursor:default}
+#product-form :is(.var-id,.ve-id,#prod-id){cursor:text}
 #product-form .entry-option-toggle[hidden],#product-form .entry-style-image-choice[hidden],#product-form .entry-option-panel[hidden]{display:none!important}
 @media(max-width:700px){#product-form .entry-option-size>.entry-option-panel{grid-template-columns:1fr}}
 
@@ -27,3 +27,15 @@
 #product-form .entry-option-toggle input:checked{background:#923552;border-color:#923552}
 #product-form .entry-option-toggle input:checked::after{transform:translateX(14px)}
 #product-form .entry-option-toggle input:focus-visible{outline:2px solid #0d8987;outline-offset:3px}
+
+#product-form .variant-edit-grid .entry-option{min-width:0;align-self:start}
+#product-form .entry-option-size .variant-edit-section{margin-top:0;border:0;padding:0;grid-column:1/-1}
+#product-form .entry-option-size .variant-edit-section>h5{display:none}
+#product-form .entry-option-size .variant-edit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+#product-form .variant-edit-grid .entry-option-size{grid-column:1/-1}
+#product-form .variant-edit-grid .entry-option-panel>div>label{display:block;margin-bottom:8px}
+#product-form .variant-edit-grid .entry-style-image-choice{display:flex}
+#product-form .variant-edit-grid [hidden]{display:none!important}
+@media(max-width:700px){#product-form .entry-option-size .variant-edit-grid{grid-template-columns:1fr}}
+
+#product-form .variant-edit-grid .entry-option-toggle,#product-form .variant-edit-grid .entry-style-image-choice{text-transform:none;letter-spacing:0;font-weight:500}

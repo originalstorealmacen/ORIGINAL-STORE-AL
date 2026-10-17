@@ -4334,7 +4334,7 @@ async function loadSiteConfigForAdmin(options = {}) {
         const pending = fetch(GOOGLE_SHEET_API+'?action=get_config&_='+Date.now(), {cache:'no-store'})
             .then(res => res.json()).then(data => {
                 if(data?.status !== 'success' || !data.config) throw new Error(data?.error || 'No se pudo cargar la configuración.');
-                return data.config;
+                return window.OriginalStoreBrand?.config(data.config) || data.config;
             });
         siteConfigPromise = pending;
         pending.catch(() => {if(siteConfigPromise === pending)siteConfigPromise=null;});
@@ -6832,9 +6832,9 @@ window.downloadInventoryQrLabel = async function() {
 window.shareInventoryQrLabel = async function() {
     try {
         const pending = getCurrentInventoryLabelImage();
-        window.open('https://wa.me/573222431225', '_blank', 'noopener');
+        window.open('https://wa.me/573223774422', '_blank', 'noopener');
         downloadInventoryLabelFile(await pending);
-        showToast('Etiqueta descargada. Adjunta la imagen en el chat de 3222431225 y pulsa Enviar.', 'info');
+        showToast('Etiqueta descargada. Adjunta la imagen en el chat de 3223774422 y pulsa Enviar.', 'info');
     } catch (error) {
         inventoryLabelImage.key = '';
         showToast('No se pudo preparar la imagen. Intenta Descargar imagen nuevamente.', 'warning');
@@ -13694,7 +13694,7 @@ window.imprimirFacturaEditor = function() {
     }
 
     // Configuración dinámicas de empresa Original Store
-    const cfg = window.storeConfig || {};
+    const cfg = window.OriginalStoreBrand?.config(window.storeConfig || {}) || window.storeConfig || {};
     const logoImg = document.getElementById('inv-company-logo');
     if (logoImg) logoImg.src = 'https://lh3.googleusercontent.com/d/1OTHvWFph2u3qFQMQVhE5ghmSWjBSgBeW=w180';
 
@@ -13708,7 +13708,7 @@ window.imprimirFacturaEditor = function() {
         document.getElementById('inv-company-nit').textContent = cfg['Factura_NIT'] || '000.000.000-0';
     }
     if (document.getElementById('inv-company-contact')) {
-        document.getElementById('inv-company-contact').textContent = 'WhatsApp: ' + (cfg['Factura_Telefono'] || '+57 311 2368622');
+        document.getElementById('inv-company-contact').textContent = 'WhatsApp: ' + (cfg['Factura_Telefono'] || '+57 322 3774422');
     }
     if (document.getElementById('inv-company-email')) {
         document.getElementById('inv-company-email').textContent = 'Email: ' + (cfg['Factura_Email'] || 'originalstorealmacen@gmail.com');
@@ -13836,7 +13836,7 @@ ${itemsText}
 
 ¡Esperamos que disfrutes muchísimo tus accesorios! Cualquier duda estamos para ayudarte.
 *Tienda web:* aloriginalstore.online
-*Soporte Original Store:* +57 311 2368622`;
+*Soporte Original Store:* +57 322 3774422`;
 
     // 1. Disparar el generador / diálogo de impresión PDF para que el usuario guarde o imprima el archivo PDF
     if (typeof window.imprimirFacturaEditor === 'function') {

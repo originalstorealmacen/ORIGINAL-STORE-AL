@@ -50,9 +50,9 @@
     const assigned=new Set(all.filter(fixed).flatMap(r=>[key(r.id.value),key(r.barcode?.value)]).filter(Boolean));
     for(const row of all)if(row.barcode?.dataset.autoBarcode==='0')assigned.add(key(row.barcode.value));
     for(const product of external()){assigned.add(key(api.inventoryId(product)));assigned.add(key(api.inventoryBarcode(product)));}
-    const primary=mother+'-V01';if(assigned.has(key(primary)))throw Error('La referencia '+primary+' ya identifica otro producto o variante.');
+    const primary=!physical&&fixed(base)?base.id.value.trim():mother+'-V01';if(assigned.has(key(primary)))throw Error('La referencia '+primary+' ya identifica otro producto o variante.');
     assigned.add(key(primary));let number=2;
-    const plan=[{row:base,id:primary,code:physical?mother:(base.barcode?.dataset.autoBarcode==='0'?normal(base.barcode.value):generated(mother,primary)),auto:true}];
+    const plan=[{row:base,id:primary,code:physical?mother:(base.barcode?.dataset.autoBarcode==='0'?normal(base.barcode.value):generated(mother,primary)),auto:physical||!fixed(base)}];
     for(const row of all){
       const auto=!fixed(row);let id=row.id.value.trim();
       if(auto){do{id=mother+'-V'+String(number++).padStart(2,'0');}while(assigned.has(key(id))||assigned.has(key(generated(mother,id))));assigned.add(key(id));}
@@ -92,7 +92,7 @@
   }
   function adopt({preserve=false,mother=value('prod-id-producto')}={}){if($('product-form'))$('product-form').dataset.identityMother=mother;
     for(const row of [main(),...rows()]){
-      if(!row.id)continue;const auto=preserve&&row.id.dataset.identityAuto!==undefined?row.id.dataset.identityAuto==='1':row.id.dataset.scannedReference!=='1'&&key(row.id.value).startsWith(key(mother)+'-V');row.id.dataset.identityAuto=auto?'1':'0';
+      if(!row.id)continue;const suffix=key(row.id.value).slice(key(mother).length+2),generatedId=key(row.id.value).startsWith(key(mother)+'-V')&&/^\d+$/.test(suffix);const auto=preserve&&row.id.dataset.identityAuto!==undefined?row.id.dataset.identityAuto==='1':row.id.dataset.scannedReference!=='1'&&generatedId;row.id.dataset.identityAuto=auto?'1':'0';
       if(row.barcode){row.barcode.dataset.identityMother=mother;const code=generated(mother,row.id.value);row.barcode.dataset.generatedBarcode=code;
         if(row.barcode.dataset.autoBarcode!=='0')row.barcode.dataset.autoBarcode=row.barcode.value&&normal(row.barcode.value)!==code?'0':'1';}
     }
@@ -106,6 +106,7 @@
   function initialize(options){
     api=options;if(initialized)return;initialized=true;
     if($('prod-id-producto'))$('prod-id-producto').readOnly=false;
+    document.addEventListener('focusin',event=>{if(event.target.matches('#prod-id,.var-id,.ve-id'))event.target.dataset.previousId=event.target.value;},true);
     document.addEventListener('input',event=>{
       if(busy)return;const input=event.target;
       if(input.matches('#prod-id-producto,#prod-barcode,.var-id,.ve-id,.var-barcode,.ve-barcode,#prod-id'))input.setCustomValidity('');
