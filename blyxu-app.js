@@ -719,7 +719,10 @@ function getImageTargetWidth(kindOrWidth = 'default') {
     const key = String(kindOrWidth || 'default');
     const base = IMAGE_WIDTHS[key] || IMAGE_WIDTHS.default;
     if (key === 'banner' && typeof window !== 'undefined' && window.innerWidth >= 900) return 1400;
-    if (key === 'detail' && typeof window !== 'undefined' && window.innerWidth >= 900) return 1100;
+    if (key === 'detail' && typeof window !== 'undefined') {
+        const density = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+        return Math.min(1600, Math.max(window.innerWidth >= 900 ? 1100 : 900, Math.ceil(Math.min(window.innerWidth * .9, 720) * density)));
+    }
     if ((key === 'card' || key === 'spotlight') && typeof window !== 'undefined' && window.innerWidth <= 640) return 320;
     return base;
 }

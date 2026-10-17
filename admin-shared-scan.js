@@ -14,16 +14,17 @@
   function phoneMode(enabled){
     if(enabled&&!phoneView){
       api.closeScanner?.();
+      const fold=panel.querySelector('details');const foldWasOpen=fold.open;fold.open=true;
       const main=document.getElementById('admin-main-content'),placeholder=document.createComment('shared-scanner-position');
       panel.before(placeholder);const editModal=document.getElementById('edit-product-modal');
-      phoneView={placeholder,main,display:main?.style.display,inert:main?.inert,overflow:document.body.style.overflow,editModal,editingWasOpen:editModal?.classList.contains('open')};
+      phoneView={foldOpen:foldWasOpen,placeholder,main,display:main?.style.display,inert:main?.inert,overflow:document.body.style.overflow,editModal,editingWasOpen:editModal?.classList.contains('open')};
       editModal?.classList.remove('open');
       if(main){main.inert=true;main.style.display='none';}
       document.body.append(panel);document.body.classList.add('os-phone-scanner-mode');document.body.style.overflow='hidden';
       $('disconnect').textContent='Terminar escáner y volver';
       $('scan').focus();
     }else if(!enabled&&phoneView){
-      const previous=phoneView;phoneView=null;previous.placeholder.replaceWith(panel);
+      const previous=phoneView;phoneView=null;previous.placeholder.replaceWith(panel);panel.querySelector('details').open=previous.foldOpen;
       if(previous.main){previous.main.inert=previous.inert;previous.main.style.display=previous.display;}
       document.body.classList.remove('os-phone-scanner-mode');document.body.style.overflow=previous.overflow;
       $('disconnect').textContent='Desvincular';if(previous.editingWasOpen)previous.editModal.classList.add('open');
@@ -192,7 +193,8 @@
   function initialize(options){
     if(panel)return;api=options;form=document.getElementById('product-form');if(!form)return;
     panel=document.createElement('section');panel.className='os-shared-scan';panel.setAttribute('aria-label','Escáner compartido');
-    panel.innerHTML='<div class="os-scan-heading"><div><strong>Escáner compartido</strong><small>Celular + computador · Original Store</small></div><span data-scan="connection" class="os-scan-connection" data-state="disconnected" role="status"><i aria-hidden="true"></i><span data-scan="connection-text">Sin vincular</span></span></div><div class="os-scan-actions"><button type="button" class="admin-btn" data-scan="create">Vincular desde este PC</button><button type="button" class="admin-btn secondary" data-scan="join">Vincular celular</button><button type="button" class="admin-btn secondary" data-scan="scan" hidden>Abrir escáner del celular</button><button type="button" class="admin-btn secondary" data-scan="retry" hidden>Reintentar envío</button><button type="button" class="admin-btn secondary" data-scan="disconnect" hidden>Desvincular</button></div><label class="os-scan-target">Recibir el código en<select class="form-control" data-scan="target"></select></label><div class="os-scan-pair" data-scan="pair" hidden><img data-scan="qr" alt="QR temporal para vincular el celular"><div><p>En el celular inicia sesión con la misma cuenta y elige <b>Vincular celular</b>. Escanea este QR con el lector existente.</p><input class="form-control" data-scan="link" readonly aria-label="Enlace temporal de vinculación"><button type="button" class="admin-btn secondary" data-scan="copy">Copiar enlace temporal</button></div></div><p data-scan="destination"></p><p data-scan="status" role="status" aria-live="polite">Solo se transfiere el código escaneado. Tú decides cuándo guardar.</p>';
+    panel.innerHTML='<details class="os-scan-fold"><summary class="os-scan-heading"><div><strong>Escáner compartido</strong><small>Celular + computador · Original Store</small></div><span data-scan="connection" class="os-scan-connection" data-state="disconnected" role="status"><i aria-hidden="true"></i><span data-scan="connection-text">Sin vincular</span></span></summary><div class="os-scan-body"><div class="os-scan-actions"><button type="button" class="admin-btn" data-scan="create">Vincular desde este PC</button><button type="button" class="admin-btn secondary" data-scan="join">Vincular celular</button><button type="button" class="admin-btn secondary" data-scan="scan" hidden>Abrir escáner del celular</button><button type="button" class="admin-btn secondary" data-scan="retry" hidden>Reintentar envío</button><button type="button" class="admin-btn secondary" data-scan="disconnect" hidden>Desvincular</button></div><label class="os-scan-target">Recibir el código en<select class="form-control" data-scan="target"></select></label><div class="os-scan-pair" data-scan="pair" hidden><img data-scan="qr" alt="QR temporal para vincular el celular"><div><p>En el celular inicia sesión con la misma cuenta y elige <b>Vincular celular</b>. Escanea este QR con el lector existente.</p><input class="form-control" data-scan="link" readonly aria-label="Enlace temporal de vinculación"><button type="button" class="admin-btn secondary" data-scan="copy">Copiar enlace temporal</button></div></div><p data-scan="destination"></p><p data-scan="status" role="status" aria-live="polite">Solo se transfiere el código escaneado. Tú decides cuándo guardar.</p></div></details>';
+    panel.querySelector('summary').addEventListener('click',event=>{if(phone)event.preventDefault();});
     form.before(panel);targetOptions();
     $('create').onclick=create;$('disconnect').onclick=close;$('target').onchange=invalidate;
     $('copy').onclick=()=>navigator.clipboard.writeText($('link').value).then(()=>message('Enlace copiado. Ábrelo en el celular con tu cuenta.')).catch(()=>{$('link').select();message('Selecciona y copia el enlace temporal.');});

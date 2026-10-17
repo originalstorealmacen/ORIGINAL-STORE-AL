@@ -20,3 +20,19 @@ body.os-phone-scanner-mode [data-scan="scan"]{background:#166534!important;color
 body.os-phone-scanner-mode [data-scan="status"]{font-size:14px}
 @media(max-width:600px){.os-scan-heading>.os-scan-connection{font-size:11px;padding:6px 8px}}
 body.os-phone-scanner-mode>:not(.os-shared-scan):not(#barcode-scanner-modal):not(script):not(style){visibility:hidden!important;pointer-events:none!important}
+
+/* Collapsed by default; the connection light remains visible. */
+.os-shared-scan>.os-scan-fold{border:0;background:transparent;padding:0;margin:0;min-width:0}
+.os-shared-scan .os-scan-fold>.os-scan-heading{list-style:none;cursor:pointer;margin:0;min-height:40px;color:inherit;background:transparent;border:0;padding:0;border-radius:8px}
+.os-scan-heading::-webkit-details-marker{display:none}
+.os-scan-fold>.os-scan-heading::after{content:'';width:8px;height:8px;flex:0 0 8px;border-right:2px solid #87334f;border-bottom:2px solid #87334f;transform:rotate(45deg);margin:0 3px 4px;transition:transform .15s}
+.os-scan-fold[open]>.os-scan-heading::after{transform:rotate(225deg);margin-bottom:0}
+.os-scan-heading>div{flex:1;min-width:0}
+.os-scan-fold>.os-scan-heading:focus-visible{outline:2px solid #087e80;outline-offset:5px}
+.os-scan-body{padding-top:16px;min-width:0}
+.os-scan-body>p{font-size:12px;line-height:1.6;margin:12px 0 0}
+body.os-phone-scanner-mode .os-scan-fold{width:100%}
+body.os-phone-scanner-mode .os-scan-body{display:flex;flex-direction:column;gap:16px}
+body.os-phone-scanner-mode .os-scan-fold>.os-scan-heading{cursor:default}
+body.os-phone-scanner-mode .os-scan-heading::after{display:none}
+@media(max-width:600px){.os-scan-fold>.os-scan-heading{flex-wrap:wrap;gap:10px}.os-scan-heading>div{flex:1 1 150px}.os-scan-heading>.os-scan-connection{margin-left:0}.os-scan-heading::after{margin-left:auto}}

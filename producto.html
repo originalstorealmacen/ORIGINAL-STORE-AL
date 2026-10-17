@@ -39,7 +39,7 @@
     </script>
     <script src="original-store-catalog-bootstrap.js?v=drive-20261008-1" defer></script>
     <script src="order-flow.js?v=20261016" defer></script>
-<script src="blyxu-app.js?v=whatsapp-20261016" defer></script>
+<script src="blyxu-app.js?v=detail-image-hd-20261017" defer></script>
     <link rel="stylesheet" href="blyxu-style.css?v=blyxu-customer-access-v6-20261006">
     <style>
         /* STUDIO NOIR PRODUCT DETAIL */
@@ -1012,6 +1012,8 @@
     html body.product-detail-page #product-detail .detail-variant-chip.swatch-only:focus-visible {outline:2px solid #087e80!important;outline-offset:3px;}
     </style>
     <script src="original-store-brand.js?v=whatsapp-20261016"></script>
+    <link rel="stylesheet" href="mobile-staggered-menu.css?v=20261017" media="(max-width:980px)">
+    <script src="mobile-staggered-menu-loader.js?v=20261017" defer></script>
 </head>
 <body class="dark-mode product-detail-page">
 
@@ -1067,7 +1069,8 @@
                         const productId = Number.parseInt(params.get('id'), 10);
                         const mode = params.get('catalogo') === 'mayorista' ? 'wholesale' : 'retail';
                         const escapeAttr = value => String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-                        const normalizeImage = (value, width = 420) => {
+                        const detailWidth = Math.min(1600, Math.max(innerWidth >= 900 ? 1100 : 900, Math.ceil(Math.min(innerWidth * .9, 720) * Math.max(1, Math.min(devicePixelRatio || 1, 3)))));
+                        const normalizeImage = (value, width = detailWidth) => {
                             if (!value) return '';
                             const raw = Array.isArray(value) ? value[0] : String(value).split('\n')[0].trim();
                             if (!raw) return '';
@@ -1096,7 +1099,7 @@
                             const preview = window.ORIGINAL_STORE_INITIAL_DETAIL || JSON.parse(sessionStorage.getItem("original_store_product_detail_drive_v2:" + window.ORIGINAL_STORE_API_URL + "") || 'null');
                             const fresh = preview && Date.now() - Number(preview.savedAt || 0) < 120000;
                             if (fresh && (params.get('ref') ? preview.ref === params.get('ref') : preview.id === productId) && preview.mode === mode) {
-                                initialSrc = preview.imageCard || preview.image || preview.imageDetail || '';
+                                initialSrc = normalizeImage(preview.imageDetail || preview.image || preview.imageCard || '');
                                 initialName = preview.name || '';
                             }
                         } catch (_) {}
@@ -1107,7 +1110,7 @@
                             const product = params.get('ref') ? cachedProducts.find(p => String(p.idVariacion || p.SKU || '') === params.get('ref')) : cachedProducts[productId];
                             if (product) {
                                 initialName = product.Nombre || product.nombre || product.Producto || '';
-                                initialSrc = normalizeImage(product.Imagen || product.imagen || product.Foto || (product.Galeria && product.Galeria[0]), 420);
+                                initialSrc = normalizeImage(product.Imagen || product.imagen || product.Foto || (product.Galeria && product.Galeria[0]));
                             }
                         } catch (_) {}
 
@@ -1286,7 +1289,7 @@
             try {
                 const preview = JSON.parse(sessionStorage.getItem(PRODUCT_DETAIL_PREVIEW_KEY) || 'null');
                 const isFreshPreview = preview && Date.now() - Number(preview.savedAt || 0) < 120000;
-                const previewImage = preview?.imageCard || preview?.image || preview?.imageDetail || '';
+                const previewImage = normalizeImageUrl(preview?.imageDetail || preview?.image || preview?.imageCard || '', 'detail');
                 if (isFreshPreview && (currentDetailReference ? preview.ref === currentDetailReference : preview.id === currentDetailProductId) && preview.mode === detailCatalogMode && previewImage) {
                     let previewFallbackTried = false;
                     detailImg.onerror = () => {
@@ -1497,15 +1500,6 @@
                 const currentSrc = detailImg.getAttribute('src') || '';
                 const isSameImage = currentSrc === nextSrc;
                 if (isSameImage && detailImg.complete && detailImg.naturalWidth > 0) return;
-                if (currentSrc && getImageIdentity(currentSrc) === getImageIdentity(nextSrc) && detailImg.naturalWidth > 0) {
-                    preloadDetailImage(nextSrc);
-                    detailImg.alt = alt || detailImg.alt || '';
-                    detailImg.classList.add('is-ready');
-                    detailImgContainer.classList.remove('is-loading', 'is-fallback');
-                    detailImgContainer.style.backgroundImage = '';
-                    return;
-                }
-
                 detailImgContainer.classList.add('is-loading');
                 detailImg.classList.add('is-ready');
                 detailImg.alt = alt || '';
